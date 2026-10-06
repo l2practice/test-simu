@@ -333,7 +333,7 @@ Total output lines: 2396
   </div>
 </div>
 
-<script src="vm-common.js?v=20261006"></script>
+<script src="vm-common.js?v=20261006b"></script>
 <script>
 if (typeof VM === 'undefined') { location.href='login.html'; throw new Error('no VM'); }
 
@@ -1139,7 +1139,7 @@ document.getElementById('af-add-row').onclick = function(){
 function renderVocabTable(){
   var tbody = document.getElementById('af-vocab-tbody');
   if (!state.vocabRows.length){
-    tbody.innerHTML='<tr id="af-vocab-empty"><td colspan="5…1515 tokens truncated…');document.getElementById('irItem').innerHTML='<option value="all">All lessons</option>'+items.map(function(id){var r=rows.find(function(x){return x.contentId===id;});return'<option value="'+VM.esc(id)+'">'+VM.esc(r.title)+'</option>';}).join('');render();}).catch(function(e){document.getElementById('irMetric').textContent=e.message;});}
+    tbody.innerHTML='<tr id="af-vocab-empty"><td colspan="…1515 tokens truncated…');document.getElementById('irItem').innerHTML='<option value="all">All lessons</option>'+items.map(function(id){var r=rows.find(function(x){return x.contentId===id;});return'<option value="'+VM.esc(id)+'">'+VM.esc(r.title)+'</option>';}).join('');render();}).catch(function(e){document.getElementById('irMetric').textContent=e.message;});}
   function render(){var skill=document.getElementById('irSkill').value,student=document.getElementById('irStudent').value,item=document.getElementById('irItem').value,date=document.getElementById('irDate').value;var data=rows.filter(function(r){return(skill==='all'||r.skill===skill)&&(student==='all'||r.studentId===student)&&(item==='all'||r.contentId===item)&&(!date||String(r.completedAt).slice(0,10)>=date);}),scored=data.filter(function(r){return typeof r.score==='number'&&isFinite(r.score);});document.getElementById('irMetric').textContent=data.length?scored.length+' scored attempts of '+data.length+' total · score is practice accuracy, not an official IELTS band score.':'No IELTS attempts match this filter.';var chart=document.getElementById('irChart');chart.innerHTML='';if(!scored.length)return;var w=760,h=210,p=32,pts=scored.map(function(r,i){return[p+(scored.length<2?0:i*(w-2*p)/(scored.length-1)),h-p-r.score*(h-2*p)/100];});chart.innerHTML='<svg viewBox="0 0 '+w+' '+h+'" role="img" aria-label="IELTS practice score over time" style="width:100%;max-height:220px"><line x1="'+p+'" y1="'+p+'" x2="'+p+'" y2="'+(h-p)+'" stroke="#9ca3af"/><line x1="'+p+'" y1="'+(h-p)+'" x2="'+(w-p)+'" y2="'+(h-p)+'" stroke="#9ca3af"/><text x="4" y="'+(p+4)+'" font-size="12">100%</text><text x="15" y="'+(h-p)+'" font-size="12">0</text><polyline fill="none" stroke="#1B7F5E" stroke-width="3" points="'+pts.map(function(a){return a.join(',');}).join(' ')+'"/>'+pts.map(function(a,i){return'<circle cx="'+a[0]+'" cy="'+a[1]+'" r="4" fill="#1B7F5E"><title>'+scored[i].score+'% · '+VM.esc(scored[i].studentName)+' · '+VM.esc(scored[i].title)+'</title></circle>';}).join('')+'</svg>';}
   document.getElementById('irClass').onchange=load;['irSkill','irStudent','irItem','irDate'].forEach(function(id){document.getElementById(id).onchange=render;});
 }
