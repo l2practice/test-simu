@@ -17,14 +17,14 @@ Trang web đã được đưa lên GitHub Pages: https://l2practice.github.io/te
 
 ## Cần hoàn tất backend Apps Script trước khi mở đăng ký/chấm bài
 
-Phần web tĩnh hiện chạy, nhưng các action đăng ký/quên mật khẩu và chấm IELTS phụ thuộc Apps Script. Tôi chưa deploy Apps Script vì Apps Script mới tạo chưa được nạp mã đúng, và không muốn thay đổi deployment đang dùng bởi app VocabMaster hiện có. Cần chủ sở hữu Google xác nhận Apps Script project cần dùng rồi:
+Phần web tĩnh hiện chạy và `vm-common.js` đã trỏ tới GAS URL bạn gửi. Mình chưa xác minh được mã nguồn đang chạy ở endpoint đó: yêu cầu kiểm tra bị timeout, còn URL `/exec` chỉ dùng để gọi chứ không mở editor hoặc cập nhật code. Các action đăng ký/quên mật khẩu, nhập đề và chấm IELTS chỉ hoạt động khi dự án GAS có các hàm tương ứng trong `gas/Code.gs` và `gas/FirebaseVM.gs`. Để mình kiểm tra và deploy đúng dự án, cần link Apps Script editor dạng `script.google.com/home/projects/.../edit`.
 
 1. Mở Apps Script project đó, thêm nội dung `gas/FirebaseVM.gs`; đảm bảo `gas/Code.gs` có router `fbRoute` và `vmfbIeltsGradeAttempt` được gọi cho request chấm IELTS.
 2. Cấp OAuth scopes theo `gas/appsscript.json`, chạy kiểm tra kết nối và cấp quyền.
 3. Deploy **Web app** với quyền truy cập phù hợp; cập nhật URL `/exec` mới trong `vm-common.js` thay cho URL cũ.
 4. Commit `vm-common.js` lên GitHub để Pages dùng backend mới.
 
-Không tạo tài khoản giáo viên hay dữ liệu mẫu trong Firebase. Sau khi backend sẵn sàng, đăng ký tài khoản GV rồi tạo lớp trước khi SV đăng ký; Firestore hiện chưa có dữ liệu lớp/đề.
+Chưa có dữ liệu lớp/đề trong Firestore. Khi backend đã được xác minh, tạo tài khoản GV và lớp trước khi SV đăng ký.
 
 ## Cập nhật từ gói này
 
