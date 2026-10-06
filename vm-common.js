@@ -287,9 +287,9 @@
   };
 
   /* ── Brand ─────────────────────────────────────────────────── */
-  VM.logoSVG = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="5" fill="currentColor"/><text x="12" y="17" text-anchor="middle" font-size="13" font-weight="700" fill="#fff" font-family="system-ui">T</text></svg>';
+  VM.logoSVG = '<img src="favicon.svg" alt="">';
   VM.brandLockup = function () {
-    return '<a class="vm-logo" href="#"><span class="vm-logo-mark">' + VM.logoSVG + '</span><span class="vm-logo-name">Test Simu</span></a>';
+    return '<a class="vm-logo" href="#"><span class="vm-logo-mark">' + VM.logoSVG + '</span><span class="vm-logo-name">Test Simulation</span></a>';
   };
   /* Intro panel on the sign-in / sign-up pages (hidden below 980px) */
   VM.mountAuthHero = function (blurb) {
@@ -299,7 +299,7 @@
       '<div class="vm-auth-hero-top">' + VM.brandLockup() + '</div>' +
       '<div class="vm-auth-hero-body">' +
         '<span class="vm-auth-tag"><i></i>IELTS Reading · Listening</span>' +
-        '<h2 class="vm-auth-hero-title">Read. <br>Listen. <br><em>Improve.</em></h2>' +
+        '<h2 class="vm-auth-hero-title">Test - <br>Analyze - <br><em>Improve</em></h2>' +
         '<p class="vm-auth-hero-text">' + blurb + '</p>' +
         '<div class="vm-auth-word" aria-hidden="true">' +
           '<div class="vm-auth-word-eyebrow">✦ IELTS PRACTICE</div>' +
@@ -327,6 +327,7 @@
   var IC = {
     hw:       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>',
     inclass:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>',
+    listening:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 13v-2a8 8 0 0 1 16 0v2"/><rect x="3" y="12" width="4" height="8" rx="2"/><rect x="17" y="12" width="4" height="8" rx="2"/></svg>',
     reading:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>',
     results:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
     classes:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
