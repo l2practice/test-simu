@@ -1,0 +1,2282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%231B7F5E'/%3E%3Ctext x='12' y='17' text-anchor='middle' font-size='13' font-weight='700' fill='%23fff' font-family='system-ui'%3EV%3C/text%3E%3C/svg%3E">
+<meta name="theme-color" content="#1B7F5E">
+<title>VocabMaster</title>
+<link rel="stylesheet" href="vm-theme.css">
+<style>
+#app{min-height:100vh}
+
+/* Loading overlay */
+.vm-overlay{position:fixed;inset:0;background:rgba(13,79,58,.55);z-index:8888;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px}
+.vm-overlay.show{display:flex}
+.vm-overlay .vm-spin{width:38px;height:38px;border-width:4px}
+.vm-overlay p{color:#fff;font-size:.95rem;font-weight:600;margin:0}
+
+/* CEFR Reader */
+.cefr-shell{display:grid;grid-template-columns:1fr 300px;gap:18px;margin-top:12px}
+.cefr-filterbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--vm-surface);border:1px solid var(--vm-border-2);border-radius:var(--vm-r-sm);padding:9px 12px;margin-bottom:10px;font-size:.8rem}
+.cefr-filterbar label{display:flex;align-items:center;gap:4px;cursor:pointer;font-weight:600;user-select:none;transition:opacity .15s}
+.cefr-dot{width:10px;height:10px;border-radius:50%;flex:0 0 auto}
+.cefr-count{font-size:.68rem;color:var(--vm-ink-3);font-weight:400}
+.cefr-sep{color:var(--vm-border);font-size:1.1rem;margin:0 2px}
+.cefr-passage{background:var(--vm-surface);border:1px solid var(--vm-border-2);border-radius:var(--vm-r);padding:20px 22px;line-height:2.1;font-size:.97rem;color:var(--vm-ink);min-height:180px}
+.vm-cefr-word{cursor:pointer;border-radius:3px;transition:filter .1s}
+.vm-cefr-word:hover{filter:brightness(.85)}
+.cefr-right-panel{display:flex;flex-direction:column;gap:12px}
+.cefr-breakdown{background:var(--vm-surface);border:1px solid var(--vm-border-2);border-radius:var(--vm-r-sm);padding:12px 14px}
+.cefr-breakdown h4{margin:0 0 9px;font-size:.8rem;font-weight:700;color:var(--vm-ink)}
+.cefr-bd-row{display:flex;align-items:center;gap:7px;margin-bottom:5px;font-size:.75rem}
+.cefr-bd-row .lbl{width:26px;font-weight:700}
+.cefr-bd-bw{flex:1;background:var(--vm-border-2);border-radius:4px;height:6px;overflow:hidden}
+.cefr-bd-b{height:100%;border-radius:4px;transition:width .4s}
+.cefr-bd-pct{width:32px;text-align:right;color:var(--vm-ink-3);font-size:.7rem}
+.cefr-colloc{background:var(--vm-surface);border:1px solid var(--vm-border-2);border-radius:var(--vm-r-sm);padding:12px 14px}
+.cefr-colloc h4{margin:0 0 9px;font-size:.8rem;font-weight:700;color:var(--vm-ink)}
+.cefr-colloc-item{border-left:3px solid var(--vm-accent);padding:6px 9px;margin-bottom:7px;background:var(--vm-surface-2);border-radius:0 5px 5px 0}
+.cefr-colloc-phrase{font-weight:700;font-size:.83rem;color:var(--vm-primary-dk)}
+.cefr-colloc-vi{font-size:.74rem;color:var(--vm-ink-3);margin-top:2px}
+.cefr-tip{position:fixed;z-index:9990;background:var(--vm-primary-dk);color:#fff;border-radius:10px;padding:10px 14px;font-size:.82rem;max-width:210px;box-shadow:0 8px 30px rgba(0,0,0,.3);pointer-events:auto}
+
+/* Vocab CEFR cards */
+.vm-vocab-cefr-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.vm-vocab-cefr-card{background:var(--vm-surface);border:1px solid var(--vm-border-2);border-radius:8px;padding:9px 12px;min-width:130px;max-width:190px;box-shadow:var(--vm-shadow-sm)}
+.vm-vocab-cefr-card .vc-word{font-weight:700;font-size:.92rem;display:flex;align-items:center;gap:5px}
+.vm-vocab-cefr-card .vc-ipa{font-size:.74rem;color:var(--vm-ink-3);margin-top:2px}
+.vm-vocab-cefr-card .vc-vi{font-size:.78rem;color:var(--vm-primary-dk);margin-top:3px;font-style:italic}
+.vm-cefr-badge{display:inline-block;font-size:.6rem;font-weight:700;padding:1px 5px;border-radius:7px;color:#fff;vertical-align:middle;line-height:1.4}
+
+/* Review Timer */
+.review-shell{display:grid;grid-template-columns:1fr 280px;gap:16px;height:calc(100vh - 210px);min-height:380px}
+.review-passage-col{display:flex;flex-direction:column;overflow:hidden}
+.review-passage-body{flex:1;overflow-y:auto;background:var(--vm-surface);border:1px solid var(--vm-border-2);border-radius:var(--vm-r);padding:18px 20px;line-height:2;font-size:.93rem}
+.review-vocab-col{overflow-y:auto;display:flex;flex-direction:column;gap:10px}
+.rv-card{background:var(--vm-surface);border:1px solid var(--vm-border-2);border-radius:var(--vm-r-sm);padding:10px 12px;box-shadow:var(--vm-shadow-sm)}
+.rv-card .rv-word{font-weight:700;font-size:.95rem;color:var(--vm-ink);display:flex;align-items:center;gap:5px}
+.rv-card .rv-badge{display:inline-block;font-size:.58rem;font-weight:700;padding:1px 5px;border-radius:6px;color:#fff}
+.rv-card .rv-ipa{font-size:.73rem;color:var(--vm-ink-3);margin-top:2px}
+.rv-card .rv-syns{font-size:.75rem;color:var(--vm-ink-2);margin-top:3px}
+.rv-card .rv-vi{font-size:.78rem;color:var(--vm-primary-dk);font-style:italic;margin-top:3px}
+.timer-bar-wrap{height:6px;background:var(--vm-border-2);border-radius:4px;overflow:hidden;margin-bottom:10px}
+.timer-bar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--vm-primary),#1BAF80);transition:width 1s linear}
+.timer-bar-fill.warn{background:linear-gradient(90deg,#F59E0B,#EF4444)}
+.timer-info{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;font-size:.82rem;color:var(--vm-ink-2);font-weight:600}
+
+/* Quiz */
+/* Prominent question prompt — serif, large, centered */
+.vm-quiz-prompt-box{
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.55rem;
+  font-weight: 700;
+  color: var(--vm-ink);
+  text-align: center;
+  line-height: 1.4;
+  margin: 0 0 24px;
+  padding: 18px 16px 20px;
+  background: linear-gradient(135deg, #F0FDF8, #E8F5FF);
+  border-radius: 12px;
+  border: 2px solid rgba(27,127,94,.18);
+  letter-spacing: -.01em;
+  word-break: break-word;
+}
+.vm-quiz-options{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.vm-opt{background:var(--vm-surface-2);border:2px solid var(--vm-border);border-radius:var(--vm-r-sm);padding:14px 16px;cursor:pointer;font-size:.93rem;font-weight:500;transition:border .15s,background .15s;text-align:center;font-family:var(--vm-font-body);-webkit-tap-highlight-color:transparent}
+.vm-opt:active{transform:scale(.97)}
+.vm-opt.selected{border-color:var(--vm-primary);background:var(--vm-primary-lt);color:var(--vm-primary-dk)}
+.vm-opt.correct{border-color:var(--vm-ok)!important;background:#E3F5EE!important;color:#0A4D28!important}
+.vm-opt.wrong{border-color:var(--vm-danger)!important;background:#FDECEA!important;color:#8B1A1A!important}
+.vm-opt:disabled{cursor:default}
+.vm-quiz-submit{width:100%;margin-top:14px;padding:13px}
+.vm-quiz-input{width:100%;font-size:1.05rem;padding:13px 15px;border:2px solid var(--vm-border);border-radius:var(--vm-r-sm);font-family:var(--vm-font-display);font-weight:600;text-align:center;transition:border .15s}
+.vm-quiz-input:focus{outline:none;border-color:var(--vm-primary);box-shadow:var(--vm-ring)}
+.vm-quiz-input.correct{border-color:var(--vm-ok)!important;background:#E3F5EE!important}
+.vm-quiz-input.wrong{border-color:var(--vm-danger)!important;background:#FDECEA!important}
+.vm-quiz-fb{margin-top:10px;font-size:.9rem;font-weight:600;min-height:22px}
+.vm-quiz-fb.ok{color:var(--vm-ok)}.vm-quiz-fb.bad{color:var(--vm-danger)}
+@keyframes vm-perfect{0%{transform:scale(1)}50%{transform:scale(1.08)}100%{transform:scale(1)}}
+.vm-perfect-anim{animation:vm-perfect .6s ease}
+
+/* Mobile */
+@media(max-width:640px){
+  .cefr-shell{grid-template-columns:1fr}
+  .cefr-right-panel{display:none}
+  .review-shell{grid-template-columns:1fr;height:auto}
+  .review-passage-body{max-height:42vh}
+  .review-vocab-col{flex-direction:row;flex-wrap:wrap;overflow-x:auto;gap:8px}
+  .rv-card{min-width:140px;flex:0 0 auto}
+  .vm-quiz-options{grid-template-columns:1fr}
+  .vm-kpi-row{grid-template-columns:repeat(3,1fr)}
+  .vm-kpi-value{font-size:1.4rem}
+  .vm-assign-grid{grid-template-columns:1fr}
+  .vm-content{padding:14px 12px}
+  .vm-topbar{padding:12px 14px}
+}
+@media(max-width:380px){.vm-kpi-row{grid-template-columns:1fr 1fr}}
+
+/* ReadWise specific */
+.rw-stats-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.rw-stat-card{background:var(--vm-surface);border:1px solid var(--vm-border-2);border-radius:var(--vm-r-sm);padding:12px 14px;text-align:center}
+.rw-stat-val{font-family:var(--vm-font-display);font-size:1.6rem;font-weight:700;color:var(--vm-ink)}
+.rw-stat-lbl{font-size:.72rem;color:var(--vm-ink-3);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-top:3px}
+.rw-article-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.rw-article-card{background:var(--vm-surface);border:2px solid var(--vm-border-2);border-radius:var(--vm-r);padding:18px 20px;cursor:pointer;transition:transform .13s,box-shadow .15s,border-color .15s;box-shadow:var(--vm-shadow-sm)}
+.rw-article-card:hover{transform:translateY(-3px);box-shadow:var(--vm-shadow-lg);border-color:var(--vm-primary)}
+.rw-article-title{font-family:var(--vm-font-display);font-weight:700;font-size:.98rem;color:var(--vm-ink);margin:0 0 6px}
+.rw-article-meta{font-size:.76rem;color:var(--vm-ink-3);display:flex;gap:10px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+
+<!-- Global loading overlay -->
+<div class="vm-overlay" id="globalOverlay">
+  <span class="vm-spin"></span>
+  <p id="overlayMsg">Loading…</p>
+</div>
+
+<div id="app"></div>
+
+<script src="vm-common.js"></script>
+<script src="cefr-dict.js"></script>
+<script src="vm-cefr.js"></script>
+<script>
+if (typeof VM === 'undefined') { location.href='login.html'; throw new Error('no VM'); }
+var sess = VM.session.require('student');
+if (!sess) throw new Error('not student');
+var hasCEFR = typeof VMCEFR !== 'undefined';
+var LC = {'1':'#22C55E','2':'#3B82F6','3':'#F59E0B','4':'#EF4444','5':'#8B5CF6','6':'#EC4899'};
+var LN = {'A1':'1','A2':'2','B1':'3','B2':'4','C1':'5','C2':'6'};
+
+/* ── Loading overlay ─────────────────────────── */
+function showOverlay(msg){
+  document.getElementById('overlayMsg').textContent = msg||'Loading…';
+  document.getElementById('globalOverlay').classList.add('show');
+}
+function hideOverlay(){ document.getElementById('globalOverlay').classList.remove('show'); }
+
+/* ── State ───────────────────────────────────── */
+var S = { assignments:[], myResults:[], activeTab:'home' };
+
+/* ── Shell ───────────────────────────────────── */
+VM.renderShell({
+  mount:'app', eyebrow:'VocabMaster', title:'Home', user:sess,
+  nav:[
+    {id:'home',    label:'Home',         icon:'overview'},
+    {id:'homework',label:'Homework',      icon:'hw'},
+    {id:'inclass', label:'In-class',      icon:'inclass'},
+    {id:'reading', label:'ReadWise',      icon:'reading'},
+    {id:'ielts',   label:'IELTS Practice', icon:'reading', href:'ielts.html'},
+    {id:'history',  label:'History',       icon:'results'},
+    {id:'translate', label:'Dịch',          icon:'reading'},
+    {id:'settings', label:'Settings',      icon:'edit'},
+  ],
+  onNav: switchTab
+});
+
+function switchTab(id){
+  S.activeTab=id;
+  VM.setActiveNav(id);
+  var titles={home:'Home',homework:'Homework',inclass:'In-class Review',reading:'ReadWise',translate:'Luyện Dịch',history:'History',settings:'Settings'};
+  VM.setTitle(titles[id]||id);
+  var c=document.getElementById('vmContent');
+  c.innerHTML='<div class="vm-empty" style="padding:40px"><span class="vm-spin-dark" style="width:22px;height:22px;border-width:3px"></span></div>';
+  if(id==='home')      renderHome();
+  else if(id==='homework') renderAssignList('homework');
+  else if(id==='inclass')  renderAssignList('inclass');
+  else if(id==='reading')  renderReadWise();
+  else if(id==='settings') renderSettings();
+  else if(id==='translate') renderTranslateList();
+  else if(id==='history'){
+    // Pre-load assignments so retry buttons work
+    if(!S.assignments.length) loadAssignments(function(){ renderHistory(); });
+    else renderHistory();
+  }
+}
+
+function loadAssignments(cb){
+  VM.api('assign.forStudent',{classId:sess.class}).then(function(res){
+    if(res&&res.success) S.assignments=res.data||[];
+    if(cb) cb();
+  }).catch(function(){ if(cb) cb(); });
+}
+function loadMyResults(cb){
+  VM.api('result.getForStudent',{studentId:sess.studentId}).then(function(res){
+    if(res&&res.success) S.myResults=res.data||[];
+    if(cb) cb();
+  }).catch(function(){ if(cb) cb(); });
+}
+
+/* ── Home ─────────────────────────────────────── */
+function renderHome(){
+  loadAssignments(function(){
+    loadMyResults(function(){
+      var c=document.getElementById('vmContent');
+      var hw=S.assignments.filter(function(a){return a.mode==='homework';});
+      var ic=S.assignments.filter(function(a){return a.mode==='inclass';});
+      var done=hw.filter(function(a){return isPerfectGoalMet(a,myResultsFor(a.assignmentId));}).length;
+      c.innerHTML=
+        '<div id="vmTodaysWord"></div>'+
+        '<div class="vm-kpi-row">'+
+          kpi(hw.length,'Homework','open')+kpi(ic.length,'In-class','open')+kpi(done,'Done','homework')+
+        '</div>'+
+        '<h3 style="font-family:var(--vm-font-display);margin:0 0 12px;font-size:1rem">📝 Homework</h3>'+
+        renderCards(hw.slice(0,4))+
+        '<h3 style="font-family:var(--vm-font-display);margin:20px 0 12px;font-size:1rem">🖥️ In-class</h3>'+
+        renderCards(ic.slice(0,4));
+      VM.renderTodaysWord('vmTodaysWord');
+      bindCards();
+    });
+  });
+}
+function kpi(v,l,s){
+  return '<div class="vm-kpi"><div class="vm-kpi-label">'+l+'</div>'+
+    '<div class="vm-kpi-value">'+v+'</div>'+(s?'<div class="vm-kpi-sub">'+s+'</div>':'')+
+  '</div>';
+}
+
+/* ── Assignment cards ────────────────────────── */
+function renderAssignList(mode){
+  showOverlay('Loading assignments…');
+  loadAssignments(function(){
+    loadMyResults(function(){
+      hideOverlay();
+      var c=document.getElementById('vmContent');
+      var items=S.assignments.filter(function(a){return a.mode===mode;});
+      c.innerHTML=items.length?renderCards(items):'<div class="vm-empty"><p>No assignments yet.</p></div>';
+      bindCards();
+    });
+  });
+}
+
+function myResultsFor(aid){ return S.myResults.filter(function(r){return r.assignmentId===aid;}); }
+function isPerfectGoalMet(a,res){
+  if(a.mode!=='homework') return false;
+  var req=parseInt(a.requiredGoals,10)||3;
+  return res.filter(function(r){return r.isPerfect;}).length>=req;
+}
+
+/* ── canStartInclass guard ── */
+function canStartInclass(asgn) {
+  if (asgn.mode !== 'inclass') return true;
+  // Use sessionStatus from server if available
+  var st = asgn.sessionStatus;
+  if (!st && asgn.sessionStart) {
+    var start = new Date(asgn.sessionStart);
+    var end = asgn.sessionEnd ? new Date(asgn.sessionEnd)
+              : new Date(start.getTime() + (asgn.sessionDurationMin||0)*60000);
+    var now = Date.now();
+    st = now < start.getTime() ? 'upcoming' : now > end.getTime() ? 'closed' : 'open';
+  }
+  if (st === 'upcoming') { VM.toast('Chưa đến giờ làm bài.', 'warn'); return false; }
+  if (st === 'closed')   { VM.toast('Session đã kết thúc.', 'warn');  return false; }
+  return true;
+}
+
+function fmtSessionTime(isoStr) {
+  if (!isoStr) return '';
+  var d = new Date(isoStr);
+  if (isNaN(d)) return isoStr;
+  return d.toLocaleString('vi-VN', {
+    day:'2-digit', month:'2-digit', year:'numeric',
+    hour:'2-digit', minute:'2-digit', hour12:false
+  });
+}
+
+function renderCards(items){
+  if(!items.length) return '<div class="vm-empty"><p>No assignments.</p></div>';
+  return '<div class="vm-assign-grid">'+items.map(function(a){
+    var res=myResultsFor(a.assignmentId);
+    var att=res.length, perf=res.filter(function(r){return r.isPerfect;}).length;
+    var req=parseInt(a.requiredGoals,10)||3;
+    var done=a.mode==='homework'&&perf>=req;
+    var pct=a.mode==='homework'?Math.min(100,Math.round(perf/req*100)):0;
+    var dl=a.deadline?'⏰ '+VM.esc(a.deadline):'∞ No deadline';
+
+    // In-class session info + status badge
+    // already submitted — only 1 attempt allowed, unless the teacher extended time for a run that timed out
+    var _last = res.slice().sort(function(x,y){return String(y.timestamp).localeCompare(String(x.timestamp));})[0];
+    var icDone = a.mode==='inclass' && att > 0 && !(a.extended && _last && _last.timedOut && !_last.absent);
+    var icMeta='', btnLabel=att?'Try again →':'Start →', btnDisabled=false;
+    if(a.mode==='inclass'){
+      var st=a.sessionStatus;
+      // Re-compute if missing
+      if(!st && a.sessionStart){
+        var _s=new Date(a.sessionStart).getTime();
+        var _e=a.sessionEnd?new Date(a.sessionEnd).getTime():_s+(a.sessionDurationMin||0)*60000;
+        var _n=Date.now();
+        st=_n<_s?'upcoming':_n>_e?'closed':'open';
+      }
+      var badge='', badgeColor='';
+      if(icDone){ badge='✅ Đã nộp'; badgeColor='var(--vm-ok)'; btnDisabled=true; btnLabel='Đã nộp ✓'; }
+      else if(st==='upcoming'){ badge='⏳ Chưa đến giờ'; badgeColor='#A66B00'; btnDisabled=true; btnLabel='Chưa mở'; }
+      else if(st==='closed'){ badge='⏹ Đã kết thúc'; badgeColor='var(--vm-ink-3)'; btnDisabled=true; btnLabel='Vắng'; }
+      else { badge='🟢 Đang mở'; badgeColor='var(--vm-ok)'; btnLabel='Bắt đầu →'; }
+
+      var sessionLine='';
+      if(a.sessionStart){
+        sessionLine='<div style="font-size:.74rem;color:var(--vm-ink-3);margin-top:3px">'+
+          '🕐 '+VM.esc(fmtSessionTime(a.sessionStart))+
+          (a.sessionDurationMin?' · '+a.sessionDurationMin+' phút':'')+
+        '</div>';
+      }
+      icMeta='<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">'+
+               '<span style="font-size:.75rem;font-weight:700;color:'+badgeColor+'">'+badge+'</span>'+
+             '</div>'+sessionLine;
+    }
+
+    return '<div class="vm-assign-card'+(done?' complete':'')+'" data-open-asgn="'+VM.esc(a.assignmentId)+'">'+
+      '<div style="display:flex;justify-content:space-between;gap:8px">'+
+        '<div class="vm-assign-card-title">'+VM.esc(a.title)+'</div>'+
+        (done?'<span style="color:var(--vm-ok);font-size:1.1rem;flex:0 0 auto">✓</span>':'')+
+      '</div>'+
+      icMeta+
+      '<div class="vm-assign-meta"><span>📚 '+(a.vocab||[]).length+' words</span>'+
+        (a.mode!=='inclass'?'<span>'+dl+'</span>':'')+
+      '</div>'+
+      (a.mode==='homework'?
+        '<div class="vm-assign-progress">'+
+          '<div style="display:flex;justify-content:space-between;font-size:.76rem;font-weight:600">'+
+            '<span>Goals: <b style="color:'+(done?'var(--vm-ok)':'var(--vm-primary)')+'">'+perf+'/'+req+'</b></span>'+
+            '<span style="color:var(--vm-ink-3)">Attempts: '+att+'</span>'+
+          '</div>'+
+          '<div class="vm-assign-pbar"><div class="vm-assign-pfill'+(done?' done':'')+'" style="width:'+pct+'%"></div></div>'+
+        '</div>':
+        '<div style="font-size:.76rem;color:var(--vm-ink-3)">Attempts: '+att+'</div>')+
+      '<button class="vm-btn vm-btn-primary vm-btn-block" '+
+        (btnDisabled?'disabled style="opacity:.5;cursor:not-allowed;padding:10px;font-size:.88rem;margin-top:6px"':'style="padding:10px;font-size:.88rem;margin-top:6px"')+
+        '>'+btnLabel+'</button>'+
+    '</div>';
+  }).join('')+'</div>';
+}
+
+function bindCards(){
+  VM.els('[data-open-asgn]').forEach(function(card){
+    card.onclick=function(e){
+      // Ignore clicks directly on disabled button
+      if(e.target.tagName==='BUTTON'&&e.target.disabled) return;
+      var aId=card.getAttribute('data-open-asgn');
+      var asgn=S.assignments.find(function(a){return a.assignmentId===aId;});
+      if(!asgn) return;
+      if(asgn.mode==='homework') openReview(asgn);
+      else {
+        if(!canStartInclass(asgn)) return;
+        openQuizDirect(asgn);
+      }
+    };
+  });
+}
+
+/* ── Review (6-min mandatory read) ──────────── */
+/* ── Pretest modal (full-screen, vocab master style) ── */
+function showPretestModal(asgn, onStart) {
+  // Create full-screen overlay like vocab master's pretest-shell
+  var old = document.getElementById('vmPretestModal');
+  if (old) old.remove();
+
+  var hasPerfect = myResultsFor(asgn.assignmentId).filter(function(r){return r.isPerfect;}).length > 0;
+  var SECS = 360; // 6 minutes
+  var vocab = asgn.vocab || [];
+  var passage = asgn.reading || '';
+  var passHtml = passage
+    ? passage.split(/\n{2,}|\n/).filter(function(p){return p.trim();})
+        .map(function(p){return '<p style="margin:0 0 14px;line-height:1.78">'+VM.esc(p.trim())+'</p>';}).join('')
+    : '<em style="color:var(--vm-ink-3)">No reading passage provided.</em>';
+
+  var vocabRows = vocab.map(function(v){
+    return '<tr>'+
+      '<td style="font-weight:700;font-size:.95rem;padding:11px 12px;color:var(--vm-ink);border-bottom:1px solid var(--vm-border-2)">'+VM.esc(v.word||'')+'</td>'+
+      '<td style="font-family:monospace;font-size:.78rem;padding:11px 12px;color:var(--vm-ink-2);white-space:nowrap;border-bottom:1px solid var(--vm-border-2)">'+VM.esc(v.ipa||'—')+'</td>'+
+      '<td style="padding:11px 12px;color:var(--vm-ink-2);font-weight:500;border-bottom:1px solid var(--vm-border-2)">'+VM.esc((v.synonyms&&v.synonyms.length?v.synonyms[0]:'')||v.syn||'—')+'</td>'+
+      '<td style="padding:11px 12px;color:var(--vm-primary);font-weight:700;border-bottom:1px solid var(--vm-border-2)">'+VM.esc(v.vi||v.meaningVi||'—')+'</td>'+
+    '</tr>';
+  }).join('');
+
+  var el = document.createElement('div');
+  el.id = 'vmPretestModal';
+  el.className = 'vm-pt';
+  el.style.cssText = 'position:fixed;inset:0;z-index:9000;background:var(--vm-bg);display:flex;flex-direction:column;overflow:hidden';
+  el.innerHTML =
+    // Dark topbar
+    '<div id="ptTopbar" class="vm-pt-top" style="background:var(--vm-primary-dk);color:#fff;padding:10px 20px;display:flex;align-items:center;gap:16px;flex-shrink:0;border-bottom:3px solid #F3DFA8">'+
+      '<div style="text-align:center;min-width:60px">'+
+        '<div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.75);letter-spacing:.08em;text-transform:uppercase">Remaining</div>'+
+        '<div id="ptTimer" style="font-family:monospace;font-size:1.6rem;font-weight:700;color:#fff;line-height:1">6:00</div>'+
+      '</div>'+
+      '<div class="vm-pt-ttl" style="flex:1;min-width:0">'+
+        '<div style="font-weight:700;font-size:1rem;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+VM.esc(asgn.title)+'</div>'+
+        '<div style="font-size:12px;color:rgba(255,255,255,.8);margin-top:2px">Study the passage and vocabulary carefully before starting</div>'+
+      '</div>'+
+      '<button id="ptStart" class="vm-pt-start" disabled style="white-space:nowrap;min-width:180px;background:#F3DFA8;color:#2B2118;border:none;border-radius:999px;padding:10px 18px;font-weight:700;font-size:.88rem;cursor:pointer;font-family:inherit">'+
+        '🔒 Unlocks in <span id="ptCountdown">6:00</span>'+
+      '</button>'+
+      (hasPerfect?'<button id="ptSkip" style="white-space:nowrap;background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.3);color:#fff;padding:9px 14px;border-radius:8px;font-family:inherit;font-weight:600;font-size:.82rem;cursor:pointer">⚡ Skip</button>':'')+ 
+      '<button id="ptClose" style="background:rgba(255,255,255,.08);border:none;color:rgba(255,255,255,.85);width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px;flex-shrink:0">✕</button>'+
+    '</div>'+
+    // Body: passage left, vocab right
+    '<div class="vm-pt-body" style="flex:1;display:flex;overflow:hidden">'+
+      '<div class="vm-pt-pass" style="flex:1.2;overflow-y:auto;padding:22px 26px;background:var(--vm-surface);margin:12px 0 12px 12px;border-radius:var(--vm-r-lg)">'+
+        '<div style="font-family:var(--vm-font-display);font-size:1.05rem;font-weight:700;color:var(--vm-ink);margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--vm-accent)">📖 Reading Passage</div>'+
+        '<div style="font-family:var(--vm-font-essay);font-size:1.02rem;color:var(--vm-ink)">'+passHtml+'</div>'+
+      '</div>'+
+      '<div class="vm-pt-vocab" style="flex:1;overflow-y:auto;padding:22px 20px;background:var(--vm-surface);margin:12px;border-radius:var(--vm-r-lg)">'+
+        '<div style="font-family:var(--vm-font-display);font-size:1.05rem;font-weight:700;color:var(--vm-ink);margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--vm-accent)">📚 Vocabulary to Study</div>'+
+        '<div style="overflow-x:auto">'+
+        '<table style="width:100%;border-collapse:collapse;font-size:.9rem">'+
+          '<thead><tr style="background:var(--vm-sand)">'+
+            '<th style="text-align:left;padding:8px 12px;font-size:.73rem;color:var(--vm-ink);font-weight:700;text-transform:uppercase;letter-spacing:.05em">Word</th>'+
+            '<th style="text-align:left;padding:8px 12px;font-size:.73rem;color:var(--vm-ink);font-weight:700;text-transform:uppercase;letter-spacing:.05em">IPA</th>'+
+            '<th style="text-align:left;padding:8px 12px;font-size:.73rem;color:var(--vm-ink);font-weight:700;text-transform:uppercase;letter-spacing:.05em">Synonym / Definition</th>'+
+            '<th style="text-align:left;padding:8px 12px;font-size:.73rem;color:var(--vm-ink);font-weight:700;text-transform:uppercase;letter-spacing:.05em">Vietnamese</th>'+
+          '</tr></thead>'+
+          '<tbody>'+vocabRows+'</tbody>'+
+        '</table></div>'+
+      '</div>'+
+    '</div>';
+
+  document.body.appendChild(el);
+
+  // Timer
+  var remaining = SECS;
+  var interval = setInterval(function(){
+    remaining--;
+    var m=Math.floor(remaining/60),s2=remaining%60;
+    var fmt=m+':'+(s2<10?'0':'')+s2;
+    var td=document.getElementById('ptTimer');
+    var cd=document.getElementById('ptCountdown');
+    if(td) td.textContent=fmt;
+    if(cd) cd.textContent=fmt;
+    if(td && remaining<=60) td.style.color='#F87171';
+    if(remaining<=0){
+      clearInterval(interval);
+      var btn=document.getElementById('ptStart');
+      if(btn){btn.disabled=false;btn.innerHTML='🚀 Start Quiz Now!';btn.style.background='#10B981';}
+      if(td) td.textContent='Ready!';
+    }
+  },1000);
+
+  function close(){ clearInterval(interval); el.remove(); }
+
+  document.getElementById('ptClose').onclick=function(){ close(); switchTab(S.activeTab); };
+  document.getElementById('ptStart').onclick=function(){ close(); onStart(); };
+  if(hasPerfect){
+    document.getElementById('ptSkip').onclick=function(){ close(); onStart(); };
+  }
+}
+
+var _reviewTimer=null;
+function clearReviewTimer(){ if(_reviewTimer){clearInterval(_reviewTimer);_reviewTimer=null;} }
+
+function openReview(asgn){
+  showPretestModal(asgn, function(){ openQuizDirect(asgn); });
+}
+
+function openQuizDirect(asgn){
+  clearReviewTimer();
+  var c=document.getElementById('vmContent');
+  VM.setTitle(asgn.title);
+  // No mode selector — always random mixed
+  c.innerHTML=
+    '<button class="vm-btn vm-btn-ghost vm-btn-sm" id="qBack" style="margin-bottom:12px">← Back</button>'+
+    '<div id="quizArea"></div>';
+  document.getElementById('qBack').onclick=function(){ S.quiz=null; switchTab(S.activeTab); };
+  startQuiz(asgn);
+}
+
+var _icTimerInterval = null;
+
+function clearICTimer(){
+  if(_icTimerInterval){ clearInterval(_icTimerInterval); _icTimerInterval=null; }
+}
+
+function startQuiz(asgn){
+  var vocab=asgn.vocab||[];
+  if(!vocab.length){document.getElementById('quizArea').innerHTML='<div class="vm-empty"><p>No vocabulary in this assignment.</p></div>';return;}
+  S.quiz=VM.buildQuiz(vocab,{isReview:asgn.mode==='inclass',total:65});
+  S.quizState={asgn:asgn,qIdx:0,correct:0,startTs:Date.now(),wrongAnswers:{}};
+  clearICTimer();
+
+  // BUG 5c: inclass session countdown timer
+  if(asgn.mode==='inclass' && (asgn.sessionEnd || asgn.sessionStart)){
+    var endTs;
+    if(asgn.sessionEnd) endTs = new Date(asgn.sessionEnd).getTime();
+    else endTs = new Date(asgn.sessionStart).getTime() + (asgn.sessionDurationMin||45)*60000;
+
+    if(!isNaN(endTs) && endTs > Date.now()){
+      _icTimerInterval = setInterval(function(){
+        var remaining = Math.max(0, endTs - Date.now());
+        var el = document.getElementById('icCountdown');
+        if(el){
+          var m = Math.floor(remaining/60000);
+          var s = Math.floor((remaining%60000)/1000);
+          el.textContent = '⏱ ' + m + ':' + (s<10?'0':'') + s;
+          el.style.color = remaining < 120000 ? 'var(--vm-danger)' : '';
+        }
+        if(remaining <= 0){
+          clearICTimer();
+          if(S.quizState && !S.quizState.timedOut){
+            S.quizState.timedOut = true;
+            VM.toast('⏰ Hết giờ! Auto-submit...', 'warn', 3000);
+            setTimeout(showResult, 1500);
+          }
+        }
+      }, 1000);
+    }
+  }
+
+  renderQ();
+}
+
+function renderQ(){
+  var qs=S.quizState,q=S.quiz.questions[qs.qIdx],total=S.quiz.total;
+  if(!q){showResult();return;}
+  var pct=Math.round(qs.qIdx/total*100);
+  var isFITB=q.type==='fitb';
+  document.getElementById('quizArea').innerHTML=
+    '<div class="vm-quiz-wrap">'+
+      '<div class="vm-quiz-header" style="margin-bottom:12px">'+
+        '<div class="vm-quiz-progress">'+
+          '<span style="font-size:.8rem;color:var(--vm-ink-3)">'+q.label+'</span>'+
+          ' · Q '+(qs.qIdx+1)+'/'+total+
+          '<div class="vm-quiz-bar" style="width:140px;margin-left:8px"><div class="vm-quiz-bar-fill" style="width:'+pct+'%"></div></div>'+
+        '</div>'+
+        '<span style="font-size:.8rem;color:var(--vm-ink-3)">✓ '+qs.correct+'</span>'+
+      '</div>'+
+      '<div class="vm-quiz-card">'+
+        '<div class="vm-quiz-prompt-box">'+VM.esc(q.prompt)+'</div>'+
+        (isFITB?renderFITB(q):renderMC(q))+
+      '</div>'+
+    '</div>';
+  bindQuizInput(q,isFITB);
+}
+
+function renderMC(q){
+  return '<div class="vm-quiz-options">'+
+    q.choices.map(function(ch){
+      return '<button class="vm-opt" data-ans="'+VM.esc(ch)+'">'+VM.esc(ch)+'</button>';
+    }).join('')+
+  '</div>'+
+  '<div class="vm-quiz-fb" id="qFb"></div>'+
+  '<button class="vm-btn vm-btn-primary vm-quiz-submit" id="qSubmit" disabled style="margin-top:12px">Confirm</button>';
+}
+
+function renderFITB(q){
+  return '<div class="vm-quiz-prompt-box" style="font-family:var(--vm-font-body);font-size:1.1rem;font-weight:500;background:linear-gradient(135deg,#EFF6FF,#E0EFFE);border-color:rgba(59,130,246,.25)">'+
+      q.sentence.replace('_______','<span style="display:inline-block;min-width:90px;border-bottom:3px solid #1B7F5E;padding:0 8px;font-weight:700;color:var(--vm-primary);font-family:monospace;font-size:1.2rem">_______</span>')+
+    '</div>'+
+    '<div style="font-size:.78rem;color:var(--vm-ink-3);margin-bottom:10px;text-align:center">First letter: <b style="font-family:monospace;font-size:1.1rem;color:var(--vm-primary)">'+q.firstLetter+'</b> · '+q.wordLen+' letters</div>'+
+    '<input class="vm-quiz-input" id="qFitbInput" placeholder="Type the word…" autocomplete="off" spellcheck="false" maxlength="'+(q.wordLen+5)+'">'+
+    '<div class="vm-quiz-fb" id="qFb"></div>'+
+    '<button class="vm-btn vm-btn-primary vm-quiz-submit" id="qSubmit" style="margin-top:12px" disabled>Confirm</button>';
+}
+
+function bindQuizInput(q,isFITB){
+  var answered=false, selected=null;
+  function confirm(){
+    if(answered) return;
+    if(!isFITB && !selected) return;
+    if(isFITB){
+      var inp=document.getElementById('qFitbInput');
+      if(!inp||!inp.value.trim()) return;
+      selected=inp.value.trim();
+    }
+    answered=true;
+    var res=S.quiz.check(S.quizState.qIdx,selected);
+    var fb=document.getElementById('qFb');
+    var sub=document.getElementById('qSubmit');
+    if(sub){sub.disabled=true;sub.textContent='Submitted';}
+    if(!isFITB){
+      VM.els('[data-ans]').forEach(function(btn){
+        btn.disabled=true;btn.classList.remove('selected');
+        if(btn.getAttribute('data-ans')===q.correct) btn.classList.add('correct');
+        else if(btn.getAttribute('data-ans')===selected&&!res.correct) btn.classList.add('wrong');
+      });
+    } else {
+      var inp2=document.getElementById('qFitbInput');
+      if(inp2){inp2.disabled=true;inp2.classList.add(res.correct?'correct':'wrong');}
+    }
+    if(fb){fb.className='vm-quiz-fb '+(res.correct?'ok':'bad');
+           fb.textContent=res.correct?'✓ Correct!':'✗ Answer: '+q.correct;}
+    if(res.correct) { S.quizState.correct++; }
+    else {
+      S.quizState.wrongAnswers = S.quizState.wrongAnswers||{};
+      S.quizState.wrongAnswers[S.quizState.qIdx] = true;
+    }
+    setTimeout(function(){
+      S.quizState.qIdx++;
+      if(S.quizState.qIdx>=S.quiz.total) showResult();
+      else renderQ();
+    },res.correct?900:1800);
+  }
+  if(!isFITB){
+    VM.els('[data-ans]').forEach(function(btn){
+      btn.onclick=function(){
+        if(answered) return;
+        selected=btn.getAttribute('data-ans');
+        VM.els('[data-ans]').forEach(function(b){b.classList.remove('selected');});
+        btn.classList.add('selected');
+        var sub=document.getElementById('qSubmit');if(sub)sub.disabled=false;
+      };
+    });
+    var sub=document.getElementById('qSubmit');if(sub)sub.onclick=confirm;
+  } else {
+    var inp=document.getElementById('qFitbInput'),sub2=document.getElementById('qSubmit');
+    if(inp){
+      inp.focus();
+      inp.oninput=function(){if(sub2)sub2.disabled=!inp.value.trim();};
+      inp.onkeydown=function(e){if(e.key==='Enter'&&sub2&&!sub2.disabled)confirm();};
+    }
+    if(sub2) sub2.onclick=confirm;
+  }
+}
+
+function showResult(){
+  var qs=S.quizState,total=S.quiz.total;
+  var score=Math.round(qs.correct/total*100),isPerfect=score===100,dur=Math.round((Date.now()-qs.startTs)/1000);
+  var asgn=qs.asgn;
+  showOverlay('Saving result…');
+  // Collect missed words from quiz state (words answered wrong or not reached)
+  var missedWords = [];
+  if(asgn.mode==='inclass' && S.quiz && S.quiz.questions){
+    S.quiz.questions.forEach(function(q,i){
+      var r2=S.quizState.wrongAnswers||{};
+      // Wrong if answered wrong, or if qIdx stopped before this question
+      if(i>=qs.qIdx || r2[i]===true) {
+        if(missedWords.indexOf(q.word)<0) missedWords.push(q.word);
+      }
+    });
+  }
+  var apiAction = asgn.mode==='inclass' ? 'result.saveInclass' : 'result.save';
+  VM.api(apiAction,{
+    studentId:sess.studentId,name:sess.name,class:sess.class||asgn.classId,
+    assignmentId:asgn.assignmentId,title:asgn.title,mode:asgn.mode,
+    score:score,isPerfect:isPerfect,durationSec:dur,correct:qs.correct,total:total,
+    missedWords:missedWords,
+    timedOut:!!(qs.timedOut),
+  }).then(function(r){
+    hideOverlay();
+    if(r&&r.success) loadMyResults(function(){});
+    else VM.toast('Failed to save result.','err');
+  }).catch(function(){hideOverlay();VM.toast('Connection error.','err');});
+
+  var lr=S.myResults.filter(function(r){return r.assignmentId===asgn.assignmentId;});
+  var perfects=lr.filter(function(r){return r.isPerfect;}).length+(isPerfect?1:0);
+  var attempts=lr.length+1, req=parseInt(asgn.requiredGoals,10)||3;
+  var goalMet=asgn.mode==='homework'&&perfects>=req;
+  var sc=score===100?'var(--vm-ok)':(score>=60?'#A66B00':'var(--vm-danger)');
+
+  document.getElementById('quizArea').innerHTML=
+    '<div class="vm-result-banner'+(isPerfect?' vm-perfect-anim':'')+'" style="margin-top:8px">'+
+      (isPerfect?'<div style="font-size:2.4rem;margin-bottom:6px">🎉</div>':'')+
+      '<div class="vm-result-score" style="color:'+sc+'">'+score+'%</div>'+
+      '<div class="vm-result-label">'+qs.correct+'/'+total+' correct</div>'+
+      '<div class="vm-result-badges" style="margin-top:14px">'+
+        bdg(VM.fmtDuration(dur),'Duration')+
+        (asgn.mode==='homework'?
+          bdg(attempts,'Attempts')+
+          '<div class="vm-result-badge"><div class="val" style="color:'+(goalMet?'var(--vm-ok)':'var(--vm-ink)')+'">'+perfects+'/'+req+'</div>'+
+          '<div class="lbl">Goals'+(goalMet?' ✓':'')+'</div></div>':'') +
+      '</div>'+
+      (goalMet?'<div style="margin-top:14px;color:var(--vm-ok);font-weight:700">🏆 Goal achieved!</div>':
+        (asgn.mode==='homework'?'<div style="margin-top:8px;font-size:.82rem;color:var(--vm-ink-3)">Need '+(req-perfects)+' more 100% run(s).</div>':''))+
+      // Missed words for inclass
+      (asgn.mode==='inclass' && missedWords.length?
+        '<div style="background:#FEF3D6;border:1.5px solid #F59E0B;border-radius:10px;padding:14px 16px;margin-bottom:16px;text-align:left">'+
+          '<div style="font-weight:700;font-size:.85rem;color:#7A5000;margin-bottom:8px">'+
+            '⚠️ Từ cần chép phạt ('+missedWords.length+')'+
+          '</div>'+
+          '<div id="missedChips" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px">'+
+            missedWords.map(function(w){
+              return '<span style="background:#fff;border:1px solid #F59E0B;color:#7A5000;border-radius:5px;'+
+                'padding:3px 10px;font-size:.82rem;font-weight:600">'+VM.esc(w)+'</span>';
+            }).join('')+
+          '</div>'+
+          '<button class="vm-btn vm-btn-ghost vm-btn-sm" id="copyMissedBtn" style="font-size:.78rem">📋 Copy all</button>'+
+        '</div>':'')+
+      '<div style="display:flex;gap:10px;justify-content:center;margin-top:18px;flex-wrap:wrap">'+
+        (asgn.mode!=='inclass'?'<button class="vm-btn vm-btn-primary" id="tryAgain" style="padding:11px 24px">Try Again</button>':'')+
+        '<button class="vm-btn vm-btn-ghost" id="backRes" style="padding:11px 20px">← Back</button>'+
+      '</div>'+
+    '</div>';
+  // BUG 5d: no retry for closed/timedOut inclass sessions
+  var isICClosed = asgn.mode==='inclass' &&
+    (qs.timedOut || asgn.sessionStatus==='closed' ||
+     (function(){
+       if(!asgn.sessionEnd && !asgn.sessionStart) return false;
+       var endT = asgn.sessionEnd ? new Date(asgn.sessionEnd).getTime()
+                 : new Date(asgn.sessionStart).getTime()+(asgn.sessionDurationMin||0)*60000;
+       return Date.now() > endT;
+     })());
+  // Wire copyMissedBtn for inclass
+  var copyBtn = document.getElementById('copyMissedBtn');
+  if(copyBtn && missedWords.length){
+    copyBtn.onclick=function(){
+      navigator.clipboard && navigator.clipboard.writeText(missedWords.join('\n'))
+        .then(function(){ VM.toast('Đã copy '+missedWords.length+' từ!','ok'); })
+        .catch(function(){ VM.toast('Không copy được — chọn tay nhé.','warn'); });
+    };
+  }
+  // Try Again — inclass never retries (already blocked in renderCards too)
+  var tryAgainBtn = document.getElementById('tryAgain');
+  if(tryAgainBtn){
+    tryAgainBtn.onclick=function(){
+      if(asgn.mode==='readwise' && _currentRWArticle) openRWQuiz(_currentRWArticle);
+      else if(asgn.mode==='readwise') renderReadWise();
+      else startQuiz(asgn);
+    };
+  }
+  document.getElementById('backRes').onclick=function(){
+    if(asgn.mode==='readwise' && _currentRWArticle) renderRWReader(_currentRWArticle);
+    else if(asgn.mode==='readwise') renderReadWise();
+    else switchTab(S.activeTab);
+  };
+}
+function bdg(v,l){
+  return '<div class="vm-result-badge"><div class="val">'+VM.esc(String(v))+'</div><div class="lbl">'+VM.esc(l)+'</div></div>';
+}
+
+/* ── CEFR tooltip ────────────────────────────── */
+function showCEFRTip(anchor,word,level,mData){
+  var old=document.getElementById('cefrTip'); if(old) old.remove();
+  var lnum=level&&LN[level]?LN[level]:(level&&/^\d$/.test(level)?level:null);
+  var col=lnum?LC[lnum]:'#666';
+  var tip=document.createElement('div');
+  tip.id='cefrTip';tip.className='cefr-tip';
+  tip.innerHTML=
+    '<div style="display:flex;align-items:center;gap:7px;margin-bottom:5px">'+
+      '<b style="font-size:.95rem">'+VM.esc(word)+'</b>'+
+      (level?'<span style="background:'+col+';color:#fff;padding:2px 6px;border-radius:7px;font-size:.65rem;font-weight:700">'+level+'</span>':'')+
+      '<button onclick="document.getElementById(\'cefrTip\').remove()" style="margin-left:auto;background:none;border:none;color:rgba(255,255,255,.6);cursor:pointer;font-size:1rem;padding:0">×</button>'+
+    '</div>'+
+    (mData&&mData.ipa?'<div style="color:#A8E8C8;font-size:.77rem">/'+VM.esc(mData.ipa)+'/</div>':'')+
+    (mData&&mData.vi?'<div style="color:#E0F8EE;margin-top:3px">🇻🇳 '+VM.esc(mData.vi)+'</div>':'<div style="color:rgba(255,255,255,.5);font-size:.74rem;margin-top:3px;font-style:italic">No translation yet</div>');
+  document.body.appendChild(tip);
+  var r=anchor.getBoundingClientRect();
+  var tw=Math.min(210,tip.scrollWidth),th=tip.scrollHeight;
+  var left=Math.max(8,Math.min(r.left+r.width/2-tw/2,window.innerWidth-tw-8));
+  var top=r.top-th-8;if(top<8) top=r.bottom+8;
+  tip.style.left=left+'px';tip.style.top=top+'px';
+  setTimeout(function(){
+    document.addEventListener('click',function ct(e){if(!tip.contains(e.target)&&e.target!==anchor){tip.remove();document.removeEventListener('click',ct);}});
+  },10);
+}
+
+/* ── ReadWise — self-directed study ──────────────────────────── */
+var RW_GEMINI_KEY_STORE = 'vm_rw_gemini';
+var _rwArticles = [];
+
+function getRWKey(){ return localStorage.getItem(RW_GEMINI_KEY_STORE)||''; }
+function setRWKey(k){ localStorage.setItem(RW_GEMINI_KEY_STORE, k||''); }
+
+function renderReadWise(){
+  showOverlay('Loading ReadWise…');
+  VM.api('readwise.list',{studentId:sess.studentId}).then(function(res){
+    hideOverlay();
+    _rwArticles = (res&&res.success?res.data:[]);
+    var c=document.getElementById('vmContent');
+    var savedKey=getRWKey();
+
+    c.innerHTML=
+      // ── Create form ──
+      '<div style="background:var(--vm-surface);border:1px solid var(--vm-border-2);border-radius:var(--vm-r);padding:24px 26px;margin-bottom:20px">'+
+
+        // Title
+        '<div class="vm-field">'+
+          '<label class="vm-label" style="font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--vm-ink-2)">'+
+            '📌 TIÊU ĐỀ BÀI ĐỌC <span style="color:var(--vm-danger)">*</span>'+
+          '</label>'+
+          '<input class="vm-input" id="rwTitle" placeholder="Vd: The largest Roman villa in Britain">'+
+        '</div>'+
+
+        // Passage
+        '<div class="vm-field">'+
+          '<label class="vm-label" style="font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--vm-ink-2)">'+
+            '📄 NỘI DUNG BÀI ĐỌC <span style="color:var(--vm-danger)">*</span>'+
+            ' <span style="font-weight:400;color:var(--vm-ink-3)">— tối thiểu 100 từ</span>'+
+          '</label>'+
+          '<textarea class="vm-input" id="rwPassageTa" rows="10" '+
+            'placeholder="Dán bài đọc tiếng Anh vào đây…" '+
+            'style="resize:vertical;line-height:1.65;font-size:.93rem" '+
+            'oninput="document.getElementById(\'rwWC\').textContent=this.value.trim().split(/\\s+/).filter(Boolean).length+\' từ\'">'+
+          '</textarea>'+
+          '<div id="rwWC" style="font-size:.76rem;color:var(--vm-ink-3);margin-top:4px">0 từ</div>'+
+        '</div>'+
+
+        // Gemini key
+        '<div class="vm-field">'+
+          '<label class="vm-label" style="font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--vm-ink-2)">'+
+            '🔑 GEMINI API KEY <span style="color:var(--vm-danger)">*</span>'+
+          '</label>'+
+          '<input class="vm-input" id="rwGemKey" type="password" '+
+            'placeholder="AIza…" value="'+VM.esc(savedKey)+'" '+
+            'style="font-family:monospace">'+
+          '<p style="font-size:.75rem;color:var(--vm-ink-3);margin:5px 0 0">'+
+            'Dùng để dịch nghĩa, trích cụm từ và tạo quiz — <b>chỉ tốn 1 lần cho mỗi bài</b>, sau đó lưu lại dùng mãi. '+
+            '<a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--vm-primary)">Lấy key miễn phí →</a>'+
+          '</p>'+
+        '</div>'+
+
+        '<button class="vm-btn vm-btn-danger" id="rwAnalyseBtn" style="padding:11px 24px;font-size:.95rem">'+
+          '🚀 Phân tích bài đọc'+
+        '</button>'+
+        '<div id="rwAnalyseStatus" style="margin-top:10px;font-size:.82rem;color:var(--vm-ink-3);min-height:18px"></div>'+
+      '</div>'+
+
+      // ── Saved articles ──
+      '<div>'+
+        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">'+
+          '<div style="font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--vm-ink-2)">📚 BÀI ĐÃ LƯU</div>'+
+          '<div style="display:flex;gap:8px">'+
+            '<button class="vm-btn vm-btn-primary vm-btn-sm" id="rwCreateQuizBtn">✏️ Create Vocab Quiz</button>'+
+            '<button class="vm-btn vm-btn-ghost vm-btn-sm" id="rwRefreshBtn">↺ Tải lại</button>'+
+          '</div>'+
+        '</div>'+
+        '<div id="rwSavedList">'+renderSavedList(_rwArticles)+
+        '</div>'+
+      '</div>'+
+      // Vocab Quiz creator panel (hidden by default)
+      '<div id="rwVocabQuizPanel" style="display:none;margin-top:16px;background:var(--vm-surface);border:1px solid var(--vm-border-2);border-radius:var(--vm-r);padding:22px 24px">'+
+        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">'+
+          '<h3 style="font-family:var(--vm-font-display);font-size:1rem;font-weight:700;margin:0;color:var(--vm-ink)">✏️ Vocab Quiz Creator</h3>'+
+          '<button class="vm-btn vm-btn-ghost vm-btn-sm" id="rwCloseQuizPanel">✕ Close</button>'+
+        '</div>'+
+        '<p style="font-size:.82rem;color:var(--vm-ink-2);margin:0 0 12px">Enter up to 65 words you want to practice. AI will generate synonyms &amp; Vietnamese meanings, then build a 65-question spaced repetition quiz.</p>'+
+        '<div class="vm-field">'+
+          '<label class="vm-label">Words (one per line, or word = definition)</label>'+
+          '<textarea class="vm-input" id="rwVocabInput" rows="8" placeholder="photosynthesis&#10;catalyst = a substance that speeds up a reaction&#10;mitosis&#10;osmosis" style="resize:vertical;font-family:monospace;font-size:.88rem;line-height:1.6"></textarea>'+
+          '<div style="display:flex;justify-content:space-between;margin-top:4px">'+
+            '<span id="rwVocabCount" style="font-size:.74rem;color:var(--vm-ink-3)">0/65 words</span>'+
+            '<span style="font-size:.74rem;color:var(--vm-ink-3)">Gemini key required for AI enrichment</span>'+
+          '</div>'+
+        '</div>'+
+        '<div id="rwVocabAIStatus" style="font-size:.82rem;color:var(--vm-ink-3);margin-bottom:12px;min-height:18px"></div>'+
+        '<div style="display:flex;gap:10px;flex-wrap:wrap">'+
+          '<button class="vm-btn vm-btn-primary" id="rwLaunchQuizBtn" style="padding:11px 22px">🚀 Enrich &amp; Start Quiz</button>'+
+          '<button class="vm-btn vm-btn-ghost" id="rwQuickLaunchBtn" style="padding:11px 18px">⚡ Quick Start (no AI)</button>'+
+        '</div>'+
+      '</div>';
+
+    document.getElementById('rwRefreshBtn').onclick=function(){ renderReadWise(); };
+
+    // Create Vocab Quiz toggle
+    document.getElementById('rwCreateQuizBtn').onclick=function(){
+      var panel=document.getElementById('rwVocabQuizPanel');
+      if(panel){ panel.style.display='block'; panel.scrollIntoView({behavior:'smooth',block:'nearest'}); }
+    };
+    document.getElementById('rwCloseQuizPanel').onclick=function(){
+      var panel=document.getElementById('rwVocabQuizPanel');
+      if(panel) panel.style.display='none';
+    };
+
+    // Word count
+    var vocabInput=document.getElementById('rwVocabInput');
+    if(vocabInput) vocabInput.oninput=function(){
+      var words=vocabInput.value.split('\n').map(function(l){return l.trim();}).filter(Boolean);
+      var wcount=Math.min(words.length,65);
+      var countEl=document.getElementById('rwVocabCount');
+      if(countEl){ countEl.textContent=wcount+'/65 words'; countEl.style.color=wcount>=65?'var(--vm-ok)':'var(--vm-ink-3)'; }
+    };
+
+    // Launch with AI enrichment
+    document.getElementById('rwLaunchQuizBtn').onclick=function(){
+      launchVocabQuiz(true);
+    };
+    // Quick launch — no AI, use synonyms from "=" parsing only
+    document.getElementById('rwQuickLaunchBtn').onclick=function(){
+      launchVocabQuiz(false);
+    };
+    document.getElementById('rwAnalyseBtn').onclick=analyseAndSaveArticle;
+    bindSavedList();
+  }).catch(function(){
+    hideOverlay();
+    document.getElementById('vmContent').innerHTML='<div class="vm-empty"><p>Connection error. Try again.</p></div>';
+  });
+}
+
+function renderSavedList(articles){
+  if(!articles||!articles.length)
+    return '<div class="vm-empty" style="padding:30px 20px"><p>Chưa có bài nào. Dán bài đọc và phân tích để lưu.</p></div>';
+  return articles.map(function(a){
+    return '<div style="display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--vm-border-2)" data-rw-row="'+VM.esc(a.articleId)+'">'+
+      '<div style="flex:1;min-width:0">'+
+        '<div style="font-weight:700;font-size:.95rem;color:var(--vm-ink);margin-bottom:3px">'+VM.esc(a.title)+'</div>'+
+        '<div style="font-size:.76rem;color:var(--vm-ink-3)">'+
+          a.wordCount+' từ · ~'+a.readMin+' phút đọc · '+VM.esc(VM.fmtDate(a.savedAt))+
+        '</div>'+
+      '</div>'+
+      '<button class="vm-btn vm-btn-primary vm-btn-sm" data-rw-open="'+VM.esc(a.articleId)+'" style="white-space:nowrap;padding:8px 16px">'+
+        'Đọc →'+
+      '</button>'+
+    '</div>';
+  }).join('');
+}
+
+function bindSavedList(){
+  VM.els('[data-rw-open]').forEach(function(btn){
+    btn.onclick=function(){
+      openRWReader(btn.getAttribute('data-rw-open'));
+    };
+  });
+}
+
+function analyseAndSaveArticle(){
+  var title   = (document.getElementById('rwTitle').value||'').trim();
+  var passage = (document.getElementById('rwPassageTa').value||'').trim();
+  var key     = (document.getElementById('rwGemKey').value||'').trim();
+  var status  = document.getElementById('rwAnalyseStatus');
+
+  if(!title){ VM.toast('Nhập tiêu đề bài đọc.','warn'); return; }
+  var wc = passage.split(/\s+/).filter(Boolean).length;
+  if(wc < 100){ VM.toast('Bài đọc phải có ít nhất 100 từ.','warn'); return; }
+  if(!key){ VM.toast('Nhập Gemini API key.','warn'); return; }
+
+  setRWKey(key);
+  var btn=document.getElementById('rwAnalyseBtn');
+  btn.disabled=true;
+
+  status.textContent='⏳ Đang trích xuất từ vựng…';
+
+  // Step 1: extract vocab from passage using Gemini
+  var vocabPrompt =
+    'Extract 20-40 important vocabulary words from this English passage for Vietnamese EFL learners.\n'+
+    'Focus on B1-C2 level words. Return ONLY a JSON array, no markdown:\n'+
+    '[{"word":"...","ipa":"British IPA","vi":"Vietnamese 1-5 words","synonyms":"syn1, syn2"}]\n\n'+
+    'Passage:\n'+passage.slice(0,3000);
+
+  var collocPrompt =
+    'Extract 8-12 key phrases and collocations from this English passage.\n'+
+    'Return ONLY a JSON array, no markdown:\n'+
+    '[{"phrase":"...","meaning":"Vietnamese meaning"}]\n\n'+
+    'Passage:\n'+passage.slice(0,2000);
+
+  // Working Gemini models (verified Aug 2026)
+  var MODELS=['gemini-3.5-flash','gemini-3.6-flash','gemini-3.5-flash-lite'];
+
+  function parseJsonArray(text){
+    text = text.replace(/```json[\n]?/g,'').replace(/```[\n]?/g,'').trim();
+    // Auto-close truncated JSON
+    var opens=(text.match(/\{/g)||[]).length, closes=(text.match(/\}/g)||[]).length;
+    if(opens>closes) text=text.replace(/,?\s*$/,'')+'}]';
+    if(!text.startsWith('[')) text='['+text;
+    if(!text.endsWith(']')) text+=']';
+    return JSON.parse(text);
+  }
+
+  function callGemini(prompt){
+    var mi=0;
+    function tryM(){
+      if(mi>=MODELS.length) return Promise.reject(new Error('All Gemini models failed'));
+      var m=MODELS[mi++];
+      return fetch('https://generativelanguage.googleapis.com/v1beta/models/'+m+':generateContent?key='+encodeURIComponent(key),{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({contents:[{role:'user',parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:4096,temperature:0.1}})
+      }).then(function(r){
+        if(r.status===429) return new Promise(function(rs){setTimeout(rs,3000);}).then(tryM);
+        if(!r.ok) return r.json().catch(function(){return{};}).then(function(e){
+          throw new Error((e.error&&e.error.message)||'Gemini '+r.status);
+        });
+        return r.json();
+      }).then(function(d){
+        var parts=(((d.candidates||[])[0]||{}).content||{}).parts||[];
+        var text=parts.map(function(p){return p.text||'';}).join('').trim();
+        if(!text) throw new Error('Empty response from '+m);
+        return parseJsonArray(text);
+      }).catch(function(err){
+        if(mi<MODELS.length) return tryM();
+        throw err;
+      });
+    }
+
+    // Groq fallback
+    function tryGroqRW(){
+      var gk=localStorage.getItem('vm_groq_key')||'';
+      if(!gk) return Promise.reject(new Error('No Groq key — add one in Settings'));
+      return fetch('https://api.groq.com/openai/v1/chat/completions',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+gk},
+        body:JSON.stringify({model:'llama3-70b-8192',messages:[{role:'user',content:prompt}],temperature:0.1,max_tokens:4096})
+      }).then(function(r){
+        if(!r.ok) return r.json().catch(function(){return{};}).then(function(e){
+          throw new Error((e.error&&e.error.message)||'Groq '+r.status);
+        });
+        return r.json();
+      }).then(function(d){
+        var text=((d.choices||[])[0]||{}).message&&d.choices[0].message.content||'';
+        if(!text) throw new Error('Empty Groq response');
+        return parseJsonArray(text);
+      });
+    }
+
+    return tryM().catch(function(){ return tryGroqRW(); });
+  }
+
+  var vocabResult=[], collocResult=[];
+
+  callGemini(vocabPrompt,true).then(function(arr){
+    vocabResult=arr;
+    status.textContent='⏳ Đang trích xuất cụm từ…';
+    return callGemini(collocPrompt,true);
+  }).then(function(arr){
+    collocResult=arr;
+    status.textContent='⏳ Đang lưu bài…';
+    return VM.api('readwise.save',{
+      studentId:   sess.studentId,
+      studentName: sess.name||'',
+      class:       sess.class||'',
+      title:       title,
+      passage:     passage,
+      vocab:       vocabResult,
+      collocations:collocResult
+    });
+  }).then(function(res){
+    btn.disabled=false;
+    if(res&&res.success){
+      status.textContent='✅ Đã lưu! Bài đọc sẵn sàng.';
+      VM.toast('Bài đọc đã được lưu!','ok');
+      // Reload list
+      VM.api('readwise.list',{studentId:sess.studentId}).then(function(r){
+        if(r&&r.success){
+          _rwArticles=r.data||[];
+          var listEl=document.getElementById('rwSavedList');
+          if(listEl) listEl.innerHTML=renderSavedList(_rwArticles);
+          bindSavedList();
+        }
+      });
+    } else {
+      status.textContent='❌ '+(res&&res.error)||'Lưu thất bại.';
+    }
+  }).catch(function(err){
+    btn.disabled=false;
+    var msg = err.message||String(err);
+    // If all Gemini models failed AND no Groq key → show banner
+    var hasGroq = localStorage.getItem('vm_groq_key');
+    if(!hasGroq){
+      status.innerHTML = '❌ Gemini không khả dụng. '+
+        '<a href="https://console.groq.com/keys" target="_blank" style="color:var(--vm-primary);font-weight:700">Lấy Groq key miễn phí →</a>';
+      var banner = document.createElement('div');
+      banner.id='vmGroqBanner';
+      banner.style.cssText='background:#FEF3D6;border:1.5px solid #F59E0B;border-radius:10px;padding:14px 16px;margin-top:10px';
+      banner.innerHTML=
+        '<div style="font-weight:700;font-size:.88rem;color:#7A5000;margin-bottom:6px">⚠️ Tất cả Gemini model đều thất bại</div>'+
+        '<p style="font-size:.8rem;color:#7A5000;margin:0 0 10px">Dùng Groq (llama3-70b) miễn phí để thay thế. '+
+          '<a href="https://console.groq.com/keys" target="_blank" style="color:var(--vm-primary);font-weight:600">Lấy Groq key →</a></p>'+
+        '<div style="display:flex;gap:8px">'+
+          '<input id="rwGroqIn" type="password" placeholder="gsk_…" '+
+            'style="flex:1;border:1px solid #F59E0B;border-radius:7px;padding:7px 10px;font-size:.84rem;background:#fff">'+
+          '<button id="rwGroqSave" style="background:#F59E0B;color:#3A2600;border:none;border-radius:7px;padding:7px 12px;font-weight:700;font-size:.82rem;cursor:pointer">Lưu & Thử lại</button>'+
+        '</div>';
+      var statusEl = document.getElementById('rwAnalyseStatus');
+      if(statusEl) statusEl.after(banner);
+      var saveBtn = document.getElementById('rwGroqSave');
+      if(saveBtn) saveBtn.onclick=function(){
+        var k=(document.getElementById('rwGroqIn').value||'').trim();
+        if(!k){VM.toast('Nhập Groq key.','warn');return;}
+        localStorage.setItem('vm_groq_key',k);
+        banner.remove();
+        VM.toast('Groq key saved! Thử lại...','ok');
+        document.getElementById('rwAnalyseBtn').click();
+      };
+    } else {
+      status.textContent='❌ Lỗi: '+msg;
+      VM.toast('Error: '+msg,'err',5000);
+    }
+  });
+}
+
+function openRWReader(articleId){
+  showOverlay('Loading article…');
+  VM.api('readwise.get',{articleId:articleId}).then(function(res){
+    hideOverlay();
+    if(!res||!res.success){ VM.toast('Article not found.','err'); return; }
+    var art=res.data;
+    _currentRWArticle=art;
+    renderRWReader(art);
+  }).catch(function(){hideOverlay();VM.toast('Connection error.','err');});
+}
+var _currentRWArticle=null;
+
+function renderRWReader(art){
+  var c=document.getElementById('vmContent');
+  VM.setTitle(art.title);
+  var vis={A1:true,A2:true,B1:true,B2:true,C1:true,C2:true};
+  var meanings={};
+  var gemKey=getRWKey()||VM.geminiKey.get();
+  // Pre-fill meanings from saved vocab
+  (art.vocab||[]).forEach(function(v){
+    meanings[(v.word||'').toLowerCase()]={vi:v.vi||'',ipa:v.ipa||''};
+  });
+
+  function buildPassage(){
+    if(!hasCEFR) return VM.esc(art.passage||'').replace(/\n/g,'<br>');
+    return VMCEFR.renderPassage(art.passage||'',{
+      visibleLevels:vis, meanings:meanings,
+      vocabHighlight:(art.vocab||[]).map(function(v){return v.word;})
+    });
+  }
+
+  function buildBD(){
+    if(!hasCEFR||!art.passage) return '';
+    var tk=VMCEFR.analyze(art.passage),bd=VMCEFR.breakdown(tk);
+    var LC2={'1':'#22C55E','2':'#3B82F6','3':'#F59E0B','4':'#EF4444','5':'#8B5CF6','6':'#EC4899'};
+    var LN2={'A1':'1','A2':'2','B1':'3','B2':'4','C1':'5','C2':'6'};
+    var lvs=['A1','A2','B1','B2','C1','C2'];
+    return '<div class="cefr-breakdown"><h4>CEFR Breakdown</h4>'+
+      lvs.map(function(lv){
+        var count=bd[lv]||0,pct=bd.total?Math.round(count/bd.total*100):0,col=LC2[LN2[lv]];
+        return '<div class="cefr-bd-row"><span class="lbl" style="color:'+col+'">'+lv+'</span>'+
+          '<div class="cefr-bd-bw"><div class="cefr-bd-b" style="width:'+pct+'%;background:'+col+'"></div></div>'+
+          '<span class="cefr-bd-pct">'+pct+'%</span>'+
+          '<span style="font-size:.68rem;color:var(--vm-ink-3);min-width:22px">'+count+'</span></div>';
+      }).join('')+
+      '<div style="font-size:.7rem;color:var(--vm-ink-3);margin-top:6px">Total: '+bd.total+' words</div></div>';
+  }
+
+  function buildFilterBar(){
+    if(!hasCEFR) return '';
+    var LC2={'1':'#22C55E','2':'#3B82F6','3':'#F59E0B','4':'#EF4444','5':'#8B5CF6','6':'#EC4899'};
+    var LN2={'A1':'1','A2':'2','B1':'3','B2':'4','C1':'5','C2':'6'};
+    var tk=hasCEFR?VMCEFR.analyze(art.passage||''):[];
+    var bd=hasCEFR?VMCEFR.breakdown(tk):{};
+    var lvs=['A1','A2','B1','B2','C1','C2'];
+    return '<div class="cefr-filterbar">'+
+      '<span style="font-weight:700;color:var(--vm-ink-3);font-size:.76rem;flex:0 0 auto">CEFR:</span>'+
+      lvs.map(function(lv){
+        var col=LC2[LN2[lv]];
+        return '<label data-flv="'+lv+'" style="opacity:'+(vis[lv]?1:.38)+'">'+
+          '<input type="checkbox" data-lv="'+lv+'" style="display:none" '+(vis[lv]?'checked':'')+'>'+
+          '<span class="cefr-dot" style="background:'+col+'"></span>'+
+          ' <span style="color:'+col+'">'+lv+'</span>'+
+          '<span class="cefr-count">'+(bd[lv]||0)+'</span>'+
+        '</label>';
+      }).join('')+
+      '<span class="cefr-sep">│</span>'+
+      (gemKey
+        ? '<button class="vm-btn vm-btn-ghost vm-btn-sm" id="rwTransBtn" style="font-size:.75rem;padding:5px 9px">✨ Translate</button>'+
+          '<button class="vm-btn vm-btn-ghost vm-btn-sm" id="rwColBtn"   style="font-size:.75rem;padding:5px 9px">🔗 Collocations</button>'
+        : '')+
+      '<button class="vm-btn vm-btn-primary vm-btn-sm" id="rwQuizBtn" style="font-size:.75rem;padding:5px 9px;margin-left:auto">📝 Quiz</button>'+
+    '</div>';
+  }
+
+  function render(){
+    c.innerHTML=
+      // Topbar matching vocab master style
+      '<div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap">'+
+        '<button class="vm-btn vm-btn-ghost vm-btn-sm" id="rwBack">← Back</button>'+
+        '<div style="flex:1;min-width:0">'+
+          '<h2 style="font-family:var(--vm-font-display);font-size:1.15rem;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+VM.esc(art.title)+'</h2>'+
+          '<div style="font-size:.75rem;color:var(--vm-ink-3);margin-top:2px">'+
+            ((art.passage||'').split(/\s+/).filter(Boolean).length)+' words · '+
+            VM.esc(VM.fmtDate(art.savedAt))+
+          '</div>'+
+        '</div>'+
+      '</div>'+
+      buildFilterBar()+
+      '<div class="cefr-shell">'+
+        '<div><div class="cefr-passage" id="rwCEFRPassage">'+buildPassage()+'</div></div>'+
+        '<div class="cefr-right-panel" id="rwRightPanel">'+
+          buildBD()+
+          '<div class="cefr-colloc" id="rwCollocBox" style="display:'+(art.collocations&&art.collocations.length?'block':'none')+'">'+
+            '<h4>🔗 Cụm từ &amp; Collocations</h4>'+
+            '<div id="rwCollocList">'+renderCollocations(art.collocations||[])+'</div>'+
+          '</div>'+
+        '</div>'+
+      '</div>';
+
+    document.getElementById('rwBack').onclick=function(){ renderReadWise(); };
+    document.getElementById('rwQuizBtn').onclick=function(){ openRWQuiz(art); };
+
+    // Filter toggles
+    VM.els('[data-lv]').forEach(function(inp){
+      inp.closest('label').onclick=function(e){
+        e.preventDefault();
+        var lv=inp.getAttribute('data-lv');vis[lv]=!vis[lv];
+        inp.closest('label').style.opacity=vis[lv]?'1':'.38';
+        document.getElementById('rwCEFRPassage').innerHTML=buildPassage();
+        bindPassClicks();
+      };
+    });
+
+    var tb=document.getElementById('rwTransBtn');
+    if(tb) tb.onclick=function(){
+      tb.disabled=true;tb.textContent='⏳…';
+      var toks=hasCEFR?VMCEFR.analyze(art.passage||''):[];
+      var words=[],seen={};
+      toks.forEach(function(t){if(t.level&&!seen[t.clean.toLowerCase()]){seen[t.clean.toLowerCase()]=1;words.push(t.clean.toLowerCase());}});
+      if(typeof VMCEFR!=='undefined'&&VMCEFR.fetchMeanings){
+        VMCEFR.fetchMeanings(words,gemKey,art.vocab||[]).then(function(map){
+          meanings=map;
+          document.getElementById('rwCEFRPassage').innerHTML=buildPassage();
+          bindPassClicks();
+          tb.disabled=false;tb.textContent='✨ Translate';
+          VM.toast('Translated '+Object.keys(map).length+' words','ok');
+        });
+      }
+    };
+
+    var cb=document.getElementById('rwColBtn');
+    if(cb) cb.onclick=function(){
+      cb.disabled=true;cb.textContent='⏳…';
+      VM.collocations(art.passage||'',gemKey).then(function(list){
+        var box=document.getElementById('rwCollocBox'),el=document.getElementById('rwCollocList');
+        box.style.display='block';
+        el.innerHTML=renderCollocations(list);
+        cb.disabled=false;cb.textContent='🔗 Collocations';
+        VM.toast(list.length+' phrases','ok');
+      });
+    };
+
+    bindPassClicks();
+  }
+
+  function renderCollocations(list){
+    if(!list||!list.length) return '<div style="color:var(--vm-ink-3);font-size:.8rem">Chưa có. Bấm 🔗 để trích xuất.</div>';
+    return list.map(function(i){
+      return '<div class="cefr-colloc-item"><div class="cefr-colloc-phrase">'+VM.esc(i.phrase)+'</div>'+
+        '<div class="cefr-colloc-vi">'+VM.esc(i.meaning)+'</div></div>';
+    }).join('');
+  }
+
+  function bindPassClicks(){
+    VM.els('.vm-cefr-word').forEach(function(span){
+      span.onclick=function(){
+        showCEFRTip(span,span.getAttribute('data-word'),span.getAttribute('data-level'),
+          meanings[(span.getAttribute('data-word')||'').toLowerCase()]||null);
+      };
+    });
+  }
+
+  render();
+}
+
+function launchVocabQuiz(withAI){
+  var input = document.getElementById('rwVocabInput');
+  if(!input||!input.value.trim()){ VM.toast('Enter at least 1 word.','warn'); return; }
+  var raw = input.value;
+
+  // Parse words client-side first
+  var lines = raw.split('\n').map(function(l){return l.trim();}).filter(Boolean).slice(0,65);
+  var parsed = lines.map(function(l){
+    var eq=l.indexOf('='), col=l.indexOf(':'), si=-1;
+    if(eq>=0&&(col<0||eq<=col)) si=eq;
+    else if(col>=0&&col<40) si=col;
+    var word=si>=0?l.slice(0,si).trim():l.trim();
+    var syn =si>=0?l.slice(si+1).trim():'';
+    word=word.replace(/^\d+[\.)\s]+/,'').replace(/^[-•*]\s*/,'').replace(/\s*[\(\[].+[\)\]]\s*$/,'').trim();
+    var syns=syn?syn.split(',').map(function(s){return s.trim();}).filter(Boolean):[];
+    return {word:word,ipa:'',synonyms:syns,vi:'',meaningVi:''};
+  }).filter(function(p){return p.word;});
+
+  if(!parsed.length){ VM.toast('No valid words found.','warn'); return; }
+
+  function startWithVocab(vocab){
+    // Build a synthetic "assignment" object for the quiz engine
+    var fakeAsgn = {
+      assignmentId: 'vq_'+Date.now(),
+      title: 'Vocab Quiz ('+vocab.length+' words)',
+      mode: 'readwise',
+      vocab: vocab,
+      requiredGoals: 0,
+      classId: sess.class||''
+    };
+    S.quiz = VM.buildQuiz(vocab, {isReview:false, total:65});
+    S.quizState = {
+      asgn: fakeAsgn, qIdx:0, correct:0, startTs:Date.now(), wrongAnswers:{}
+    };
+    _currentRWArticle = null; // no article to return to — go back to readwise tab
+    var c=document.getElementById('vmContent');
+    VM.setTitle('Vocab Quiz');
+    c.innerHTML=
+      '<button class="vm-btn vm-btn-ghost vm-btn-sm" id="vqBack" style="margin-bottom:12px">← Back to ReadWise</button>'+
+      '<div id="quizArea"></div>';
+    document.getElementById('vqBack').onclick=function(){ renderReadWise(); };
+    renderQ();
+  }
+
+  if(!withAI){
+    // Use parsed synonyms directly, no AI
+    startWithVocab(parsed);
+    return;
+  }
+
+  // Enrich with AI
+  var key = VM.geminiKey.get() || VM.groqKey.get();
+  if(!key){ VM.toast('No API key saved. Go to Settings or use Quick Start.','warn'); return; }
+
+  var statusEl = document.getElementById('rwVocabAIStatus');
+  var launchBtn = document.getElementById('rwLaunchQuizBtn');
+  if(launchBtn) launchBtn.disabled=true;
+  if(statusEl) statusEl.innerHTML='<span class="vm-spin-dark" style="width:13px;height:13px;border-width:2px;display:inline-block;vertical-align:middle;margin-right:6px"></span> AI đang tạo synonym & Vietnamese meanings…';
+
+  var rawList = lines.join('\n');
+  VM.analyzeVocab(rawList, VM.geminiKey.get()||'GROQ_FALLBACK', function(done,total){
+    if(statusEl) statusEl.textContent='Enriching '+done+'/'+total+' words…';
+  }).then(function(enriched){
+    if(launchBtn) launchBtn.disabled=false;
+    if(statusEl) statusEl.textContent='';
+    startWithVocab(enriched);
+  }).catch(function(err){
+    if(launchBtn) launchBtn.disabled=false;
+    if(statusEl){ statusEl.style.color='var(--vm-danger)'; statusEl.textContent='AI failed: '+err.message+'. Using parsed data.'; }
+    // Fallback: use parsed data without AI enrichment
+    setTimeout(function(){ startWithVocab(parsed); }, 1500);
+  });
+}
+
+function openRWQuiz(art){
+  var vocab = art.vocab || [];
+  if(!vocab.length){ VM.toast('No vocabulary to quiz.','warn'); return; }
+
+  // Build fresh 65-question quiz (random each time — spaced repetition like homework)
+  S.quiz = VM.buildQuiz(vocab, { isReview:false, total:65 });
+  S.quizState = {
+    asgn: {
+      assignmentId: 'rw_' + art.articleId,
+      title: art.title,
+      mode: 'readwise',
+      vocab: vocab,
+      requiredGoals: 0,
+      classId: sess.class||''
+    },
+    qIdx: 0, correct: 0, startTs: Date.now(),
+    wrongAnswers: {}
+  };
+
+  var c = document.getElementById('vmContent');
+  VM.setTitle('Quiz — ' + art.title);
+  c.innerHTML =
+    '<button class="vm-btn vm-btn-ghost vm-btn-sm" id="rwQBack" style="margin-bottom:10px">← Back to article</button>'+
+    '<div id="quizArea"></div>';
+
+  document.getElementById('rwQBack').onclick = function(){ renderRWReader(art); };
+
+  // Set active article so showResult can return to reader
+  _currentRWArticle = art;
+  renderQ();
+}
+
+
+/* ── History ──────────────────────────────────── */
+var _histGroups = {}; // map expandId → group, for lazy-load
+function renderIeltsHistoryChart(container){
+  var panel=document.createElement('section');
+  panel.style.cssText='background:var(--vm-surface);border:1px solid var(--vm-border-2);border-radius:var(--vm-r);padding:16px;margin-bottom:16px';
+  panel.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><h3 style="margin:0">IELTS practice progress</h3><a class="vm-btn vm-btn-ghost vm-btn-sm" href="ielts.html">Open IELTS results</a></div><div style="display:flex;gap:8px;align-items:center;margin:12px 0"><select class="vm-select" data-il-skill><option value="all">Reading & Listening</option><option value="reading">Reading</option><option value="listening">Listening</option></select><label class="vm-label">From <input type="date" class="vm-input" data-il-date></label></div><div data-il-chart></div><div class="vm-empty" data-il-empty style="display:none;padding:15px">Complete a Reading or Listening attempt to see progress.</div>';
+  container.insertBefore(panel,container.firstChild);
+  VM.api('ielts.attempt.list').then(function(res){
+    if(!res||!res.success)throw new Error(res&&res.error||'Could not load IELTS attempts.');
+    var rows=res.data||[], skill=panel.querySelector('[data-il-skill]'), date=panel.querySelector('[data-il-date]');
+    function draw(){
+      var data=rows.filter(function(r){return(skill.value==='all'||r.skill===skill.value)&&(!date.value||String(r.completedAt).slice(0,10)>=date.value);});
+      var scored=data.filter(function(r){return typeof r.score==='number'&&isFinite(r.score);}),chart=panel.querySelector('[data-il-chart]'),empty=panel.querySelector('[data-il-empty]');
+      empty.style.display=data.length?'none':'block';
+      if(!scored.length){chart.innerHTML=data.length?'<div class="vm-empty" style="padding:15px">Answer keys are pending teacher review; scores will appear after answers are added.</div>':'';return;}
+      var w=680,h=190,p=28,pts=scored.map(function(r,i){return[p+(scored.length<2?0:i*(w-2*p)/(scored.length-1)),h-p-r.score*(h-2*p)/100];});
+      chart.innerHTML='<svg viewBox="0 0 '+w+' '+h+'" role="img" aria-label="IELTS practice score over time" style="width:100%;max-height:210px"><line x1="'+p+'" y1="'+p+'" x2="'+p+'" y2="'+(h-p)+'" stroke="#9ca3af"/><line x1="'+p+'" y1="'+(h-p)+'" x2="'+(w-p)+'" y2="'+(h-p)+'" stroke="#9ca3af"/><text x="3" y="'+(p+4)+'" font-size="12">100%</text><text x="12" y="'+(h-p)+'" font-size="12">0</text><polyline fill="none" stroke="#1B7F5E" stroke-width="3" points="'+pts.map(function(a){return a.join(',');}).join(' ')+'"/>'+pts.map(function(a,i){return'<circle cx="'+a[0]+'" cy="'+a[1]+'" r="4" fill="#1B7F5E"><title>'+scored[i].score+'% · '+VM.esc(scored[i].title)+'</title></circle>';}).join('')+'</svg><div class="il-note">Practice score · '+scored.length+' scored attempts · '+data.length+' total attempts</div>';
+    }
+    skill.onchange=draw;date.onchange=draw;draw();
+  }).catch(function(e){panel.querySelector('[data-il-empty]').style.display='block';panel.querySelector('[data-il-empty]').textContent=e.message;});
+}
+function renderHistory(){
+  showOverlay('Loading history…');
+  loadMyResults(function(){
+    hideOverlay();
+    var c = document.getElementById('vmContent');
+    if(!S.myResults.length){
+      c.innerHTML='<div class="vm-empty"><p>No history yet.</p></div>';renderIeltsHistoryChart(c);return;
+    }
+
+    // ── Group results by assignmentId ────────────────────────────
+    var groups = {};
+    S.myResults.forEach(function(r){
+      var key = r.assignmentId;
+      if(!groups[key]){
+        groups[key] = {
+          assignmentId: key,
+          title:   r.title || key,
+          mode:    r.mode  || '',
+          runs:    [],
+        };
+      }
+      groups[key].runs.push(r);
+    });
+
+    // Sort groups: most recent first
+    var groupList = Object.values ? Object.values(groups) : Object.keys(groups).map(function(k){return groups[k];});
+    groupList.sort(function(a,b){
+      var la = a.runs[a.runs.length-1], lb = b.runs[b.runs.length-1];
+      return new Date(lb.timestamp) - new Date(la.timestamp);
+    });
+
+    // Build expandId → group map for lazy-load in toggleHistGroup
+    _histGroups = {};
+    groupList.forEach(function(g){
+      var eid = 'hist_'+g.assignmentId.replace(/[^a-z0-9]/gi,'_');
+      _histGroups[eid] = g;
+    });
+
+    // ── Mode filter tabs ─────────────────────────────────────────
+    var activeMode = 'all';
+    var MODES = ['all','homework','inclass','readwise'];
+    var modeIcon = {homework:'📝', inclass:'🖥️', readwise:'📖'};
+
+    function renderGroups(){
+      var filtered = activeMode==='all' ? groupList
+        : groupList.filter(function(g){ return g.mode===activeMode; });
+
+      if(!filtered.length)
+        return '<div class="vm-empty" style="padding:30px"><p>No results for this mode.</p></div>';
+
+      return filtered.map(function(g){
+        var runs = g.runs.slice().sort(function(a,b){return new Date(a.timestamp)-new Date(b.timestamp);});
+        var attempts = runs.length;
+        var perfects = runs.filter(function(r){return r.isPerfect;}).length;
+        // For readwise: also count total missed words across all runs
+        var totalMissedCount = 0;
+        if(g.mode==='readwise'){
+          runs.forEach(function(r){
+            var mw=[];try{mw=JSON.parse(r.missedWords||'[]');}catch(e){}
+            totalMissedCount+=mw.length;
+          });
+        }
+        var bestScore = Math.max.apply(null, runs.map(function(r){return parseFloat(r.score)||0;}));
+        var lastScore = parseFloat(runs[runs.length-1].score)||0;
+        var lastTs    = runs[runs.length-1].timestamp;
+
+        // Missed word frequency across all runs
+        var missedFreq = {};
+        runs.forEach(function(r){
+          var mw = [];
+          try{ mw = JSON.parse(r.missedWords||'[]'); }catch(e){ mw = []; }
+          mw.forEach(function(w){ if(w) missedFreq[w] = (missedFreq[w]||0)+1; });
+        });
+        var topMissed = Object.keys(missedFreq)
+          .sort(function(a,b){ return missedFreq[b]-missedFreq[a]; })
+          .slice(0,8);
+
+        // Score trend: last 5 runs
+        var trend = runs.slice(-5).map(function(r){
+          var sc = parseFloat(r.score)||0;
+          var col = sc>=90?'var(--vm-ok)':(sc>=60?'#F59E0B':'var(--vm-danger)');
+          return '<span style="display:inline-block;width:28px;height:28px;border-radius:50%;background:'+col+
+            ';color:#fff;font-size:.6rem;font-weight:700;text-align:center;line-height:28px" title="'+sc+'%">'+sc+'%</span>';
+        }).join('');
+
+        var modeLabel = (modeIcon[g.mode]||'') + ' ' + (g.mode||'');
+        var scoreColor = lastScore>=90?'var(--vm-ok)':(lastScore>=60?'#A66B00':'var(--vm-danger)');
+
+        // Expand/collapse state
+        var expandId = 'hist_'+g.assignmentId.replace(/[^a-z0-9]/gi,'_');
+
+        return '<div class="vm-card" style="margin-bottom:12px;overflow:hidden">'+
+          // Header row
+          '<div style="display:flex;align-items:center;gap:14px;padding:16px 20px;cursor:pointer" '+
+               'onclick="toggleHistGroup(this.getAttribute(\"data-hist-toggle\"))" data-hist-toggle="'+expandId+'">'+
+            '<div style="flex:1;min-width:0">'+
+              '<div style="font-family:var(--vm-font-display);font-weight:700;font-size:.95rem;color:var(--vm-ink);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+
+                VM.esc(g.title)+
+              '</div>'+
+              '<div style="font-size:.75rem;color:var(--vm-ink-3)">'+modeLabel+' · Last: '+VM.esc(VM.fmtDate(lastTs))+'</div>'+
+            '</div>'+
+            // Mini stats
+            '<div style="display:flex;gap:16px;align-items:center;flex-shrink:0">'+
+              '<div style="text-align:center">'+
+                '<div style="font-family:var(--vm-font-display);font-size:1.3rem;font-weight:700;color:'+scoreColor+'">'+lastScore+'%</div>'+
+                '<div style="font-size:.66rem;color:var(--vm-ink-3);font-weight:600;text-transform:uppercase;letter-spacing:.04em">Last</div>'+
+              '</div>'+
+              '<div style="text-align:center">'+
+                '<div style="font-family:var(--vm-font-display);font-size:1.3rem;font-weight:700;color:var(--vm-ink)">'+attempts+'</div>'+
+                '<div style="font-size:.66rem;color:var(--vm-ink-3);font-weight:600;text-transform:uppercase;letter-spacing:.04em">Quiz runs</div>'+
+              '</div>'+
+              (g.mode==='readwise'?
+                '<div style="text-align:center">'+
+                  '<div style="font-family:var(--vm-font-display);font-size:1.3rem;font-weight:700;color:var(--vm-danger)">'+totalMissedCount+'</div>'+
+                  '<div style="font-size:.66rem;color:var(--vm-ink-3);font-weight:600;text-transform:uppercase;letter-spacing:.04em">Total missed</div>'+
+                '</div>':'') +
+              '<div style="text-align:center">'+
+                '<div style="font-family:var(--vm-font-display);font-size:1.3rem;font-weight:700;color:var(--vm-ok)">'+bestScore+'%</div>'+
+                '<div style="font-size:.66rem;color:var(--vm-ink-3);font-weight:600;text-transform:uppercase;letter-spacing:.04em">Best</div>'+
+              '</div>'+
+              '<div style="font-size:.7rem;color:var(--vm-ink-3)">▾</div>'+
+            '</div>'+
+          '</div>'+
+
+          // Expandable detail
+          '<div id="'+expandId+'" style="display:none;border-top:1px solid var(--vm-border-2);padding:14px 20px;background:var(--vm-surface-2)">'+
+
+            // Score trend
+            '<div style="margin-bottom:12px">'+
+              '<div style="font-size:.72rem;font-weight:700;color:var(--vm-ink-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px">Score Trend (last 5)</div>'+
+              '<div style="display:flex;gap:5px;align-items:center">'+trend+'</div>'+
+            '</div>'+
+
+            // Missed words section
+            '<div id="hw_missed_'+expandId+'" style="margin-bottom:12px">'+
+              (g.mode==='inclass'?
+                // Inclass: load missed words from server if not in local data
+                (topMissed.length?
+                  '<div style="background:#FEF3D6;border:1.5px solid #F59E0B;border-radius:8px;padding:10px 14px">'+
+                    '<div style="font-size:.75rem;color:#7A5000;margin-bottom:6px;font-weight:600">⚠️ Từ cần chép phạt ('+topMissed.length+')</div>'+
+                    '<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px">'+
+                      topMissed.map(function(w){
+                        return '<span style="background:#fff;border:1px solid #F59E0B;color:#7A5000;border-radius:5px;padding:3px 9px;font-size:.82rem;font-weight:700">'+VM.esc(w)+'</span>';
+                      }).join('')+
+                    '</div>'+
+                    '<button class="vm-btn vm-btn-ghost vm-btn-sm hist-copy-missed" '+
+                      'data-words="'+VM.esc(topMissed.join('\n'))+'" '+
+                      'style="font-size:.76rem">📋 Copy all</button>'+
+                  '</div>' :
+                  // No local data — show loader then fetch from server
+                  '<div id="ic_missed_'+expandId+'" style="background:#FEF3D6;border:1.5px solid #F59E0B;border-radius:8px;padding:10px 14px">'+
+                    '<div style="font-size:.75rem;color:#7A5000">⏳ Đang tải từ sai…</div>'+
+                  '</div>'
+                ) :
+                // Homework / other: frequency chips
+                (topMissed.length?
+                  '<div style="font-size:.72rem;font-weight:700;color:var(--vm-ink-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px">Most Missed Words</div>'+
+                  '<div style="display:flex;flex-wrap:wrap;gap:5px">'+
+                    topMissed.map(function(w){
+                      var freq=missedFreq[w];
+                      var col=freq>=3?'#FDECEA,#8B1A1A':(freq===2?'#FEF3D6,#7A5000':'#E3F5EE,#0A4D28');
+                      var parts=col.split(',');
+                      return '<span style="background:'+parts[0]+';color:'+parts[1]+';border-radius:5px;padding:3px 9px;font-size:.77rem;font-weight:600">'+VM.esc(w)+' <span style="opacity:.65">×'+freq+'</span></span>';
+                    }).join('')+
+                  '</div>' : ''
+                )
+              )+
+            '</div>'+
+
+            // Run history table
+            '<div style="margin-bottom:10px">'+
+              '<div style="font-size:.72rem;font-weight:700;color:var(--vm-ink-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px">Run History</div>'+
+              '<div style="overflow-x:auto">'+
+              '<table class="vm-table" style="font-size:.8rem">'+
+                '<thead><tr>'+
+                  '<th>#</th><th>Date</th><th>Score</th><th>Correct</th><th>Duration</th>'+
+                '</tr></thead>'+
+                '<tbody>'+
+                runs.map(function(r,i){
+                  var sc=parseFloat(r.score)||0;
+                  return '<tr>'+
+                    '<td style="color:var(--vm-ink-3)">'+(i+1)+'</td>'+
+                    '<td>'+VM.esc(VM.fmtDate(r.timestamp))+'</td>'+
+                    '<td class="vm-score '+scoreC(sc)+'"><b>'+sc+'%</b>'+(r.isPerfect?' ★':'')+'</td>'+
+                    '<td>'+VM.esc(r.correct+'/'+r.total)+'</td>'+
+                    '<td>'+VM.fmtDuration(r.durationSec)+'</td>'+
+                  '</tr>';
+                }).join('')+
+                '</tbody>'+
+              '</table></div>'+
+            '</div>'+
+
+            // Retry button (not for inclass)
+            (g.mode!=='inclass'?
+              '<button class="vm-btn vm-btn-primary vm-btn-sm" data-hist-retry="'+VM.esc(g.assignmentId)+'" data-hist-mode="'+VM.esc(g.mode)+'">'+
+                '🔄 Retry'+
+              '</button>':'') +
+
+          '</div>'+
+        '</div>';
+      }).join('');
+    }
+
+    function renderAll(){
+      c.innerHTML =
+        // Mode filter tabs
+        '<div style="margin-bottom:12px"><a class="vm-btn vm-btn-ghost vm-btn-sm" href="ielts.html">📈 IELTS progress charts</a></div>'+
+        '<div class="vm-tabs" style="margin-bottom:16px">'+
+          MODES.map(function(m){
+            return '<button class="vm-tab'+(activeMode===m?' active':'')+'" data-hist-mode-tab="'+m+'">'+
+              (m==='all'?'All':(modeIcon[m]||'')+' '+m.charAt(0).toUpperCase()+m.slice(1))+
+            '</button>';
+          }).join('')+
+        '</div>'+
+        '<div id="histGroupsWrap">'+renderGroups()+'</div>';
+
+      // Mode tab click
+      VM.els('[data-hist-mode-tab]').forEach(function(btn){
+        btn.onclick=function(){
+          activeMode=btn.getAttribute('data-hist-mode-tab');
+          VM.els('[data-hist-mode-tab]').forEach(function(b){b.classList.toggle('active',b===btn);});
+          document.getElementById('histGroupsWrap').innerHTML=renderGroups();
+          bindHistActions();
+        };
+      });
+      bindHistActions();
+      renderIeltsHistoryChart(c);
+    }
+
+    function bindHistActions(){
+      // Wire card header click → expand/collapse
+      VM.els('[data-hist-toggle]').forEach(function(el){
+        el.onclick=function(){ toggleHistGroup(el.getAttribute('data-hist-toggle')); };
+      });
+      // Wire copy missed words buttons
+      VM.els('.hist-copy-missed').forEach(function(btn){
+        btn.onclick=function(e){
+          e.stopPropagation();
+          var words=btn.getAttribute('data-words')||'';
+          navigator.clipboard && navigator.clipboard.writeText(words)
+            .then(function(){ VM.toast('Đã copy!','ok'); })
+            .catch(function(){ VM.toast('Không copy được.','warn'); });
+        };
+      });
+      // Retry buttons
+      VM.els('[data-hist-retry]').forEach(function(btn){
+        btn.onclick=function(){
+          var aid = btn.getAttribute('data-hist-retry');
+          var mode = btn.getAttribute('data-hist-mode');
+          if(mode==='readwise'){
+            // Load article from readwise list
+            showOverlay('Loading article…');
+            VM.api('readwise.get',{articleId:aid.replace('rw_','')}).then(function(res){
+              hideOverlay();
+              if(res&&res.success) openRWQuiz(res.data);
+              else VM.toast('Article not found.','err');
+            }).catch(function(){hideOverlay();VM.toast('Connection error.','err');});
+          } else {
+            var asgn = S.assignments.find(function(a){return a.assignmentId===aid;});
+            if(asgn){
+              _currentRWArticle=null;
+              S.quizState=null;
+              openReview(asgn);
+            } else {
+              VM.toast('Assignment no longer available.','warn');
+            }
+          }
+        };
+      });
+    }
+
+    renderAll();
+  });
+}
+
+function toggleHistGroup(id){
+  if(!id||id==='undefined') return;
+  var el=document.getElementById(id);
+  if(!el) return;
+  var isOpen=el.style.display!=='none';
+  el.style.display=isOpen?'none':'block';
+  // Rotate arrow
+  var toggle=document.querySelector('[data-hist-toggle="'+id+'"]');
+  if(toggle){
+    var arrow=toggle.querySelector('div:last-child');
+    if(arrow) arrow.textContent=isOpen?'▾':'▴';
+  }
+  // Lazy-load inclass missed words from server if placeholder exists
+  if(!isOpen){
+    var placeholder=document.getElementById('ic_missed_'+id);
+    if(placeholder){
+      // Find assignmentId from the group data
+      var grp=_histGroups&&_histGroups[id];
+      if(grp && grp.mode==='inclass'){
+        VM.api('result.missedWords',{assignmentId:grp.assignmentId,studentId:sess.studentId})
+          .then(function(res){
+            if(!res||!res.success) return;
+            var words=res.data.words||[];
+            if(!words.length){
+              placeholder.innerHTML='<div style="font-size:.75rem;color:#7A5000">✅ Không có từ nào sai</div>';
+              return;
+            }
+            var statusLabel=res.data.absent?'⚠️ Vắng mặt':res.data.timedOut?'⏰ Hết giờ':'✓ Đã nộp';
+            placeholder.innerHTML=
+              '<div style="font-size:.75rem;color:#7A5000;margin-bottom:6px;font-weight:600">'+
+                '⚠️ Từ cần chép phạt ('+words.length+') · '+statusLabel+
+              '</div>'+
+              '<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px">'+
+                words.map(function(w){
+                  return '<span style="background:#fff;border:1px solid #F59E0B;color:#7A5000;'+
+                    'border-radius:5px;padding:3px 9px;font-size:.82rem;font-weight:700">'+VM.esc(w)+'</span>';
+                }).join('')+
+              '</div>'+
+              '<button class="hist-copy-missed vm-btn vm-btn-ghost vm-btn-sm" '+
+                'data-words="'+VM.esc(words.join('\n'))+'" style="font-size:.76rem">📋 Copy all</button>';
+            // Wire copy button
+            var cb=placeholder.querySelector('.hist-copy-missed');
+            if(cb) cb.onclick=function(){
+              navigator.clipboard&&navigator.clipboard.writeText(words.join('\n'))
+                .then(function(){VM.toast('Đã copy '+words.length+' từ!','ok');})
+                .catch(function(){VM.toast('Không copy được.','warn');});
+            };
+          }).catch(function(){
+            placeholder.innerHTML='<div style="font-size:.75rem;color:var(--vm-danger)">❌ Không tải được.</div>';
+          });
+      }
+    }
+  }
+}
+
+
+function scoreC(s){return s>=90?'vm-score-hi':(s>=60?'vm-score-mid':'vm-score-lo');}
+
+/* ── mode-chips CSS (inline since we can't edit theme now) ── */
+var mcs=document.createElement('style');
+mcs.textContent='.vm-mode-chip{padding:6px 14px;border:1.5px solid var(--vm-border);border-radius:var(--vm-r-pill);font-size:.82rem;font-weight:600;cursor:pointer;background:var(--vm-surface);color:var(--vm-ink-2);font-family:var(--vm-font-body);transition:all .14s}.vm-mode-chip.active{background:var(--vm-primary);color:#fff;border-color:var(--vm-primary)}';
+document.head.appendChild(mcs);
+
+/* ── Settings ───────────────────────────────────── */
+function renderSettings(){
+  var c = document.getElementById('vmContent');
+  var gemKey = VM.geminiKey.get();
+  var groqKey = VM.groqKey.get();
+
+  c.innerHTML =
+    // ── Profile section ──
+    '<div class="vm-card" style="padding:22px 24px;margin-bottom:16px">'+
+      '<h3 style="font-family:var(--vm-font-display);font-size:1rem;font-weight:700;margin:0 0 16px;color:var(--vm-ink)">👤 Profile</h3>'+
+      '<div style="display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:.88rem;color:var(--vm-ink-2);margin-bottom:16px">'+
+        '<b>Name</b><span>'+VM.esc(sess.name||'—')+'</span>'+
+        '<b>Student ID</b><span>'+VM.esc(sess.studentId||'—')+'</span>'+
+        '<b>Class</b><span>'+VM.esc(sess.class||'—')+'</span>'+
+        '<b>Email</b><span>'+VM.esc(sess.email||'—')+'</span>'+
+      '</div>'+
+    '</div>'+
+
+    // ── Change Password ──
+    '<div class="vm-card" style="padding:22px 24px;margin-bottom:16px">'+
+      '<h3 style="font-family:var(--vm-font-display);font-size:1rem;font-weight:700;margin:0 0 16px;color:var(--vm-ink)">🔐 Change Password</h3>'+
+      '<div class="vm-field">'+
+        '<label class="vm-label">Current Password</label>'+
+        '<input class="vm-input" id="stOldPw" type="password" placeholder="••••••••">'+
+      '</div>'+
+      '<div class="vm-field">'+
+        '<label class="vm-label">New Password</label>'+
+        '<input class="vm-input" id="stNewPw" type="password" placeholder="Min 6 characters">'+
+      '</div>'+
+      '<div class="vm-field">'+
+        '<label class="vm-label">Confirm New Password</label>'+
+        '<input class="vm-input" id="stConfPw" type="password" placeholder="Repeat new password">'+
+      '</div>'+
+      '<div id="stPwMsg" style="font-size:.8rem;min-height:18px;margin-bottom:10px"></div>'+
+      '<button class="vm-btn vm-btn-primary" id="stChangePwBtn" style="padding:10px 22px">Save Password</button>'+
+    '</div>'+
+
+    // ── API Keys ──
+    '<div class="vm-card" style="padding:22px 24px;margin-bottom:16px">'+
+      '<h3 style="font-family:var(--vm-font-display);font-size:1rem;font-weight:700;margin:0 0 4px;color:var(--vm-ink)">🔑 AI API Keys</h3>'+
+      '<p style="font-size:.78rem;color:var(--vm-ink-3);margin:0 0 16px">Keys are saved locally on this device only — never sent to any server.</p>'+
+
+      // Gemini
+      '<div class="vm-field">'+
+        '<label class="vm-label" style="display:flex;align-items:center;justify-content:space-between">'+
+          '<span>Gemini API Key <span style="font-size:.7rem;font-weight:400;color:var(--vm-ink-3)">(Google AI Studio — miễn phí)</span></span>'+
+          '<a href="https://aistudio.google.com/apikey" target="_blank" style="font-size:.75rem;color:var(--vm-primary);font-weight:600">Lấy key →</a>'+
+        '</label>'+
+        '<div style="display:flex;gap:8px">'+
+          '<input class="vm-input" id="stGemKey" type="password" placeholder="AIza…" value="'+VM.esc(gemKey)+'" style="flex:1">'+
+          '<button class="vm-btn vm-btn-ghost" id="stGemSave" style="padding:10px 16px;white-space:nowrap">Save</button>'+
+          (gemKey?'<button class="vm-btn vm-btn-ghost" id="stGemClear" style="padding:10px 12px;color:var(--vm-danger)">✕</button>':'')+ 
+        '</div>'+
+        '<div id="stGemStatus" style="font-size:.75rem;margin-top:5px;min-height:16px">'+
+          (gemKey?'<span style="color:var(--vm-ok)">✓ Key saved</span>':'<span style="color:var(--vm-ink-3)">No key — using Groq fallback</span>')+
+        '</div>'+
+      '</div>'+
+
+      // Groq
+      '<div class="vm-field" style="margin-top:4px">'+
+        '<label class="vm-label" style="display:flex;align-items:center;justify-content:space-between">'+
+          '<span>Groq API Key <span style="font-size:.7rem;font-weight:400;color:var(--vm-ink-3)">(Groq console — miễn phí)</span></span>'+
+          '<a href="https://console.groq.com/keys" target="_blank" style="font-size:.75rem;color:var(--vm-primary);font-weight:600">Lấy key →</a>'+
+        '</label>'+
+        '<div style="display:flex;gap:8px">'+
+          '<input class="vm-input" id="stGroqKey" type="password" placeholder="gsk_…" value="'+VM.esc(groqKey)+'" style="flex:1">'+
+          '<button class="vm-btn vm-btn-ghost" id="stGroqSave" style="padding:10px 16px;white-space:nowrap">Save</button>'+
+          (groqKey?'<button class="vm-btn vm-btn-ghost" id="stGroqClear" style="padding:10px 12px;color:var(--vm-danger)">✕</button>':'')+
+        '</div>'+
+        '<div id="stGroqStatus" style="font-size:.75rem;margin-top:5px;min-height:16px">'+
+          (groqKey?'<span style="color:var(--vm-ok)">✓ Key saved (Groq fallback active)</span>':'<span style="color:var(--vm-ink-3)">No key</span>')+
+        '</div>'+
+      '</div>'+
+    '</div>'+
+
+    // ── Session ──
+    '<div class="vm-card" style="padding:22px 24px">'+
+      '<h3 style="font-family:var(--vm-font-display);font-size:1rem;font-weight:700;margin:0 0 8px;color:var(--vm-ink)">🔓 Session</h3>'+
+      '<p style="font-size:.82rem;color:var(--vm-ink-2);margin:0 0 14px">Auto sign-out after 45 minutes of inactivity.</p>'+
+      '<button class="vm-btn vm-btn-danger" id="stSignOutBtn" style="padding:10px 20px">Sign out</button>'+
+    '</div>';
+
+  // ── Wire up handlers ──
+
+  // Change password
+  document.getElementById('stChangePwBtn').onclick = function(){
+    var old = document.getElementById('stOldPw').value;
+    var nw  = document.getElementById('stNewPw').value;
+    var cf  = document.getElementById('stConfPw').value;
+    var msg = document.getElementById('stPwMsg');
+    if(!old||!nw||!cf){ msg.style.color='var(--vm-danger)'; msg.textContent='Fill in all fields.'; return; }
+    if(nw.length<6){     msg.style.color='var(--vm-danger)'; msg.textContent='New password must be at least 6 characters.'; return; }
+    if(nw!==cf){         msg.style.color='var(--vm-danger)'; msg.textContent='Passwords do not match.'; return; }
+    var btn=document.getElementById('stChangePwBtn');
+    btn.disabled=true; btn.textContent='Saving…';
+    VM.api('auth.changePassword',{studentId:sess.studentId, oldPass:old, newPass:nw}).then(function(res){
+      btn.disabled=false; btn.textContent='Save Password';
+      if(res&&res.success){
+        msg.style.color='var(--vm-ok)'; msg.textContent='✓ Password changed successfully.';
+        document.getElementById('stOldPw').value='';
+        document.getElementById('stNewPw').value='';
+        document.getElementById('stConfPw').value='';
+      } else {
+        msg.style.color='var(--vm-danger)'; msg.textContent=(res&&res.error)||'Error changing password.';
+      }
+    }).catch(function(){ btn.disabled=false; btn.textContent='Save Password'; msg.style.color='var(--vm-danger)'; msg.textContent='Connection error.'; });
+  };
+
+  // Gemini key save
+  document.getElementById('stGemSave').onclick = function(){
+    var k=(document.getElementById('stGemKey').value||'').trim();
+    VM.geminiKey.set(k);
+    var st=document.getElementById('stGemStatus');
+    if(k){ st.innerHTML='<span style="color:var(--vm-ok)">✓ Key saved</span>'; VM.toast('Gemini key saved.','ok'); }
+    else { st.innerHTML='<span style="color:var(--vm-ink-3)">Cleared</span>'; VM.toast('Gemini key cleared.','ok'); }
+  };
+  var gclear=document.getElementById('stGemClear');
+  if(gclear) gclear.onclick=function(){
+    document.getElementById('stGemKey').value='';
+    VM.geminiKey.set('');
+    document.getElementById('stGemStatus').innerHTML='<span style="color:var(--vm-ink-3)">Cleared</span>';
+    VM.toast('Gemini key cleared.','ok');
+  };
+
+  // Groq key save
+  document.getElementById('stGroqSave').onclick = function(){
+    var k=(document.getElementById('stGroqKey').value||'').trim();
+    VM.groqKey.set(k);
+    var st=document.getElementById('stGroqStatus');
+    if(k){ st.innerHTML='<span style="color:var(--vm-ok)">✓ Key saved (Groq fallback active)</span>'; VM.toast('Groq key saved.','ok'); }
+    else { st.innerHTML='<span style="color:var(--vm-ink-3)">Cleared</span>'; VM.toast('Groq key cleared.','ok'); }
+  };
+  var grClear=document.getElementById('stGroqClear');
+  if(grClear) grClear.onclick=function(){
+    document.getElementById('stGroqKey').value='';
+    VM.groqKey.set('');
+    document.getElementById('stGroqStatus').innerHTML='<span style="color:var(--vm-ink-3)">Cleared</span>';
+    VM.toast('Groq key cleared.','ok');
+  };
+
+  // Sign out
+  document.getElementById('stSignOutBtn').onclick=function(){ VM.session.logout(); };
+}
+
+/* ── Translate (Luyện Dịch) ──────────────────────────────────────── */
+
+var _trSet = null;       // current set data (with items)
+var _trProgress = null;  // {clearedItemIds, runs, bestScore, nextRunIndex}
+var _trBatch = [];       // current 7-item batch
+var _trBatchResults = [];// scored items this run
+var _trBatchIdx = 0;     // which item in batch we're on
+
+function renderTranslateList(){
+  var c = document.getElementById('vmContent');
+  showOverlay('Đang tải…');
+  VM.api('translate.forStudent', { classId: sess.class || '' }).then(function(res){
+    hideOverlay();
+    var sets = (res && res.success) ? res.data : [];
+    if(!sets.length){
+      c.innerHTML='<div class="vm-empty"><p>Chưa có bài luyện dịch. Giáo viên sẽ tạo từ Homework.</p></div>';
+      return;
+    }
+    c.innerHTML = '<div class="vm-assign-grid">'+sets.map(function(s){
+      var st = s.sessionStatus;
+      var badge='', badgeColor='', btnLabel='Bắt đầu', btnDis=false;
+      if(st==='upcoming'){ badge='⏳ Chưa mở'; badgeColor='#A66B00'; btnDis=true; btnLabel='Chưa mở'; }
+      else if(st==='closed'){ badge='✓ Đã đóng'; badgeColor='var(--vm-ink-3)'; btnDis=true; btnLabel='Đã đóng'; }
+      else { badge='🟢 Đang mở'; badgeColor='var(--vm-ok)'; }
+      return '<div class="vm-assign-card" data-tr-start="'+VM.esc(s.setId)+'">'+
+        '<div class="vm-assign-card-title">'+VM.esc(s.title)+'</div>'+
+        '<div style="font-size:.75rem;font-weight:700;color:'+badgeColor+';margin-bottom:4px">'+badge+'</div>'+
+        '<div class="vm-assign-meta">'+
+          '<span>🎯 Pass: '+s.passScore+'%</span>'+
+          '<span>📅 '+fmtTrTime(s.sessionStart)+'</span>'+
+        '</div>'+
+        '<div style="font-size:.75rem;color:var(--vm-ink-3);margin-bottom:6px">Tiến độ: --/30 câu</div>'+
+        '<button class="vm-btn vm-btn-primary vm-btn-block" style="padding:10px;font-size:.88rem;margin-top:6px" '+
+          (btnDis?'disabled style="opacity:.5;cursor:not-allowed"':'')+'>'+btnLabel+' →</button>'+
+      '</div>';
+    }).join('')+'</div>';
+
+    VM.els('[data-tr-start]').forEach(function(card){
+      card.onclick = function(e){
+        if(e.target.tagName==='BUTTON'&&e.target.disabled) return;
+        var sid = card.getAttribute('data-tr-start');
+        var s = sets.find(function(x){ return x.setId===sid; });
+        if(!s) return;
+        if(s.sessionStatus==='upcoming'){ VM.toast('Chưa đến giờ làm bài.','warn'); return; }
+        if(s.sessionStatus==='closed'){   VM.toast('Bài đã đóng.','warn'); return; }
+        openTrSet(sid, s);
+      };
+    });
+  }).catch(function(){ hideOverlay(); VM.toast('Connection error.','err'); });
+}
+
+function fmtTrTime(str){
+  if(!str) return '—';
+  var d = new Date(str);
+  if(isNaN(d)) return str;
+  return d.toLocaleString('vi-VN',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false});
+}
+
+function openTrSet(setId, preview){
+  showOverlay('Đang tải bài…');
+  VM.api('translate.get',{setId:setId}).then(function(r1){
+    VM.api('translate.myProgress',{setId:setId,studentId:sess.studentId}).then(function(r2){
+      hideOverlay();
+      _trSet = r1.data;
+      _trProgress = r2.success ? r2.data : {runs:0,clearedItemIds:[],bestScore:0,nextRunIndex:1};
+
+      // Show rules/intro screen
+      renderTrIntro();
+    }).catch(function(){ hideOverlay(); VM.toast('Error.','err'); });
+  }).catch(function(){ hideOverlay(); VM.toast('Error loading set.','err'); });
+}
+
+function renderTrIntro(){
+  var c=document.getElementById('vmContent');
+  VM.setTitle(_trSet.title);
+  var cleared = _trProgress.clearedItemIds.length;
+  var total   = (_trSet.items||[]).length;
+  var pct     = total?Math.round(cleared/total*100):0;
+  c.innerHTML=
+    '<button class="vm-btn vm-btn-ghost vm-btn-sm" id="trBack" style="margin-bottom:12px">← Về danh sách</button>'+
+    '<div class="vm-card" style="padding:24px 26px;max-width:500px;margin:0 auto">'+
+      '<h3 style="font-family:var(--vm-font-display);font-size:1.1rem;margin:0 0 12px">📖 Luật chơi</h3>'+
+      '<ul style="font-size:.88rem;color:var(--vm-ink-2);line-height:1.75;padding-left:18px;margin:0 0 16px">'+
+        '<li>Mỗi lượt dịch <b>7 câu</b> xen kẽ EN↔VI</li>'+
+        '<li>Đạt ≥ <b>'+_trSet.passScore+'%</b> mới mở lượt tiếp</li>'+
+        '<li>AI chấm điểm theo ý nghĩa (không cần dịch y chang)</li>'+
+        '<li>Câu 💎 là "báu vật" — học kỹ pattern!</li>'+
+        '<li>Tiến độ: <b>'+cleared+'/'+total+'</b> câu đã đạt</li>'+
+      '</ul>'+
+      '<div class="vm-assign-pbar" style="margin-bottom:16px">'+
+        '<div class="vm-assign-pfill'+(cleared>=total?' done':'').trim()+'" style="width:'+pct+'%"></div>'+
+      '</div>'+
+      (cleared>=total?
+        '<div style="color:var(--vm-ok);font-weight:700;margin-bottom:12px">🎉 Bạn đã hoàn thành tất cả 30 câu!</div>':'') +
+      '<div style="display:flex;gap:10px;flex-wrap:wrap">'+
+        '<button class="vm-btn vm-btn-primary" id="trStartRun" style="padding:11px 24px">'+
+          (cleared>=total?'Làm lại từ đầu':'Bắt đầu lượt '+ (_trProgress.nextRunIndex||1))+
+        '</button>'+
+      '</div>'+
+    '</div>';
+
+  document.getElementById('trBack').onclick=function(){ renderTranslateList(); };
+  document.getElementById('trStartRun').onclick=function(){ startTrRun(); };
+}
+
+function pickTrBatch(items, clearedIds, n){
+  var clearedSet = {};
+  clearedIds.forEach(function(id){ clearedSet[id]=true; });
+  var pending = items.filter(function(it){ return !clearedSet[it.id]; });
+  // Shuffle pending
+  for(var i=pending.length-1;i>0;i--){
+    var j=Math.floor(Math.random()*(i+1)); var t=pending[i]; pending[i]=pending[j]; pending[j]=t;
+  }
+  var batch = pending.slice(0,n);
+  // If not enough pending, fill from all (shuffled)
+  if(batch.length < n){
+    var rest = items.filter(function(it){ return !pending.some(function(p){ return p.id===it.id; }); });
+    for(var k=rest.length-1;k>0;k--){
+      var l=Math.floor(Math.random()*(k+1)); var u=rest[k]; rest[k]=rest[l]; rest[l]=u;
+    }
+    batch = batch.concat(rest.slice(0, n-batch.length));
+  }
+  return batch;
+}
+
+function startTrRun(){
+  _trBatch = pickTrBatch(_trSet.items||[], _trProgress.clearedItemIds||[], 7);
+  _trBatchResults = [];
+  _trBatchIdx = 0;
+  renderTrQuestion();
+}
+
+function renderTrQuestion(){
+  var c=document.getElementById('vmContent');
+  var q=_trBatch[_trBatchIdx];
+  if(!q){ renderTrRunResult(); return; }
+  var total=_trBatch.length;
+  var dirLabel = q.direction==='en2vi'?'Dịch sang Tiếng Việt':'Dịch sang Tiếng Anh';
+  var dirBadge = q.direction==='en2vi'?'EN → VI':'VI → EN';
+  var dirColor = q.direction==='en2vi'?'var(--vm-primary)':'#8B5CF6';
+
+  c.innerHTML=
+    '<button class="vm-btn vm-btn-ghost vm-btn-sm" id="trQBack" style="margin-bottom:10px">← Về danh sách</button>'+
+    '<div class="vm-quiz-wrap">'+
+      '<div class="vm-quiz-header" style="margin-bottom:12px">'+
+        '<div style="display:flex;align-items:center;gap:8px">'+
+          '<span style="font-size:.8rem;font-weight:700;color:'+dirColor+'">'+dirBadge+'</span>'+
+          '<span style="font-size:.8rem;color:var(--vm-ink-3)">· Câu '+(_trBatchIdx+1)+'/'+total+'</span>'+
+          (q.isTreasure?'<span style="font-size:.8rem">💎</span>':'')+
+        '</div>'+
+        '<span style="font-size:.78rem;color:var(--vm-ink-3)">Lượt '+(_trProgress.nextRunIndex||1)+'</span>'+
+      '</div>'+
+      '<div class="vm-quiz-card">'+
+        '<div class="vm-quiz-prompt-box" style="font-size:1.2rem">'+VM.esc(q.source)+'</div>'+
+        '<p style="font-size:.8rem;color:var(--vm-ink-3);text-align:center;margin-bottom:10px">'+dirLabel+'</p>'+
+        '<textarea class="vm-input" id="trAnswer" rows="3" '+
+          'placeholder="Nhập bản dịch của bạn…" '+
+          'style="resize:vertical;font-size:.95rem;line-height:1.6" autocomplete="off"></textarea>'+
+        '<div id="trGradeStatus" style="font-size:.8rem;color:var(--vm-ink-3);min-height:16px;margin-top:6px"></div>'+
+        '<div style="display:flex;gap:10px;margin-top:12px">'+
+          '<button class="vm-btn vm-btn-primary" id="trSubmitBtn" style="flex:1;padding:11px">Nộp câu này</button>'+
+        '</div>'+
+        '<div id="trFeedbackWrap" style="display:none;margin-top:14px;padding:14px 16px;background:var(--vm-surface-2);border-radius:var(--vm-r-sm);border:1px solid var(--vm-border-2)">'+
+          '<div id="trFeedbackContent"></div>'+
+          '<div id="trChestBtn" style="margin-top:10px;display:none">'+
+            '<button class="vm-btn vm-btn-ghost vm-btn-sm" id="addChestBtn">💎 Lưu vào rương</button>'+
+          '</div>'+
+          '<button class="vm-btn vm-btn-primary" id="trNextBtn" style="margin-top:12px;width:100%;padding:10px">'+
+            'Câu tiếp →'+
+          '</button>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+
+  document.getElementById('trQBack').onclick=function(){ renderTranslateList(); };
+  var submitBtn=document.getElementById('trSubmitBtn');
+  var answerEl=document.getElementById('trAnswer');
+  var statusEl=document.getElementById('trGradeStatus');
+
+  submitBtn.onclick=function(){
+    var answer=(answerEl.value||'').trim();
+    if(!answer){ VM.toast('Nhập bản dịch trước.','warn'); return; }
+    submitBtn.disabled=true;
+    statusEl.innerHTML='<span class="vm-spin-dark" style="width:12px;height:12px;border-width:2px;display:inline-block;vertical-align:middle;margin-right:5px"></span> AI đang chấm…';
+    gradeTrItem(q, answer, function(result){
+      statusEl.textContent='';
+      _trBatchResults.push({
+        itemId:q.id, direction:q.direction,
+        studentAnswer:answer, score:result.score, feedback:result.feedback
+      });
+      showTrFeedback(q, answer, result);
+    });
+  };
+  answerEl.onkeydown=function(e){
+    if(e.key==='Enter'&&e.ctrlKey){ e.preventDefault(); submitBtn.click(); }
+  };
+}
+
+function gradeTrItem(item, answer, cb){
+  var key = VM.geminiKey.get();
+  var groq = VM.groqKey.get();
+  if(!key && !groq){ cb(offlineTrGrade(item,answer)); return; }
+
+  var prompt=[
+    'You are an EFL translation grader. Grade this translation STRICTLY by semantic meaning.',
+    'Direction: '+(item.direction==='en2vi'?'English → Vietnamese':'Vietnamese → English'),
+    'Source: '+item.source,
+    'Model answer: '+item.modelAnswer,
+    'Student answer: '+answer,
+    (item.targetWords&&item.targetWords.length?'Target words to use: '+item.targetWords.join(', '):''),
+    '',
+    'Return ONLY JSON (no markdown):',
+    '{"score":0-100,"feedback":"1-2 sentences in the same language the student used","usedTargets":[],"missedTargets":[]}',
+    'Score 90-100: correct meaning, natural expression.',
+    'Score 70-89: mostly correct with minor issues.',
+    'Score 50-69: partial credit, key meaning present but errors.',
+    'Score <50: wrong meaning or too incomplete.',
+    'NEVER reveal other questions or answers.'
+  ].join('\n')
+  var MODELS=['gemini-3.5-flash','gemini-3.6-flash'];
+  var mi=0;
+
+  function tryGemini(){
+    if(mi>=MODELS.length){ if(groq) tryGroq(); else cb(offlineTrGrade(item,answer)); return; }
+    var m=MODELS[mi++];
+    fetch('https://generativelanguage.googleapis.com/v1beta/models/'+m+':generateContent?key='+encodeURIComponent(key),{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({contents:[{role:'user',parts:[{text:prompt}]}],
+        generationConfig:{maxOutputTokens:256,temperature:0.2}})
+    }).then(function(r){ return r.json(); }).then(function(d){
+      var parts=(((d.candidates||[])[0]||{}).content||{}).parts||[];
+      var text=parts.map(function(p){return p.text||'';}).join('').trim()
+        .replace(/```json[\n]?/g,'').replace(/```[\n]?/g,'').trim();
+      var parsed=JSON.parse(text);
+      cb({score:parsed.score||0,feedback:parsed.feedback||'',usedTargets:parsed.usedTargets||[],missedTargets:parsed.missedTargets||[]});
+    }).catch(function(){ tryGemini(); });
+  }
+
+  function tryGroq(){
+    fetch('https://api.groq.com/openai/v1/chat/completions',{
+      method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+groq},
+      body:JSON.stringify({model:'llama3-70b-8192',messages:[{role:'user',content:prompt}],
+        temperature:0.2,max_tokens:256})
+    }).then(function(r){ return r.json(); }).then(function(d){
+      var text=((d.choices||[])[0]||{}).message&&d.choices[0].message.content||'';
+      text=text.replace(/```json[\n]?/g,'').replace(/```[\n]?/g,'').trim();
+      var parsed=JSON.parse(text);
+      cb({score:parsed.score||0,feedback:parsed.feedback||'',usedTargets:parsed.usedTargets||[],missedTargets:parsed.missedTargets||[]});
+    }).catch(function(){ cb(offlineTrGrade(item,answer)); });
+  }
+
+  if(key) tryGemini(); else tryGroq();
+}
+
+function offlineTrGrade(item, answer){
+  // Fallback: token overlap scoring
+  function tokens(s){ return s.toLowerCase().replace(/[^\w\s]/g,'').split(/\s+/).filter(Boolean); }
+  var ref=tokens(item.modelAnswer), ans=tokens(answer);
+  var matches=ans.filter(function(t){ return ref.indexOf(t)>=0; }).length;
+  var score = ref.length ? Math.round(Math.min(100, matches/ref.length*100)) : 0;
+  return { score:score, feedback:'(Chấm offline — không có AI key)', usedTargets:[], missedTargets:[] };
+}
+
+function showTrFeedback(item, answer, result){
+  var sc=result.score;
+  var passScore2 = (_trSet && _trSet.passScore) || 85;
+  var col=sc>=passScore2?'var(--vm-ok)':(sc>=60?'#A66B00':'var(--vm-danger)');
+  var passedThis = sc >= passScore2;
+  var fbWrap=document.getElementById('trFeedbackWrap');
+  var fbContent=document.getElementById('trFeedbackContent');
+  fbContent.innerHTML=
+    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">'+
+      '<div style="font-family:var(--vm-font-display);font-size:1.5rem;font-weight:700;color:'+col+'">'+sc+'%</div>'+
+      '<div style="flex:1">'+
+        '<div style="font-size:.78rem;font-weight:700;color:'+col+';margin-bottom:3px">'+
+          (passedThis?'✅ Đạt — qua câu tiếp':'❌ Chưa đạt — cần dịch lại')+
+        '</div>'+
+        '<div style="font-size:.82rem;color:var(--vm-ink-2)">'+VM.esc(result.feedback)+'</div>'+
+      '</div>'+
+    '</div>'+
+    '<div style="font-size:.8rem;background:var(--vm-surface);border-radius:6px;padding:8px 12px;border-left:3px solid var(--vm-ok)">'+
+      '<b style="font-size:.72rem;color:var(--vm-ink-3);display:block;margin-bottom:3px">ĐÁP ÁN MẪU</b>'+
+      VM.esc(item.modelAnswer)+
+    '</div>'+
+    (item.pattern?'<div style="font-size:.78rem;color:#8B5CF6;margin-top:8px">💡 Pattern: <b>'+VM.esc(item.pattern)+'</b></div>':'')+
+    (result.missedTargets&&result.missedTargets.length?
+      '<div style="font-size:.76rem;color:var(--vm-danger);margin-top:6px">Từ chưa dùng: '+VM.esc(result.missedTargets.join(', '))+'</div>':'');
+
+  fbWrap.style.display='';
+  // Treasure chest
+  if(item.isTreasure){
+    document.getElementById('trChestBtn').style.display='';
+    document.getElementById('addChestBtn').onclick=function(){
+      VM.toast('💎 Đã lưu vào rương!','ok');
+      _trBatch[_trBatchIdx]._savedToChest=true;
+      this.disabled=true; this.textContent='✓ Đã lưu';
+    };
+  }
+  // Next button — only advance if score >= passScore
+  var passScore = (_trSet && _trSet.passScore) || 85;
+  var passed = result.score >= passScore;
+  var nextBtn = document.getElementById('trNextBtn');
+  if(!passed){
+    // Score too low — show retry option instead of advancing
+    nextBtn.textContent = '🔄 Dịch lại câu này';
+    nextBtn.style.background = 'var(--vm-danger)';
+    nextBtn.onclick = function(){
+      // Remove this item's result (will re-grade)
+      _trBatchResults = _trBatchResults.filter(function(r){ return r.itemId !== item.id; });
+      // Re-render same question
+      var fbWrap2 = document.getElementById('trFeedbackWrap');
+      if(fbWrap2) fbWrap2.style.display='none';
+      var submitBtn2 = document.getElementById('trSubmitBtn');
+      if(submitBtn2){ submitBtn2.style.display=''; submitBtn2.disabled=false; }
+      var ans2 = document.getElementById('trAnswer');
+      if(ans2){ ans2.disabled=false; ans2.value=''; ans2.focus(); }
+      var status2 = document.getElementById('trGradeStatus');
+      if(status2) status2.textContent='';
+    };
+  } else {
+    nextBtn.onclick = function(){
+      _trBatchIdx++;
+      if(_trBatchIdx>=_trBatch.length) renderTrRunResult();
+      else renderTrQuestion();
+    };
+  }
+  document.getElementById('trSubmitBtn').style.display='none';
+}
+
+function renderTrRunResult(){
+  var c=document.getElementById('vmContent');
+  // Calculate scores
+  var total=_trBatchResults.length||1;
+  var runScore=Math.round(_trBatchResults.reduce(function(a,r){ return a+(r.score||0); },0)/total);
+  var passed=runScore>=(_trSet.passScore||85);
+
+  // Build cleared IDs (cumulative)
+  var prevCleared={};
+  (_trProgress.clearedItemIds||[]).forEach(function(id){ prevCleared[id]=true; });
+  _trBatchResults.forEach(function(r){ if((r.score||0)>=(_trSet.passScore||85)) prevCleared[r.itemId]=true; });
+  var newClearedIds=Object.keys(prevCleared);
+
+  // Chest items
+  var chest=_trBatch.filter(function(it){ return it._savedToChest; }).map(function(it){
+    return {itemId:it.id,source:it.source,modelAnswer:it.modelAnswer,pattern:it.pattern||null};
+  });
+
+  // Save result
+  var runIdx=_trProgress.nextRunIndex||1;
+  VM.api('translate.saveResult',{
+    studentId:sess.studentId, name:sess.name||'', class:sess.class||'',
+    setId:_trSet.setId, title:_trSet.title,
+    runIndex:runIdx, score:runScore, passed:passed,
+    durationSec:0,
+    itemScores:_trBatchResults,
+    clearedItemIds:newClearedIds,
+    chest:chest
+  }).then(function(r){
+    if(r&&r.success){
+      _trProgress.clearedItemIds=newClearedIds;
+      _trProgress.nextRunIndex=(runIdx+1);
+      _trProgress.runs=(_trProgress.runs||0)+1;
+    }
+  });
+
+  var cleared=newClearedIds.length, total30=(_trSet.items||[]).length;
+  var pct=total30?Math.round(cleared/total30*100):0;
+  var scCol=runScore>=85?'var(--vm-ok)':(runScore>=60?'#A66B00':'var(--vm-danger)');
+
+  c.innerHTML=
+    '<div class="vm-result-banner" style="margin-top:8px">'+
+      '<div class="vm-result-score" style="color:'+scCol+'">'+runScore+'%</div>'+
+      '<div class="vm-result-label">'+(passed?'✅ Đạt lượt này!':'❌ Chưa đạt lượt này')+
+        ' · '+cleared+'/'+total30+' câu đã clear</div>'+
+      '<div class="vm-assign-pbar" style="max-width:320px;margin:12px auto">'+
+        '<div class="vm-assign-pfill'+(cleared>=total30?' done':'').trim()+'" style="width:'+pct+'%"></div></div>'+
+      (passed&&cleared<total30?
+        '<div style="font-size:.85rem;color:var(--vm-ink-2);margin-bottom:16px">'+
+          'Còn '+(total30-cleared)+' câu nữa. Hãy làm lượt tiếp!</div>':'') +
+      (passed&&cleared>=total30?
+        '<div style="font-size:.9rem;color:var(--vm-ok);font-weight:700;margin-bottom:16px">🎉 Bạn đã hoàn thành tất cả câu!</div>':'') +
+      (!passed?'<div style="font-size:.85rem;color:var(--vm-ink-3);margin-bottom:16px">Làm lại lượt hiện tại để tăng điểm.</div>':'') +
+      '<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">'+
+        (passed&&cleared<total30?
+          '<button class="vm-btn vm-btn-primary" id="trContinue" style="padding:11px 24px">Làm tiếp 7 câu →</button>':'') +
+        (!passed?
+          '<button class="vm-btn vm-btn-primary" id="trRetry" style="padding:11px 24px">Làm lại lượt này</button>':'') +
+        '<button class="vm-btn vm-btn-ghost" id="trBackList" style="padding:11px 20px">← Về danh sách</button>'+
+      '</div>'+
+    '</div>';
+
+  var cb=document.getElementById('trContinue');
+  if(cb) cb.onclick=function(){ startTrRun(); };
+  var rb=document.getElementById('trRetry');
+  if(rb) rb.onclick=function(){
+    // Redo same batch (not advancing cleared)
+    _trBatchResults=[];_trBatchIdx=0;
+    renderTrQuestion();
+  };
+  document.getElementById('trBackList').onclick=function(){ renderTranslateList(); };
+}
+
+
+// Init AI chat — student mode, auto-cascade Gemini→Groq, no answer spoiling
+VM.Chat.init({ role:'student', context:'' });
+
+// Update chat context when student enters homework or readwise
+var _origSwitchTab = switchTab;
+switchTab = function(id){
+  if(typeof clearICTimer==='function') clearICTimer();
+  _origSwitchTab(id);
+  if(id==='homework') VM.Chat.setContext('Student is studying homework vocabulary assignments.');
+  else if(id==='reading') VM.Chat.setContext('Student is using ReadWise self-study reading mode.');
+  else VM.Chat.setContext('');
+};
+
+switchTab('home');
+</script>
+</body>
+</html>

@@ -1,0 +1,174 @@
+rules_version = '2';
+// VocabMaster — dán vào Firebase console → Firestore Database → Rules → Publish.
+//
+// Tài khoản chỉ được tạo bởi Apps Script (gas/FirebaseVM.gs, quyền quản trị).
+// Tài khoản GV mang custom claim role == 'teacher'. Mọi tài liệu thuộc lớp đều có
+// teacherUid → GV chỉ thấy lớp/SV/bài của mình; SV chỉ thấy bài của lớp mình và kết quả của chính mình.
+// Apps Script chạy với quyền chủ project nên không bị các quy tắc này giới hạn.
+service cloud.firestore {
+  match /databases/{db}/documents {
+    function signedIn()  { return request.auth != null; }
+    function isTeacher() { return signedIn() && request.auth.token.role == 'teacher'; }
+    function isMe(uid)   { return signedIn() && request.auth.uid == uid; }
+    function owns(data)  { return isTeacher() && data.teacherUid == request.auth.uid; }
+    function profile()   { return get(/databases/$(db)/documents/users/$(request.auth.uid)).data; }
+    function classOwned(cid) { return get(/databases/$(db)/documents/classes/$(cid)).data.teacherUid == request.auth.uid; }
+    function classActiveOwned(cid) { return classOwned(cid) && get(/databases/$(db)/documents/classes/$(cid)).data.status != 'Archived'; }
+    // Reading a document that does not exist yet (resource == null) must not error out:
+    // the app checks "does this id exist?" before creating, and first-time progress reads.
+    function missing()   { return signedIn() && resource == null; }
+    function unchanged(f) {
+      return request.resource.data.get(f, null) == resource.data.get(f, null);
+    }
+
+    // Hồ sơ. Do Apps Script tạo; GV sửa được tên/lớp/điện thoại/email/khoá của SV lớp mình
+    // (chuyển sang lớp khác chỉ được khi lớp đó cũng của GV này).
+    match /users/{uid} {
+      allow read: if isMe(uid) || owns(resource.data);
+      allow update: if owns(resource.data)
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['archived', 'fullName', 'classId', 'phone', 'email'])
+                    && (unchanged('classId') || classOwned(request.resource.data.classId));
+      allow create, delete: if false;
+    }
+    // sha256(email) → mã SV, để đăng nhập bằng email. Chỉ đọc từng cái (phải biết email), không liệt kê được.
+    match /loginIndex/{h} {
+      allow get: if true;
+      allow list, write: if false;
+    }
+
+    match /classes/{id} {
+      allow read: if signedIn();
+      allow create: if isTeacher() && request.resource.data.teacherUid == request.auth.uid
+                    && request.resource.data.classId == id;
+      allow update: if owns(resource.data) && unchanged('teacherUid') && unchanged('classId');
+      allow delete: if false;
+    }
+
+    // Bài tập: ID do trình duyệt tạo, mỗi bài đúng MỘT tài liệu.
+    // extAll / ext{studentId} = gia hạn cho cả lớp / từng SV (chỉ GV ghi được).
+    match /assignments/{id} {
+      allow get: if missing();
+      allow read: if owns(resource.data)
+                  || (signedIn() && resource.data.classId == profile().classId);
+      allow create: if isTeacher() && request.resource.data.teacherUid == request.auth.uid
+                    && classOwned(request.resource.data.classId);
+      allow update: if owns(resource.data) && unchanged('teacherUid')
+                    && (unchanged('classId') || classOwned(request.resource.data.classId));
+      allow delete: if false;   // xoá = đánh dấu deleted:true
+    }
+
+    // MỘT tài liệu cho mỗi (SV × bài): runs[] của mọi lần làm. SV ghi bài của mình;
+    // lớp và GV phải khớp hồ sơ. GV ghi được cho SV lớp mình (đánh vắng).
+    match /results/{id} {
+      allow get: if missing();
+      allow read: if (signedIn() && resource.data.uid == request.auth.uid) || owns(resource.data);
+      allow create: if (isMe(request.resource.data.uid)
+                        && request.resource.data.classId == profile().classId
+                        && request.resource.data.teacherUid == profile().teacherUid)
+                    || (isTeacher() && request.resource.data.teacherUid == request.auth.uid);
+      allow update: if (isMe(resource.data.uid) && unchanged('uid') && unchanged('teacherUid')
+                        && request.resource.data.classId == profile().classId)
+                    || (owns(resource.data) && unchanged('uid') && unchanged('teacherUid'));
+      allow delete: if false;
+    }
+
+    // Dấu "đã chép phạt / re-check" của GV
+    match /rechecks/{id} {
+      allow get: if missing();
+      allow read: if owns(resource.data);
+      allow create: if isTeacher() && request.resource.data.teacherUid == request.auth.uid;
+      allow update: if owns(resource.data) && unchanged('teacherUid');
+      allow delete: if false;
+    }
+
+    // Translate
+    match /trSets/{id} {
+      allow get: if missing();
+      allow read: if owns(resource.data)
+                  || (signedIn() && resource.data.classId == profile().classId);
+      allow create: if isTeacher() && request.resource.data.teacherUid == request.auth.uid
+                    && classOwned(request.resource.data.classId);
+      allow update: if owns(resource.data) && unchanged('teacherUid') && unchanged('classId');
+      allow delete: if false;
+    }
+    match /trProgress/{id} {
+      allow get: if missing();
+      allow read: if (signedIn() && resource.data.uid == request.auth.uid) || owns(resource.data);
+      allow create: if isMe(request.resource.data.uid)
+                    && request.resource.data.classId == profile().classId
+                    && request.resource.data.teacherUid == profile().teacherUid;
+      allow update: if isMe(resource.data.uid) && unchanged('uid') && unchanged('teacherUid');
+      allow delete: if false;
+    }
+
+    // ReadWise: bài đọc tự học, chỉ chủ bài thấy
+    match /readwise/{id} {
+      allow get: if missing();
+      allow read, delete: if signedIn() && resource.data.uid == request.auth.uid;
+      allow create: if isMe(request.resource.data.uid);
+      allow update: if false;
+    }
+
+    // IELTS Library: teachers own their authored items. Students can read only
+    // published items granted to their class, plus their own private practice.
+    match /ieltsContent/{id} {
+      allow read: if (isTeacher() && resource.data.ownerUid == request.auth.uid)
+                  || (isMe(resource.data.ownerUid) && resource.data.visibility == 'private')
+                  || (signedIn() && profile().role == 'student'
+                      && resource.data.status in ['published','review'] && resource.data.archived == false
+                      && resource.data.allowedClassIds.hasAny([profile().classId]));
+      allow create: if (isTeacher() && request.resource.data.ownerUid == request.auth.uid
+                       && request.resource.data.teacherUid == request.auth.uid
+                       && ((request.resource.data.status == 'draft' && request.resource.data.classId == '' && request.resource.data.allowedClassIds == [])
+                           || (classActiveOwned(request.resource.data.classId) && request.resource.data.allowedClassIds == [request.resource.data.classId])))
+                    || (isMe(request.resource.data.ownerUid) && profile().role == 'student'
+                        && request.resource.data.visibility == 'private'
+                        && request.resource.data.status == 'private'
+                        && request.resource.data.classId == profile().classId);
+      allow update: if (isTeacher() && resource.data.ownerUid == request.auth.uid
+                       && request.resource.data.ownerUid == resource.data.ownerUid
+                       && request.resource.data.teacherUid == resource.data.teacherUid
+                       && (((request.resource.data.status == 'draft' || request.resource.data.status == 'archived') && request.resource.data.classId == '' && request.resource.data.allowedClassIds == [])
+                           || (request.resource.data.status == 'archived' && classOwned(request.resource.data.classId) && request.resource.data.allowedClassIds == [request.resource.data.classId])
+                           || (classActiveOwned(request.resource.data.classId) && request.resource.data.allowedClassIds == [request.resource.data.classId])))
+                    || (isMe(resource.data.ownerUid) && profile().role == 'student'
+                        && resource.data.visibility == 'private' && request.resource.data.visibility == 'private'
+                        && request.resource.data.status == 'private' && request.resource.data.classId == profile().classId
+                        && request.resource.data.ownerUid == resource.data.ownerUid);
+      allow delete: if false;
+    }
+    // Answer keys are stored separately because Firestore cannot redact fields
+    // from a document read by an authorized student.
+    match /ieltsAnswerKeys/{id} {
+      allow read: if (isTeacher() && resource.data.ownerUid == request.auth.uid)
+                  || (isMe(resource.data.ownerUid) && profile().role == 'student' && resource.data.visibility == 'private');
+      allow create, update: if (isTeacher() && request.resource.data.ownerUid == request.auth.uid
+                               && request.resource.data.teacherUid == request.auth.uid
+                               && getAfter(/databases/$(db)/documents/ieltsContent/$(id)).data.ownerUid == request.auth.uid)
+                            || (isMe(request.resource.data.ownerUid) && profile().role == 'student'
+                                && request.resource.data.visibility == 'private'
+                                && getAfter(/databases/$(db)/documents/ieltsContent/$(id)).data.ownerUid == request.auth.uid
+                                && getAfter(/databases/$(db)/documents/ieltsContent/$(id)).data.visibility == 'private');
+      allow delete: if false;
+    }
+    match /ieltsAttempts/{id} {
+      allow read: if isMe(resource.data.uid) || owns(resource.data);
+      allow create, update, delete: if false; // trusted grader in Apps Script writes attempts
+    }
+    match /ieltsReports/{id} {
+      allow read: if owns(resource.data);
+      allow create: if isMe(request.resource.data.uid)
+                    && request.resource.data.classId == profile().classId
+                    && request.resource.data.teacherUid == profile().teacherUid;
+      allow update: if owns(resource.data) && unchanged('uid') && unchanged('classId')
+                    && unchanged('teacherUid') && unchanged('contentId');
+      allow delete: if false;
+    }
+
+    // Từ của ngày: ai đăng nhập cũng đọc; chỉ Apps Script ghi
+    match /vocabBank/{id} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+  }
+}

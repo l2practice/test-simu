@@ -1,0 +1,36 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function userProfile() {
+      return firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data;
+    }
+    function content(ownerUid, contentId) {
+      return firestore.get(/databases/(default)/documents/ieltsContent/$(contentId)).data;
+    }
+    function authorizedReader(ownerUid, contentId) {
+      let item = content(ownerUid, contentId);
+      let profile = userProfile();
+      return request.auth != null && (
+        (request.auth.uid == ownerUid && item.ownerUid == request.auth.uid) ||
+        (profile.role == 'student' && item.archived == false
+         && item.status in ['published', 'review']
+         && item.allowedClassIds.hasAny([profile.classId]))
+      );
+    }
+    function ownerCanWrite(ownerUid, contentId) {
+      let item = content(ownerUid, contentId);
+      let profile = userProfile();
+      return request.auth != null && request.auth.uid == ownerUid
+        && item.ownerUid == ownerUid
+        && ((profile.role == 'teacher' && item.teacherUid == ownerUid)
+          || (profile.role == 'student' && item.visibility == 'private'));
+    }
+    match /ieltsAudio/{ownerUid}/{contentId}/{fileName} {
+      allow read: if authorizedReader(ownerUid, contentId);
+      allow create, update: if ownerCanWrite(ownerUid, contentId)
+        && request.resource.size <= 25 * 1024 * 1024
+        && request.resource.contentType.matches('audio/(mpeg|mp4|wav|x-wav|webm|ogg|aac|flac)');
+      allow delete: if false;
+    }
+  }
+}
