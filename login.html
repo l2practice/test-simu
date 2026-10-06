@@ -2,12 +2,12 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%231B7F5E'/%3E%3Ctext x='12' y='17' text-anchor='middle' font-size='13' font-weight='700' fill='%23fff' font-family='system-ui'%3EV%3C/text%3E%3C/svg%3E">
-<meta name="theme-color" content="#1B7F5E">
-<title>Test Simu · IELTS Practice</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta name="theme-color" content="#FF6B52">
+<meta name="theme-color" content="#FFFAF5"><title>Test Simulation · IELTS Practice</title>
 <link rel="stylesheet" href="vm-theme.css">
 <style>
-.vm-modal-bg{position:fixed;inset:0;background:rgba(13,79,58,.45);z-index:500;display:none;align-items:center;justify-content:center;padding:20px}
+.vm-modal-bg{position:fixed;inset:0;background:rgba(52,48,47,.42);z-index:500;display:none;align-items:center;justify-content:center;padding:20px}
 .vm-modal-bg.show{display:flex}
 </style>
 </head>
@@ -95,6 +95,7 @@ if (typeof VM === 'undefined') {
   throw new Error('no VM');
 }
 document.getElementById('brand').innerHTML = VM.brandLockup();
+var requestedSkill=new URLSearchParams(location.search).get('skill'); if(requestedSkill==='reading'||requestedSkill==='listening') sessionStorage.setItem('testsimu_skill',requestedSkill);
 VM.mountAuthHero('Build your IELTS Reading and Listening skills with practice sets, teacher feedback, and progress tracking.');
 
 // Already logged in?
