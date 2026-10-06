@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%231B7F5E'/%3E%3Ctext x='12' y='17' text-anchor='middle' font-size='13' font-weight='700' fill='%23fff' font-family='system-ui'%3EV%3C/text%3E%3C/svg%3E">
 <meta name="theme-color" content="#1B7F5E">
-<title>VocabMaster</title>
-<link rel="stylesheet" href="vm-theme.css">
+<title>Test Simulation</title>
+<link rel="stylesheet" href="vm-theme.css?v=20261006">
 <style>
 #app{min-height:100vh}
 
@@ -138,7 +138,7 @@
 
 <div id="app"></div>
 
-<script src="vm-common.js"></script>
+<script src="vm-common.js?v=20261006"></script>
 <script src="cefr-dict.js"></script>
 <script src="vm-cefr.js"></script>
 <script>
@@ -161,7 +161,7 @@ var S = { assignments:[], myResults:[], activeTab:'home' };
 
 /* ── Shell ───────────────────────────────────── */
 VM.renderShell({
-  mount:'app', eyebrow:'VocabMaster', title:'Home', user:sess,
+  mount:'app', eyebrow:'Test Simulation', title:'Home', user:sess,
   nav:[
     {id:'home',    label:'Home',         icon:'overview'},
     {id:'homework',label:'Homework',      icon:'hw'},
