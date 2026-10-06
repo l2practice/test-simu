@@ -1,6 +1,6 @@
 # VocabMaster — chuyển sang Firebase
 
-Gói miễn phí **Spark** là đủ cho vài trăm SV (xem "Chi phí" cuối trang). Địa chỉ app không đổi: `l2practice.github.io/vocab-master`.
+App IELTS đang chạy tại `https://l2practice.github.io/test-simu/`. Firestore dùng gói Spark; Firebase Storage yêu cầu nâng cấp dự án lên Blaze để tải audio lên.
 
 Cho tới khi bật công tắc (bước D), app vẫn chạy bằng Google Sheet như cũ.
 
@@ -91,7 +91,7 @@ Giới hạn mỗi ngày: 50.000 lượt đọc, 20.000 lượt ghi, 20.000 lư�
 ## IELTS Reading / Listening additions
 
 - Publish the updated `firestore.rules` and create the composite indexes in `firestore.indexes.json` (Firebase Console ▸ Firestore ▸ Indexes). The new queries need indexes for class-scoped Library, attempts, and student reports.
-- Enable Firebase Storage, publish `storage.rules`, and set the bucket CORS policy for the app origin if playback is blocked. Audio uploads accept audio MIME types up to 25 MB and are stored under the owning user's content path.
+- Firebase hiện ở gói Spark và Storage chưa thể khởi tạo. Nếu chủ dự án chủ động nâng cấp lên Blaze, hãy bật Storage, publish `storage.rules`, và cấu hình bucket CORS cho `https://l2practice.github.io` nếu phát audio bị chặn. Audio tối đa 25 MB, chỉ lưu theo đường dẫn nội dung thuộc quyền người dùng.
 - Copy the updated `Code.gs` and `FirebaseVM.gs` into the existing Apps Script project, retain the existing `doPost` router, then deploy a new web app version. The importer runs server-side, accepts HTTPS pages only from `ieltstrainingonline.com`, rejects redirects, and never fetches audio.
 - Students can practice items marked `review` or `published` for their class. `review` items show “Chờ kiểm tra”; student reports are visible to that item's teacher. Attempts are graded by Apps Script after verifying the Firebase ID token; published answer keys are not sent to student browsers.
 - Teachers and students can attach audio to Listening sections they own. Storage Rules check the linked content owner/class grant. Audio from the source website is never fetched.
