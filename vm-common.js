@@ -7,7 +7,7 @@
   'use strict';
 
   /* ── GAS endpoint ─────────────────────────────────────────── */
-  var GAS = 'https://script.google.com/macros/s/AKfycbwj-XE8zxBifrn7BgcbIGegqeeoKAPnYIBUPX7dOuCQozNQvkOgmS9bT3tC92W3kwoM/exec';
+  var GAS = 'https://script.google.com/macros/s/AKfycbwJDOTjt4wS9cO9KCFm9Hg_foSEDoYwa_-kRoQIHWolHfCqBz7CeZOi9XLRTaZZD4xY/exec';
 
   /* ── Firebase ───────────────────────────────────────────────
      Dán Web app config từ Firebase console ▸ Project settings ▸ Your apps.
