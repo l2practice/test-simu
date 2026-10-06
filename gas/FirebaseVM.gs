@@ -36,7 +36,7 @@ var VMFB = {
   STUDENT_DOMAIN: 'students.vocabmaster.app',
   // Lớp trong Sheet không có email GV → gán cho GV này ('' = GV đầu tiên trong tab Teachers)
   DEFAULT_TEACHER_EMAIL: '',
-  APP_URL: 'https://l2practice.github.io/vocab-master/login.html'
+  APP_URL: 'https://l2practice.github.io/test-simu/login.html'
 };
 
 // ── ROUTER (gọi từ dispatch trong Code.gs cho các action 'fb.*') ──
