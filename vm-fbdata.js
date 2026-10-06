@@ -176,20 +176,37 @@ async function changePassword(p) {
 }
 
 // Accounts are created by Apps Script (admin rights). After a successful signup we sign in here.
+async function recoverSignupAfterGasError(login, password, isTeacher) {
+  // GAS ContentService redirects its response to script.googleusercontent.com.
+  // Some browsers/extensions block that redirected response after the server
+  // already created the Firebase account. Try Firebase sign-in before reporting failure.
+  try {
+    const err = await signIn(login, password, false);
+    if (!err) return finishLogin(!!isTeacher);
+  } catch (e) {}
+  return fail('Không nhận được phản hồi đăng ký từ Apps Script. Tài khoản có thể đã được tạo; hãy thử đăng nhập trước khi đăng ký lại.');
+}
 async function studentSignup(p) {
-  const r = await gas('fb.register', {
-    studentId: p.studentId, fullName: p.name, classId: p.class, email: p.email,
-    phone: p.phone, birthdate: p.birthdate, password: p.password
-  });
-  if (!r || !r.success) return r || fail('Không đăng ký được.');
+  try {
+    const r = await gas('fb.register', {
+      studentId: p.studentId, fullName: p.name, classId: p.class, email: p.email,
+      phone: p.phone, birthdate: p.birthdate, password: p.password
+    });
+    if (!r || !r.success) return r || fail('Không đăng ký được.');
+  } catch (e) {
+    return recoverSignupAfterGasError(loginEmailFor(p.studentId), p.password, false);
+  }
   const err = await signIn(loginEmailFor(p.studentId), p.password, false);
   if (err) return fail(err === 'WRONG' ? 'Đã tạo tài khoản, hãy đăng nhập.' : err);
-  const res = await finishLogin();
-  return res;
+  return finishLogin();
 }
 async function teacherSignup(p) {
-  const r = await gas('fb.registerTeacher', { fullName: p.name, email: p.email, phone: p.phone, birthdate: p.birthdate, password: p.password });
-  if (!r || !r.success) return r || fail('Không đăng ký được.');
+  try {
+    const r = await gas('fb.registerTeacher', { fullName: p.name, email: p.email, phone: p.phone, birthdate: p.birthdate, password: p.password });
+    if (!r || !r.success) return r || fail('Không đăng ký được.');
+  } catch (e) {
+    return recoverSignupAfterGasError(low(p.email), p.password, true);
+  }
   const err = await signIn(low(p.email), p.password, false);
   if (err) return fail(err === 'WRONG' ? 'Đã tạo tài khoản, hãy đăng nhập.' : err);
   return finishLogin(true);
