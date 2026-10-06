@@ -1,57 +1,33 @@
-# Hướng dẫn đưa IELTS Reading / Listening lên VocabMaster
+# VocabMaster IELTS — trạng thái triển khai và hướng dẫn
 
-Gói này bổ sung thư viện đề IELTS Reading/Listening, luyện bài, bài nghe, báo lỗi cho giáo viên, chấm điểm và xem kết quả. Đề ở trạng thái **Chờ kiểm tra** vẫn hiện trong Library và sinh viên được làm; sinh viên có thể báo câu sai để GV chỉnh.
+Trang web đã được đưa lên GitHub Pages: https://l2practice.github.io/test-simu/ . Mã nguồn nằm tại https://github.com/l2practice/test-simu . Các bài ở trạng thái **Chờ kiểm tra** vẫn hiện trong Library; SV làm thử và báo câu sai để GV chỉnh.
 
-## 1. File có trong gói
+## Đã làm
 
-- Các file ở thư mục gốc: `ielts.html`, `student.html`, `teacher.html`, `vm-common.js`, `vm-fbdata.js`, `firestore.rules`, `firestore.indexes.json`, `storage.rules`.
-- Thư mục `gas/`: `Code.gs`, `FirebaseVM.gs`, `appsscript.json`.
-- `tests/ielts-model.test.js`: kiểm tra logic cơ bản; không cần upload lên web.
+- Đã tạo repo `l2practice/test-simu`, đưa mã nguồn lên nhánh `main`, bật GitHub Pages.
+- Trang đăng nhập mở được tại `https://l2practice.github.io/test-simu/login.html`.
+- Firebase project `test-simulation-4dc1b`: bật Email/Password, thêm domain `l2practice.github.io`, publish Firestore rules.
+- Đã tạo các composite indexes; Firebase đang build chúng.
 
-Giữ nguyên các file hiện có khác trong repo (như `login.html`, `index.html`, `vm-theme.css`, `vm-cefr.js`, `cefr-dict.js`). Không xóa file cũ.
+## Cần bạn thực hiện trong Firebase
 
-## 2. Cập nhật GitHub Pages
+1. Firebase Console → **Storage** → **Upgrade project** để chuyển Spark sang Blaze nếu muốn tải audio Listening lên Firebase Storage. Firebase hiện khóa Storage ở Spark. Việc chuyển gói có thể phát sinh chi phí và cần phương thức thanh toán; tôi chưa đổi gói.
+2. Khi Storage được bật, tạo bucket, vào **Storage → Rules**, dán `storage.rules` và Publish.
+3. Chờ các index trong Firestore hiện trạng thái **Enabled**.
 
-1. Mở repo `l2practice/vocab-master` trên GitHub, vào thư mục gốc.
-2. Chọn **Add file → Upload files**.
-3. Kéo các file ở thư mục gốc của gói vào trang upload. Giữ đúng tên và vị trí; GitHub sẽ thay file cũ cùng tên và thêm `ielts.html`, `firestore.indexes.json`, `storage.rules`.
-4. Tạo thư mục `gas` nếu chưa có và thay `Code.gs`, `FirebaseVM.gs`, `appsscript.json` ở đó chỉ để tiện tham khảo. **Không** tải file `.gs` lên root web app.
-5. Tạo commit lên nhánh `main`. Đợi GitHub Pages cập nhật, thường vài phút.
+## Cần hoàn tất backend Apps Script trước khi mở đăng ký/chấm bài
 
-## 3. Firebase: Rules, indexes và Storage
+Phần web tĩnh hiện chạy, nhưng các action đăng ký/quên mật khẩu và chấm IELTS phụ thuộc Apps Script. Tôi chưa deploy Apps Script vì Apps Script mới tạo chưa được nạp mã đúng, và không muốn thay đổi deployment đang dùng bởi app VocabMaster hiện có. Cần chủ sở hữu Google xác nhận Apps Script project cần dùng rồi:
 
-Dùng Firebase project `test-simulation-4dc1b` đã cung cấp. Trước khi bật cho người dùng, đăng nhập Firebase Console đúng tài khoản có quyền quản trị dự án.
+1. Mở Apps Script project đó, thêm nội dung `gas/FirebaseVM.gs`; đảm bảo `gas/Code.gs` có router `fbRoute` và `vmfbIeltsGradeAttempt` được gọi cho request chấm IELTS.
+2. Cấp OAuth scopes theo `gas/appsscript.json`, chạy kiểm tra kết nối và cấp quyền.
+3. Deploy **Web app** với quyền truy cập phù hợp; cập nhật URL `/exec` mới trong `vm-common.js` thay cho URL cũ.
+4. Commit `vm-common.js` lên GitHub để Pages dùng backend mới.
 
-1. **Firestore Database → Rules**: thay rules bằng `firestore.rules`, bấm **Publish**.
-2. **Firestore Database → Indexes**: tạo các composite index theo `firestore.indexes.json` (có thể dùng Firebase CLI với `firebase deploy --only firestore:indexes`; hoặc tạo index theo từng thông báo lỗi ở Console).
-3. **Storage → Get started** nếu chưa khởi tạo bucket.
-4. **Storage → Rules**: thay bằng `storage.rules`, bấm **Publish**.
-5. Trong **Authentication → Settings → Authorized domains**, cần có `l2practice.github.io`.
-6. Kiểm tra **Authentication → Sign-in method → Email/Password** đang bật.
+Không tạo tài khoản giáo viên hay dữ liệu mẫu trong Firebase. Sau khi backend sẵn sàng, đăng ký tài khoản GV rồi tạo lớp trước khi SV đăng ký; Firestore hiện chưa có dữ liệu lớp/đề.
 
-Đừng đưa Firebase Admin key, service account JSON hay mật khẩu vào GitHub. Firebase Web config/API key trong trình duyệt là định danh công khai; bảo mật dựa trên Rules và hạn chế API key phù hợp.
+## Cập nhật từ gói này
 
-## 4. Apps Script: chấm điểm và nhập URL
+Chỉ thay các file cùng tên trong repo. Thêm `ielts.html`, `firestore.indexes.json`, `storage.rules` và thư mục `tests/`. Giữ nguyên `index.html`, `login.html`, `signup.html`, `vm-theme.css`, `vm-cefr.js`, `cefr-dict.js` cùng các file khác của repo.
 
-1. Mở Apps Script project đang phục vụ VocabMaster.
-2. Thay nội dung `Code.gs` bằng `gas/Code.gs`; thêm hoặc thay file `FirebaseVM.gs` bằng `gas/FirebaseVM.gs`.
-3. Trong **Project Settings**, bật hiển thị manifest nếu cần; cập nhật scopes trong `appsscript.json` và chấp thuận quyền khi Google yêu cầu.
-4. Kiểm tra đầu `FirebaseVM.gs`: `PROJECT_ID` và `API_KEY` phải thuộc `test-simulation-4dc1b` (đã điền theo config bạn gửi).
-5. Chạy hàm `vmfb_0_TestConnection` trong Apps Script và chấp thuận quyền. Nếu lỗi quyền, Google account chạy script cần quyền truy cập Firestore của Firebase project.
-6. **Deploy → Manage deployments → Edit → New version → Deploy**. Giữ quyền truy cập giống deployment hiện tại; app dùng URL Apps Script đang có trong `vm-common.js`.
-
-Importer chỉ nhận HTTPS từ `ieltstrainingonline.com`, tạo nháp cần GV kiểm tra và không tải audio/video từ trang nguồn. Audio Listening được GV/SV tự tải lên theo quyền trong Storage Rules.
-
-## 5. Thử nghiệm sau khi cập nhật
-
-1. Vào app bằng tài khoản GV, mở mục IELTS Library và tạo đề Reading hoặc Listening.
-2. Thử lưu ở trạng thái **Chờ kiểm tra**; đăng nhập tài khoản SV trong lớp được cấp quyền, kiểm tra đề xuất hiện và làm thử.
-3. Báo một câu sai từ màn hình bài làm; quay lại tài khoản GV, kiểm tra mục báo cáo, sửa câu rồi lưu/publish.
-4. Nộp một bài có đáp án; xem kết quả ở trang Results. Câu chưa có key sẽ không bị tính sai, bài sẽ thể hiện số câu đã chấm.
-5. Nếu dùng Listening, upload file audio trong trình sửa đề và thử phát bằng tài khoản SV.
-
-## Lưu ý quan trọng
-
-- `vm-common.js` hiện đã trỏ tới Firebase project `test-simulation-4dc1b` và bật Firebase. Tài khoản/người dùng/dữ liệu của Firebase project cũ không tự chuyển sang project này. Xác nhận đúng project trước khi phát hành; nếu muốn dùng dữ liệu cũ thì cần chạy quy trình chuyển dữ liệu riêng trong `gas/FIREBASE_SETUP.md`.
-- Việc upload lên GitHub và deploy Firebase/Apps Script cần thao tác bằng tài khoản của bạn; gói này chưa được publish/deploy.
-- Kiểm tra cú pháp JavaScript, inline scripts, JSON, test parser và `git diff --check` đã chạy qua. Chưa có xác minh trên Firebase live project, Apps Script deployment, hoặc thiết bị người dùng.
+Firebase Web API key trong `vm-common.js` là public client config; không commit service account key, Firebase Admin key hoặc mật khẩu.
