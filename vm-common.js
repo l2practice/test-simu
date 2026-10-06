@@ -31,8 +31,8 @@
     GAS: GAS,
     firebaseOn: !!(VM_FIREBASE.enabled && VM_FIREBASE.config && VM_FIREBASE.config.apiKey),
     LOGIN_PAGE:   'login.html',
-    STUDENT_HOME: 'student.html',
-    TEACHER_HOME: 'teacher.html',
+    STUDENT_HOME: 'ielts.html',
+    TEACHER_HOME: 'ielts.html',
   };
 
   /* ── Tên bài luôn có tiền tố: Homework → HW_, In-class → IC_ ──
@@ -287,9 +287,9 @@
   };
 
   /* ── Brand ─────────────────────────────────────────────────── */
-  VM.logoSVG = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="5" fill="currentColor"/><text x="12" y="17" text-anchor="middle" font-size="13" font-weight="700" fill="#fff" font-family="system-ui">V</text></svg>';
+  VM.logoSVG = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="5" fill="currentColor"/><text x="12" y="17" text-anchor="middle" font-size="13" font-weight="700" fill="#fff" font-family="system-ui">T</text></svg>';
   VM.brandLockup = function () {
-    return '<a class="vm-logo" href="#"><span class="vm-logo-mark">' + VM.logoSVG + '</span><span class="vm-logo-name">VocabMaster</span></a>';
+    return '<a class="vm-logo" href="#"><span class="vm-logo-mark">' + VM.logoSVG + '</span><span class="vm-logo-name">Test Simu</span></a>';
   };
   /* Intro panel on the sign-in / sign-up pages (hidden below 980px) */
   VM.mountAuthHero = function (blurb) {
@@ -298,21 +298,21 @@
     h.innerHTML =
       '<div class="vm-auth-hero-top">' + VM.brandLockup() + '</div>' +
       '<div class="vm-auth-hero-body">' +
-        '<span class="vm-auth-tag"><i></i>Vocabulary · Quiz · AI</span>' +
-        '<h2 class="vm-auth-hero-title">Learn. <br>Practice. <br><em>Master.</em></h2>' +
+        '<span class="vm-auth-tag"><i></i>IELTS Reading · Listening</span>' +
+        '<h2 class="vm-auth-hero-title">Read. <br>Listen. <br><em>Improve.</em></h2>' +
         '<p class="vm-auth-hero-text">' + blurb + '</p>' +
         '<div class="vm-auth-word" aria-hidden="true">' +
-          '<div class="vm-auth-word-eyebrow">✦ TODAY\'S WORD</div>' +
-          '<div class="vm-auth-word-main">resilient <span>/rɪˈzɪliənt/</span></div>' +
-          '<div class="vm-auth-word-vi">kiên cường, mau phục hồi</div>' +
-          '<div class="vm-auth-word-chips"><b>tough</b><b>adaptable</b><b>strong</b></div>' +
+          '<div class="vm-auth-word-eyebrow">✦ IELTS PRACTICE</div>' +
+          '<div class="vm-auth-word-main">Reading <span>+ Listening</span></div>' +
+          '<div class="vm-auth-word-vi">Practice with teacher-reviewed lessons</div>' +
+          '<div class="vm-auth-word-chips"><b>Practice</b><b>Feedback</b><b>Progress</b></div>' +
         '</div>' +
       '</div>' +
       '<div class="vm-auth-stats">' +
-        '<div><b>HW</b><span>Homework</span></div>' +
-        '<div><b>IC</b><span>In-class</span></div>' +
-        '<div><b>AI</b><span>ReadWise</span></div>' +
-        '<div><b>&infin;</b><span>Retry</span></div>' +
+        '<div><b>R</b><span>Reading</span></div>' +
+        '<div><b>L</b><span>Listening</span></div>' +
+        '<div><b>✓</b><span>Feedback</span></div>' +
+        '<div><b>&infin;</b><span>Practice</span></div>' +
       '</div>';
     wrap.insertBefore(h, wrap.firstChild);
   };
