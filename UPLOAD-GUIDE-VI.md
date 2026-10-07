@@ -46,3 +46,35 @@ Sau khi tải mã mới, publish lại `firestore.rules` và `storage.rules` tro
 1. Thay các file: `index.html`, `login.html`, `ielts.html`, `student.html`, `teacher.html`, `vm-common.js`, `vm-fbdata.js`, `vm-theme.css`, `favicon.svg`.
 2. Apps Script: dán lại `gas/FirebaseVM.gs`, rồi **Deploy ▸ Manage deployments ▸ Edit ▸ New version**. Bước này cần để sinh viên nhận đáp án đúng và script sau khi nộp.
 3. Đề Listening đã lưu trước bản này có thể còn script trong tài liệu đề; mở **Edit** rồi **Lưu** lại để chuyển script vào kho đáp án.
+
+
+## Bản cập nhật lớn: Library chung, In-class, form tạo đề mới
+
+- **Vào app là trang đăng nhập.** `index.html` chuyển thẳng tới đăng nhập. Sinh viên đăng nhập xong vào **IELTS Practice**, chọn Reading hoặc Listening ngay tại đó.
+- **Menu gọn.** Sinh viên: IELTS Practice, In-class, History, Settings. Giáo viên: Library, In-class, Results, Classes, Settings. Đã bỏ Homework, ReadWise, Dịch (và Overview, Assignments, HW Book).
+- **Library chung.** Mỗi đề là một **Part** của một **Book / Test** (như Listening Dictation: Cam1–Cam30, Test 1–12, Passage 1–3 hoặc Part 1–4). Mọi sinh viên và giáo viên đều thấy Library, nhóm theo Book → Test. Đủ phần thì có nút **Làm full test**.
+- **Tạo đề.** Bắt buộc chọn Book, Test, Part. Dán nguyên phần câu hỏi, ứng dụng tự nhận diện dạng câu (Multiple choice, True/False/Not Given, Matching, Completion…); có thể dán bảng đáp án để tự điền. Chỉ có nút **Hoàn tất**: đề vào Library ngay, không còn lưu nháp hay gửi giáo viên duyệt. Mỗi Part chỉ tồn tại một lần trong Library.
+- **In-class (giáo viên).** Giao đề từ Library (một Part hoặc full test) cho lớp với giờ bắt đầu và thời lượng; gia hạn cả lớp hoặc từng sinh viên; xem kết quả và danh sách chưa nộp. Muốn thêm đề mới thì thêm vào Library rồi chọn để giao.
+- **In-class (sinh viên).** Thấy phiên của lớp, chỉ làm được khi đang mở, đồng hồ đếm ngược, hết giờ tự nộp. Máy chủ cũng từ chối bài nộp quá hạn.
+- **Màu.** Nền chuyển từ xanh dương sang cam, banner và nút dùng gradient xanh–cam.
+
+### Việc cần làm khi cập nhật (theo thứ tự)
+1. **Firebase Console ▸ Firestore ▸ Rules:** dán `firestore.rules` rồi Publish. (Storage rules chỉ cần khi bật Storage.)
+2. **Apps Script:** dán lại `gas/FirebaseVM.gs`, Deploy ▸ Manage deployments ▸ Edit ▸ New version.
+3. Thay các file trên GitHub: `index.html`, `ielts.html`, `student.html`, `teacher.html`, `vm-fbdata.js`, `vm-theme.css`, `favicon.svg`, `firestore.rules`, `storage.rules`, `gas/FirebaseVM.gs`.
+4. Đề cũ (kiểu nhiều passage trong một đề, hoặc trạng thái nháp/chờ kiểm tra) sẽ không hiện trong Library mới; hãy tạo lại bằng form mới.
+
+
+## Bản cập nhật: Glance, Task Type, form tạo đề dạng khung, giao diện thi kiểu IELTS (toàn bộ app bằng tiếng Anh)
+
+- **Glance.** Sinh viên: biểu đồ điểm qua các bài với 2 đường (Reading xanh lá, Listening cam), đổi sang bảng, lọc theo skill, bấm chú giải để ẩn/hiện đường, rê chuột vào điểm để xem chi tiết, thêm bảng độ chính xác theo Task Type. Giáo viên: chọn lớp mới xem được; có bảng điểm từng sinh viên, nút View để xem biểu đồ của sinh viên đó, và khung **New Practice** báo ai vừa làm bài hoặc vừa thêm đề mới.
+- **Menu.** Sinh viên: Glance, IELTS Practice, In-class, Settings. Giáo viên: Glance, Library, In-class, Results, Classes, Settings.
+- **Library theo Task Type.** Tab *By task type* gom câu hỏi cùng dạng từ nhiều Part để luyện riêng một dạng (tối đa 12 Part mỗi lần).
+- **Tạo đề.** Mỗi Passage/Part là một hàng khung ngang. Reading: (1) bài đọc, (2) câu hỏi, (3) đáp án; thêm Passage 2, 3 ở các hàng bên dưới. Listening: (1) câu hỏi, (2) audio (file hoặc link, không bắt buộc), (3) đáp án, (4) script (không bắt buộc). Phần Instruction được giữ nguyên và hiển thị khi làm bài; ứng dụng tự phân loại Task Type.
+- **Giao diện thi.** Toàn màn hình như IELTS: bài đọc bên trái, câu hỏi bên phải, bôi vàng/xanh/hồng ở cả hai bên, thanh số câu ở dưới, đồng hồ. Listening: nếu đề chưa có audio, sinh viên tự thêm file hoặc link ngay trong lúc làm bài.
+- **Tiếng Anh.** Giao diện, thông báo lỗi và email đặt lại mật khẩu đều bằng tiếng Anh.
+
+### Thứ tự cập nhật
+1. Firebase Console ▸ Firestore ▸ Rules: dán `firestore.rules`, Publish.
+2. Apps Script: dán `gas/FirebaseVM.gs`, Deploy ▸ Manage deployments ▸ Edit ▸ New version.
+3. GitHub: thay `index.html`, `login.html`, `signup.html`, `ielts.html`, `student.html`, `teacher.html`, `vm-common.js`, `vm-fbdata.js`, `vm-theme.css`, `gas/FirebaseVM.gs`.

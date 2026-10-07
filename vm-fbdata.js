@@ -106,7 +106,7 @@ async function me() {
 }
 async function teacher() {
   const t = await me();
-  if (t.role !== 'teacher') throw Object.assign(new Error('Chỉ giáo viên mới dùng được chức năng này.'), { code: 'not-teacher' });
+  if (t.role !== 'teacher') throw Object.assign(new Error('Only teachers can use this feature.'), { code: 'not-teacher' });
   return t;
 }
 
@@ -120,8 +120,8 @@ async function signIn(email, password, remember) {
   try { await auth.signInWithEmailAndPassword(email, authPw(password)); return null; }
   catch (e) {
     const c = e.code || '';
-    if (/too-many-requests/.test(c)) return 'Đăng nhập sai quá nhiều lần. Vui lòng đợi vài phút.';
-    if (/network/.test(c)) return 'Lỗi mạng — kiểm tra kết nối và thử lại.';
+    if (/too-many-requests/.test(c)) return 'Too many failed sign-ins. Please wait a few minutes.';
+    if (/network/.test(c)) return 'Network error. Check your connection and try again.';
     return 'WRONG';
   }
 }
@@ -130,7 +130,7 @@ async function finishLogin(requireTeacher) {
   const u = await me().catch(() => null);
   if (!u || u.archived || (requireTeacher && u.role !== 'teacher')) {
     await signOut();
-    return fail(u && u.archived ? 'Tài khoản đã bị khoá. Liên hệ giảng viên.' : 'Sai tài khoản hoặc mật khẩu.');
+    return fail(u && u.archived ? 'This account is locked. Contact your teacher.' : 'Wrong account or password.');
   }
   if (u.role === 'teacher') return ok({ name: u.fullName || '', email: u.email || '' });
   return ok({ studentId: u.studentId || '', name: u.fullName || '', class: u.classId || '', email: u.email || '' });
@@ -138,39 +138,39 @@ async function finishLogin(requireTeacher) {
 async function studentLogin(p) {
   init();
   const id = str(p.studentId || p.login || p.email);
-  if (!id || !p.password) return fail('Nhập Student ID/email và mật khẩu.');
+  if (!id || !p.password) return fail('Enter your Student ID or email and your password.');
   let sid = id;
   if (id.indexOf('@') >= 0) {
     const idx = await fs.doc('loginIndex/' + await sha256Hex(low(id))).get();
     if (!idx.exists) {
       const err = await signIn(low(id), p.password, p.remember);   // a teacher using the student form
-      if (err) return fail(err === 'WRONG' ? 'Sai Student ID/email hoặc mật khẩu.' : err);
+      if (err) return fail(err === 'WRONG' ? 'Wrong Student ID/email or password.' : err);
       return finishLogin();
     }
-    if (idx.data().multi) return fail('Email này gắn với nhiều tài khoản. Hãy đăng nhập bằng Student ID.');
+    if (idx.data().multi) return fail('This email is linked to several accounts. Sign in with your Student ID.');
     sid = idx.data().sid;
   }
   const err = await signIn(loginEmailFor(sid), p.password, p.remember);
-  if (err) return fail(err === 'WRONG' ? 'Sai Student ID/email hoặc mật khẩu.' : err);
+  if (err) return fail(err === 'WRONG' ? 'Wrong Student ID/email or password.' : err);
   return finishLogin();
 }
 async function teacherLogin(p) {
   const email = low(p.email);
-  if (!email || !p.password) return fail('Nhập email và mật khẩu.');
+  if (!email || !p.password) return fail('Enter your email and password.');
   const err = await signIn(email, p.password, p.remember);
-  if (err) return fail(err === 'WRONG' ? 'Sai email hoặc mật khẩu.' : err);
+  if (err) return fail(err === 'WRONG' ? 'Wrong email or password.' : err);
   return finishLogin(true);
 }
 async function signOut() { init(); _me = null; forget(); try { await auth.signOut(); } catch (e) {} }
 
 async function changePassword(p) {
-  if (!p.oldPass || !p.newPass) return fail('Thiếu mật khẩu.');
+  if (!p.oldPass || !p.newPass) return fail('Missing password.');
   await authReady();
   const u = auth.currentUser;
   if (!u) throw new Error('SESSION_EXPIRED');
   try {
     await u.reauthenticateWithCredential(firebase.auth.EmailAuthProvider.credential(u.email, authPw(p.oldPass)));
-  } catch (e) { return fail('Sai mật khẩu hiện tại.'); }
+  } catch (e) { return fail('Wrong current password.'); }
   await u.updatePassword(authPw(p.newPass));
   return ok();
 }
@@ -184,7 +184,7 @@ async function recoverSignupAfterGasError(login, password, isTeacher) {
     const err = await signIn(login, password, false);
     if (!err) return finishLogin(!!isTeacher);
   } catch (e) {}
-  return fail('Không nhận được phản hồi đăng ký từ Apps Script. Tài khoản có thể đã được tạo; hãy thử đăng nhập trước khi đăng ký lại.');
+  return fail('No sign-up response was received from Apps Script. The account may already exist; try signing in before registering again.');
 }
 async function studentSignup(p) {
   try {
@@ -192,23 +192,23 @@ async function studentSignup(p) {
       studentId: p.studentId, fullName: p.name, classId: p.class, email: p.email,
       phone: p.phone, birthdate: p.birthdate, password: p.password
     });
-    if (!r || !r.success) return r || fail('Không đăng ký được.');
+    if (!r || !r.success) return r || fail('Could not register.');
   } catch (e) {
     return recoverSignupAfterGasError(loginEmailFor(p.studentId), p.password, false);
   }
   const err = await signIn(loginEmailFor(p.studentId), p.password, false);
-  if (err) return fail(err === 'WRONG' ? 'Đã tạo tài khoản, hãy đăng nhập.' : err);
+  if (err) return fail(err === 'WRONG' ? 'Account created. Please sign in.' : err);
   return finishLogin();
 }
 async function teacherSignup(p) {
   try {
     const r = await gas('fb.registerTeacher', { fullName: p.name, email: p.email, phone: p.phone, birthdate: p.birthdate, password: p.password });
-    if (!r || !r.success) return r || fail('Không đăng ký được.');
+    if (!r || !r.success) return r || fail('Could not register.');
   } catch (e) {
     return recoverSignupAfterGasError(low(p.email), p.password, true);
   }
   const err = await signIn(low(p.email), p.password, false);
-  if (err) return fail(err === 'WRONG' ? 'Đã tạo tài khoản, hãy đăng nhập.' : err);
+  if (err) return fail(err === 'WRONG' ? 'Account created. Please sign in.' : err);
   return finishLogin(true);
 }
 
@@ -226,7 +226,7 @@ async function classList() {
 }
 async function classCreate(p) {
   const t = await teacher();
-  if (!str(p.className)) return fail('Thiếu tên lớp.');
+  if (!str(p.className)) return fail('Missing class name.');
   let id = '';
   for (let i = 0; i < 6; i++) {
     const c = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let s = '';
@@ -236,7 +236,7 @@ async function classCreate(p) {
     if (!(await fs.doc('classes/' + id).get()).exists) break;
     id = '';
   }
-  if (!id) return fail('Không tạo được mã lớp, thử lại.');
+  if (!id) return fail('Could not create a class code. Try again.');
   await fs.doc('classes/' + id).set({
     classId: id, className: str(p.className), academicYear: str(p.year), semester: str(p.semester),
     teacherUid: t.uid, teacherName: t.fullName || '', teacherEmail: t.email || '', status: 'Active', createdAt: nowIso()
@@ -307,7 +307,7 @@ async function assignCreate(p) {
   const t = await teacher();
   if (!p.classId || !str(p.title)) return fail('Missing classId or title.');
   const cls = await fs.doc('classes/' + p.classId).get();
-  if (!cls.exists || cls.data().teacherUid !== t.uid) return fail('Lớp không tồn tại hoặc không phải của bạn.');
+  if (!cls.exists || cls.data().teacherUid !== t.uid) return fail('The class does not exist or is not yours.');
   const mode = p.mode === 'inclass' ? 'inclass' : 'homework';
   const id = str(p.assignmentId) || genId(10, 'VM-');
   const vocab = p.vocab || [];
@@ -330,7 +330,7 @@ async function assignUpdate(p) {
   if (!p.assignmentId) return fail('Thiếu assignmentId.');
   const ref = fs.doc('assignments/' + p.assignmentId);
   const snap = await ref.get();
-  if (!snap.exists || snap.data().teacherUid !== t.uid) return fail('Không tìm thấy assignment.');
+  if (!snap.exists || snap.data().teacherUid !== t.uid) return fail('Assignment not found.');
   const cur = snap.data(), patch = {};
   const mode = p.mode !== undefined ? (p.mode === 'inclass' ? 'inclass' : 'homework') : cur.mode;
   if (p.mode !== undefined) patch.mode = mode;
@@ -345,7 +345,7 @@ async function assignUpdate(p) {
   if (p.active !== undefined) patch.active = !!p.active;
   if (p.classId !== undefined && p.classId !== cur.classId) {
     const cls = await fs.doc('classes/' + p.classId).get();
-    if (!cls.exists || cls.data().teacherUid !== t.uid) return fail('Lớp không hợp lệ.');
+    if (!cls.exists || cls.data().teacherUid !== t.uid) return fail('Invalid class.');
     patch.classId = p.classId;
   }
   await ref.update(patch);
@@ -368,7 +368,7 @@ async function assignList(p) {
 async function assignGet(p) {
   const u = await me();
   const snap = await fs.doc('assignments/' + p.assignmentId).get();
-  if (!snap.exists) return fail('Không tìm thấy assignment.');
+  if (!snap.exists) return fail('Assignment not found.');
   const d = snap.data();
   return ok(u.role === 'teacher' ? teacherRow(snap.id, d) : studentRow(snap.id, d, u));
 }
@@ -430,11 +430,11 @@ async function assignExtend(p) {
   if (!p.assignmentId) return fail('Thiếu assignmentId.');
   const ref = fs.doc('assignments/' + p.assignmentId);
   const snap = await ref.get();
-  if (!snap.exists || snap.data().teacherUid !== t.uid) return fail('Không tìm thấy assignment.');
+  if (!snap.exists || snap.data().teacherUid !== t.uid) return fail('Assignment not found.');
   const d = snap.data(), inclass = d.mode === 'inclass', now = Date.now();
   const FP = firebase.firestore.FieldPath;
   const sids = (p.studentIds || []).map(str).filter(Boolean);
-  if (p.scope === 'students' && !sids.length) return fail('Chọn ít nhất 1 sinh viên.');
+  if (p.scope === 'students' && !sids.length) return fail('Select at least one student.');
 
   if (p.clear) {
     if (p.scope === 'students') {
@@ -445,16 +445,16 @@ async function assignExtend(p) {
   }
 
   const deltaMin = Math.round(Number(p.deltaMin) || 0);
-  if (deltaMin < 0 || deltaMin > MAX_EXT_MIN) return fail('Thời gian gia hạn không hợp lệ.');
+  if (deltaMin < 0 || deltaMin > MAX_EXT_MIN) return fail('Invalid extension time.');
   const abs = ms(p.until);
-  if (!deltaMin && !abs) return fail('Nhập thời gian gia hạn.');
+  if (!deltaMin && !abs) return fail('Enter the extension time.');
 
   // Dời lịch cả lớp (In-class): giờ bắt đầu và kết thúc cùng lùi
   if (p.kind === 'shift') {
-    if (!inclass || p.scope === 'students') return fail('Dời lịch chỉ dùng cho bài In-class, áp dụng cho cả lớp.');
+    if (!inclass || p.scope === 'students') return fail('Rescheduling only applies to in-class tests for the whole class.');
     const dMs = deltaMin ? deltaMin * 60000 : abs - ms(d.sessionStart);
-    if (!ms(d.sessionStart)) return fail('Bài chưa có giờ bắt đầu.');
-    if (dMs <= 0) return fail('Giờ bắt đầu mới phải sau giờ hiện tại của bài.');
+    if (!ms(d.sessionStart)) return fail('This session has no start time.');
+    if (dMs <= 0) return fail('The new start time must be later than the current start time.');
     const patch = { sessionStart: shiftStr(d.sessionStart, dMs) };
     if (d.sessionEnd) patch.sessionEnd = shiftStr(d.sessionEnd, dMs);
     if (d.extAll) patch.extAll = shiftStr(d.extAll, dMs);
@@ -464,7 +464,7 @@ async function assignExtend(p) {
   }
 
   const base = inclass ? baseEnd(d) : deadlineMs(d.deadline);
-  if (!base) return fail(inclass ? 'Bài chưa có giờ kết thúc.' : 'Bài này không có hạn nộp nên không cần gia hạn.');
+  if (!base) return fail(inclass ? 'This session has no end time.' : 'This item has no deadline, so it cannot be extended.');
   const cur = sid => Math.max(base, ms(d.extAll), sid ? ms(d.ext && d.ext[sid]) : 0);
   const target = sid => abs || (Math.max(cur(sid), now) + deltaMin * 60000);
 
@@ -590,7 +590,7 @@ async function absentPenalty(p) {
   const t = await teacher();
   if (!p.assignmentId || !p.classId) return fail('Missing assignmentId or classId.');
   const aSnap = await fs.doc('assignments/' + p.assignmentId).get();
-  if (!aSnap.exists || aSnap.data().teacherUid !== t.uid) return fail('Không tìm thấy assignment.');
+  if (!aSnap.exists || aSnap.data().teacherUid !== t.uid) return fail('Assignment not found.');
   const A = aSnap.data();
   const res = docs(await fs.collection('results').where('teacherUid', '==', t.uid).where('assignmentId', '==', p.assignmentId).get());
   const missedSet = {}, done = {};
@@ -657,7 +657,7 @@ async function translateCreate(p) {
   if (!p.classId || !str(p.title) || !p.sessionStart) return fail('Missing classId, title, or sessionStart.');
   if (!p.items || p.items.length < 1) return fail('items array required.');
   const cls = await fs.doc('classes/' + p.classId).get();
-  if (!cls.exists || cls.data().teacherUid !== t.uid) return fail('Lớp không tồn tại hoặc không phải của bạn.');
+  if (!cls.exists || cls.data().teacherUid !== t.uid) return fail('The class does not exist or is not yours.');
   const id = str(p.setId || p.assignmentId) || genId(10, 'TR-');
   const tref = fs.doc('trSets/' + id);
   if (!(await tref.get()).exists) {
@@ -809,109 +809,167 @@ async function vocabToday(p) {
 // ════════════════════════════════════════════
 function cleanIeltsContent(p) {
   const skill = p.skill === 'listening' ? 'listening' : 'reading';
-  const sections = Array.isArray(p.sections) ? p.sections.slice(0, (p.skill === 'listening' ? 4 : 3)) : [];
-  const types = ['short-answer','sentence-completion','summary-completion','diagram-completion','multiple-choice','matching-features','matching-headings','true-false-not-given','matching','plan-map-diagram-labelling','form-note-table-flow-chart-summary-completion'];
-  if (!str(p.title) || !sections.length) throw new Error('Nhập tiêu đề và ít nhất một passage/section.');
+  const sections = Array.isArray(p.sections) ? p.sections.slice(0, 4) : [];
+  const types = ['short-answer','sentence-completion','summary-completion','diagram-completion','multiple-choice','matching-features','matching-headings','true-false-not-given','yes-no-not-given','matching','plan-map-diagram-labelling','form-note-table-flow-chart-summary-completion'];
+  if (!str(p.title) || !sections.length) throw new Error('Enter a title and at least one passage/part.');
   sections.forEach(s => {
-    if (!str(s.text) && !str(s.script)) throw new Error('Mỗi passage/section cần có nội dung hoặc script.');
+    if (!str(s.text) && !str(s.script) && !(Array.isArray(s.questions) && s.questions.length)) throw new Error('Each passage/part needs text, a script or questions.');
     s.script = str(s.script).slice(0, 50000);
+    s.questionsText = str(s.questionsText).slice(0, 60000);
     if (!Array.isArray(s.questions)) s.questions = [];
     s.questions.forEach(q => {
-      if (!str(q.prompt) || !types.includes(q.type)) throw new Error('Câu hỏi thiếu nội dung hoặc task type không hợp lệ.');
+      if (!str(q.prompt) || !types.includes(q.type)) throw new Error('A question is missing its text or has an invalid task type.');
       if (!Array.isArray(q.answers)) q.answers = q.answer ? [q.answer] : [];
       q.answers = q.answers.map(str).filter(Boolean);
       q.options = Array.isArray(q.options) ? q.options.map(str).filter(Boolean) : [];
+      q.instruction = str(q.instruction).slice(0, 4000);
+      q.number = Number(q.number) || 0;
     });
   });
-  return { title: str(p.title), skill, sourceUrl: str(p.sourceUrl), sourceTitle: str(p.sourceTitle), attribution: str(p.attribution), sourceTestNumber: str(p.sourceTestNumber), taskTypes: Array.from(new Set(sections.flatMap(s => s.questions.map(q => q.type)))), sections };
+  return { title: str(p.title), skill, book: str(p.book), test: str(p.test), part: str(p.part), sourceUrl: str(p.sourceUrl), sourceTitle: str(p.sourceTitle), attribution: str(p.attribution), sourceTestNumber: str(p.sourceTestNumber), taskTypes: Array.from(new Set(sections.flatMap(s => s.questions.map(q => q.type)))), sections };
 }
 function publicIelts(d) {
   const copy = JSON.parse(JSON.stringify(d));
   (copy.sections || []).forEach(s => { delete s.script; (s.questions || []).forEach(q => { delete q.answers; delete q.answer; }); });
   return copy;
 }
+// Library item = ONE part (Passage / Part) of one book + test. Everyone signed in can read published items.
+function ieltsCanEdit(u, d) { return d.ownerUid === u.uid || (u.role === 'teacher' && d.teacherUid === u.uid); }
+function ieltsLibraryId(skill, book, test, part) { return ('L_' + skill + '_' + book + '_T' + test + '_P' + part).replace(/[^A-Za-z0-9_]/g, ''); }
 async function ieltsContentSave(p) {
   const u = await me(), data = cleanIeltsContent(p);
-  const privateOnly = p.visibility === 'private';
-  if (u.role !== 'teacher' && !privateOnly && !(u.role === 'student' && p.status === 'review')) return fail('Sinh viên chỉ có thể lưu nháp riêng hoặc gửi bài để giáo viên duyệt.');
-  if (u.role === 'teacher' && (p.status === 'published' || p.status === 'review')) {
-    if (!Array.isArray(p.allowedClassIds) || !p.allowedClassIds.length) return fail('Chọn một lớp được cấp quyền.');
-  }
-  if (u.role === 'teacher' && p.status === 'published') {
-    if (/^(?:(?:cam(?:bridge)?\s*)?\d+\s*)?(?:reading|listening)?\s*test(?:\s*\d+)?$/i.test(str(data.title))) return fail('Hãy đặt tên bài mô tả, không chỉ dùng số hoặc mã đề.');
-    if (!data.sections.some(s => s.questions.length)) return fail('Cần có câu hỏi trước khi publish.');
-    if (data.sections.some(s => s.questions.some(q => !q.answers.length))) return fail('Mỗi câu cần đáp án hoặc accepted alternatives trước khi publish.');
-    if (data.sourceUrl && !data.attribution) return fail('Cần ghi attribution hoặc thông tin giấy phép trước khi publish nội dung từ URL.');
-  }
-  if (u.role === 'teacher' && Array.isArray(p.allowedClassIds)) {
-    for (const cid of p.allowedClassIds) {
-      const cls = await fs.doc('classes/' + str(cid)).get();
-      if (!cls.exists || cls.data().teacherUid !== u.uid || cls.data().status === 'Archived') return fail('Chỉ cấp bài cho lớp đang hoạt động do bạn quản lý.');
-    }
-  }
-  const id = str(p.id) || genId(18, 'IELTS_');
-  const prior = p.id ? await fs.doc('ieltsContent/' + id).get() : null;
-  if (prior && prior.exists && prior.data().ownerUid !== u.uid && !(u.role === 'teacher' && prior.data().teacherUid === u.uid && prior.data().status === 'review')) return fail('Không có quyền sửa bài này.');
-  const status = privateOnly ? 'private' : (p.status === 'published' ? 'published' : (p.status === 'review' ? 'review' : 'draft'));
-  const version = prior && prior.exists ? (prior.data().version || 1) + (JSON.stringify(prior.data().sections) === JSON.stringify(data.sections) ? 0 : 1) : 1;
-  const keySections = data.sections.map(s => ({ script:s.script || '', answers:(s.questions||[]).map(q => q.answers || []) }));
-  data.sections.forEach(s => { delete s.script; (s.questions||[]).forEach(q => { delete q.answers; delete q.answer; }); });
+  if (!data.book || !data.test || !data.part) return fail('Select Book, Test and Part.');
+  if (!data.sections.some(s => s.questions.length)) return fail('Add at least one question.');
+  if (data.sections.some(s => s.questions.some(q => !q.answers.length))) return fail('Every question needs an answer before you can finish.');
+  const id = str(p.id) || ieltsLibraryId(data.skill, data.book, data.test, data.part);
+  const ref = fs.doc('ieltsContent/' + id), prior = await ref.get();
+  if (prior.exists && !ieltsCanEdit(u, prior.data())) return fail('This part is already in the Library: ' + (prior.data().title || id) + '. Only its creator or the creator’s teacher can edit it.');
+  if (prior.exists && prior.data().archived && !p.id) return fail('This part was in the Library before and is archived. Contact your teacher.');
+  const ownerUid = prior.exists ? prior.data().ownerUid : u.uid;
+  const teacherUid = prior.exists ? (prior.data().teacherUid || '') : (u.role === 'teacher' ? u.uid : (u.teacherUid || ''));
+  const version = prior.exists ? (prior.data().version || 1) + 1 : 1;
+  const keySections = data.sections.map(s => ({ script: s.script || '', answers: (s.questions || []).map(q => q.answers || []) }));
+  data.sections.forEach(s => { delete s.script; (s.questions || []).forEach(q => { delete q.answers; delete q.answer; }); });
   const batch = fs.batch();
-  batch.set(fs.doc('ieltsContent/' + id), Object.assign({}, data, {
-    ownerUid: u.uid, teacherUid: u.role === 'teacher' ? u.uid : (u.teacherUid || ''),
-    classId: u.role === 'teacher' ? str((p.allowedClassIds || [])[0]) : (u.classId || ''), allowedClassIds: Array.isArray(p.allowedClassIds) ? p.allowedClassIds.slice(0, 10) : [],
-    visibility: privateOnly ? 'private' : 'library', status, archived: false, version,
-    createdAt: prior && prior.exists ? prior.data().createdAt : nowIso(), updatedAt: nowIso()
+  batch.set(ref, Object.assign({}, data, {
+    ownerUid, ownerName: prior.exists ? (prior.data().ownerName || '') : (u.fullName || ''), ownerRole: prior.exists ? (prior.data().ownerRole || '') : u.role,
+    teacherUid, classId: '', allowedClassIds: [], visibility: 'library', status: 'published', archived: false, version,
+    createdAt: prior.exists ? prior.data().createdAt : nowIso(), updatedAt: nowIso()
   }));
-  batch.set(fs.doc('ieltsAnswerKeys/' + id), { ownerUid:u.uid, teacherUid:u.role === 'teacher' ? u.uid : '', visibility:privateOnly?'private':'library', sections:keySections, version, updatedAt:nowIso() });
+  batch.set(fs.doc('ieltsAnswerKeys/' + id), { ownerUid, teacherUid, visibility: 'library', sections: keySections, version, updatedAt: nowIso() });
   await batch.commit();
   return ok({ id, version });
 }
 async function ieltsContentList(p) {
-  const u = await me(); let rows = [];
-  if (u.role === 'teacher') {
-    const [owned, reviewQueue] = await Promise.all([fs.collection('ieltsContent').where('ownerUid', '==', u.uid).get(), fs.collection('ieltsContent').where('teacherUid', '==', u.uid).where('status', '==', 'review').get()]);
-    rows = docs(owned).concat(docs(reviewQueue).filter(d => d.ownerUid !== u.uid));
-  } else {
-    const [pub, own] = await Promise.all([
-      u.classId ? fs.collection('ieltsContent').where('status','==','published').where('archived','==',false).where('allowedClassIds','array-contains',u.classId).get() : Promise.resolve({docs:[]}),
-      fs.collection('ieltsContent').where('ownerUid','==',u.uid).where('visibility','==','private').get()
-    ]);
-    rows = docs(pub).concat(docs(own));
-  }
-  rows = rows.filter(d => !d.archived && (p.skill ? d.skill === p.skill : true)).sort((a,b) => str(b.updatedAt).localeCompare(str(a.updatedAt)));
-  return ok(u.role === 'teacher' ? rows : rows.map(publicIelts));
+  const u = await me();
+  const [pub, own] = await Promise.all([
+    fs.collection('ieltsContent').where('status', '==', 'published').where('archived', '==', false).get(),
+    fs.collection('ieltsContent').where('ownerUid', '==', u.uid).get()
+  ]);
+  const map = {};
+  docs(pub).concat(docs(own)).forEach(d => { map[d._id] = d; });
+  const rows = Object.keys(map).map(k => map[k]).filter(d => !d.archived && d.status === 'published' && (p.skill ? d.skill === p.skill : true));
+  return ok(rows.map(d => ({
+    id: d._id, title: d.title, skill: d.skill, book: d.book || '', test: d.test || '', part: d.part || '', taskTypes: d.taskTypes || [],
+    questionCount: (d.sections || []).reduce((n, s) => n + (s.questions || []).length, 0), hasAudio: !!(d.sections || []).some(s => s.audio && s.audio.path),
+    ownerName: d.ownerName || '', ownerRole: d.ownerRole || '', version: d.version || 1, updatedAt: d.updatedAt || '', canEdit: ieltsCanEdit(u, d)
+  })));
 }
 async function ieltsContentGet(p) {
   const u = await me(), s = await fs.doc('ieltsContent/' + str(p.id)).get();
-  if (!s.exists) return fail('Không tìm thấy bài.');
-  const d = Object.assign({id:s.id},s.data());
-  const teacherReview = u.role === 'teacher' && d.teacherUid === u.uid && d.status === 'review' && !d.archived;
-  if (d.ownerUid !== u.uid && !teacherReview && !(d.status === 'published' && !d.archived && u.classId && (d.allowedClassIds || []).includes(u.classId))) return fail('Bạn chưa được cấp quyền xem bài này.');
-  if (d.ownerUid === u.uid || teacherReview) {
+  if (!s.exists) return fail('Test not found.');
+  const d = Object.assign({ id: s.id }, s.data()), canEdit = ieltsCanEdit(u, d);
+  if (!canEdit && !(d.status === 'published' && !d.archived)) return fail('You do not have access to this test.');
+  if (canEdit) {
     const key = await fs.doc('ieltsAnswerKeys/' + s.id).get();
-    if (key.exists) (d.sections||[]).forEach((section,si) => { const ks = (key.data().sections||[])[si]||{}; if (ks.script) section.script = ks.script; (section.questions||[]).forEach((q,qi) => { q.answers = (ks.answers||[])[qi] || []; }); });
+    if (key.exists) (d.sections || []).forEach((section, si) => { const ks = (key.data().sections || [])[si] || {}; if (ks.script) section.script = ks.script; (section.questions || []).forEach((q, qi) => { q.answers = (ks.answers || [])[qi] || []; }); });
   }
-  return ok(u.role === 'teacher' || d.ownerUid === u.uid ? d : publicIelts(d));
+  d.canEdit = canEdit;
+  return ok(canEdit ? d : publicIelts(d));
 }
 async function ieltsContentArchive(p) {
-  const u = await teacher(); const ref = fs.doc('ieltsContent/' + str(p.id)), s = await ref.get();
-  if (!s.exists || s.data().ownerUid !== u.uid) return fail('Không có quyền archive bài này.');
-  await ref.update({archived:true,status:'archived',updatedAt:nowIso()}); return ok();
+  const u = await me(), ref = fs.doc('ieltsContent/' + str(p.id)), s = await ref.get();
+  if (!s.exists || !ieltsCanEdit(u, s.data())) return fail('You cannot remove this item.');
+  await ref.update({ archived: true, status: 'archived', updatedAt: nowIso() }); return ok();
+}
+
+// ── IELTS In-class sessions (assignments with kind:'ielts'; time windows + extensions reuse assign.extend) ──
+function ieltsSessionEnd(d, sid) {
+  const base = d.sessionEnd ? ms(d.sessionEnd) : (ms(d.sessionStart) ? ms(d.sessionStart) + (parseInt(d.sessionDurationMin, 10) || 0) * 60000 : 0);
+  return Math.max(base, ms(d.extAll), sid ? ms(d.ext && d.ext[sid]) : 0);
+}
+function ieltsSessionStatus(d, sid) {
+  const now = Date.now(), start = ms(d.sessionStart), end = ieltsSessionEnd(d, sid);
+  return !start || !end ? 'open' : now < start ? 'upcoming' : now > end ? 'closed' : 'open';
+}
+async function ieltsInclassCreate(p) {
+  const t = await teacher();
+  const cls = await fs.doc('classes/' + str(p.classId)).get();
+  if (!cls.exists || cls.data().teacherUid !== t.uid || cls.data().status === 'Archived') return fail('The class does not exist or is not yours.');
+  const ids = (Array.isArray(p.contentIds) ? p.contentIds : []).map(str).filter(Boolean).slice(0, 4);
+  if (!ids.length) return fail('Select a test from the Library.');
+  const meta = [];
+  for (const cid of ids) {
+    const c = await fs.doc('ieltsContent/' + cid).get();
+    if (!c.exists || c.data().archived || c.data().status !== 'published') return fail('One of the tests is no longer in the Library.');
+    meta.push({ id: cid, title: c.data().title, skill: c.data().skill, book: c.data().book || '', test: c.data().test || '', part: c.data().part || '' });
+  }
+  if (meta.some(m => m.skill !== meta[0].skill)) return fail('A session can only contain one skill.');
+  if (!p.sessionStart || !ms(p.sessionStart)) return fail('Enter a start time.');
+  const dur = parseInt(p.sessionDurationMin, 10) || 0;
+  if (dur < 5 || dur > 240) return fail('Duration must be between 5 and 240 minutes.');
+  const id = str(p.assignmentId) || genId(10, 'IC-');
+  const ref = fs.doc('assignments/' + id);
+  if ((await ref.get()).exists) return ok({ assignmentId: id });
+  const title = str(p.title) || (meta.length === 1 ? meta[0].title : (meta[0].book + ' · Test ' + meta[0].test + ' · Full ' + meta[0].skill));
+  await ref.set({
+    assignmentId: id, kind: 'ielts', teacherUid: t.uid, classId: str(p.classId), mode: 'inclass', title, skill: meta[0].skill,
+    contentIds: ids, contentMeta: meta, sessionStart: str(p.sessionStart), sessionDurationMin: dur, sessionEnd: '',
+    extAll: '', ext: {}, active: true, deleted: false, createdAt: nowIso()
+  });
+  return ok({ assignmentId: id });
+}
+async function ieltsInclassList(p) {
+  const t = await teacher();
+  const rows = docs(await fs.collection('assignments').where('teacherUid', '==', t.uid).get())
+    .filter(d => d.kind === 'ielts' && !d.deleted && (!p.classId || d.classId === p.classId))
+    .sort((a, b) => str(b.createdAt).localeCompare(str(a.createdAt)));
+  return ok(rows.map(d => ({
+    assignmentId: d._id, classId: d.classId, title: d.title, skill: d.skill, contentIds: d.contentIds || [], contentMeta: d.contentMeta || [],
+    sessionStart: d.sessionStart, sessionDurationMin: d.sessionDurationMin, extAll: d.extAll || '', ext: d.ext || {},
+    endsAt: new Date(ieltsSessionEnd(d, null) || 0).toISOString(), status: ieltsSessionStatus(d, null), createdAt: d.createdAt
+  })));
+}
+async function ieltsInclassForStudent() {
+  const u = await me();
+  if (!u.classId) return ok([]);
+  const rows = docs(await fs.collection('assignments').where('classId', '==', u.classId).where('active', '==', true).get())
+    .filter(d => d.kind === 'ielts' && !d.deleted)
+    .sort((a, b) => str(b.createdAt).localeCompare(str(a.createdAt)));
+  return ok(rows.map(d => ({
+    assignmentId: d._id, title: d.title, skill: d.skill, contentIds: d.contentIds || [], contentMeta: d.contentMeta || [],
+    sessionStart: d.sessionStart, sessionDurationMin: d.sessionDurationMin,
+    endsAt: new Date(ieltsSessionEnd(d, u.studentId) || 0).toISOString(), status: ieltsSessionStatus(d, u.studentId)
+  })));
+}
+async function ieltsInclassDelete(p) {
+  const t = await teacher(), ref = fs.doc('assignments/' + str(p.assignmentId)), s = await ref.get();
+  if (!s.exists || s.data().teacherUid !== t.uid || s.data().kind !== 'ielts') return fail('In-class session not found.');
+  await ref.update({ deleted: true, active: false }); return ok();
 }
 async function ieltsAttemptSave(p) {
   const u = await me();
-  if (u.role !== 'student') return fail('Chỉ sinh viên mới nộp lượt luyện tập.');
+  if (u.role !== 'student') return fail('Only students can submit practice attempts.');
   await authReady();
   const current = auth.currentUser;
   if (!current) return fail('SESSION_EXPIRED');
   const idToken = await current.getIdToken();
-  return gas('ielts.gradeAttempt', { idToken, apiKey:CFG.config.apiKey, contentIds:Array.isArray(p.contentIds)?p.contentIds:[p.contentId], answers:Array.isArray(p.answers)?p.answers:[], startedAt:str(p.startedAt) });
+  return gas('ielts.gradeAttempt', { idToken, apiKey:CFG.config.apiKey, contentIds:Array.isArray(p.contentIds)?p.contentIds:[p.contentId], assignmentId:str(p.assignmentId), answers:Array.isArray(p.answers)?p.answers:[], startedAt:str(p.startedAt) });
 }
 async function ieltsAttemptList(p) {
   const u = await me(); let q;
   if (u.role === 'teacher') {
-    if (!p.classId) return fail('Chọn một lớp để xem kết quả.');
+    if (!p.classId) return fail('Select a class to see results.');
     q = fs.collection('ieltsAttempts').where('teacherUid','==',u.uid);
     q = q.where('classId','==',str(p.classId));
     if (p.studentId) q = q.where('studentId','==',str(p.studentId));
@@ -921,8 +979,8 @@ async function ieltsAttemptList(p) {
 }
 async function ieltsReportCreate(p) {
   const u = await me();
-  if (u.role !== 'student' || !str(p.contentId) || !str(p.message)) return fail('Nhập mô tả lỗi trước khi gửi.');
-  if (p.privateContent) return fail('Bài luyện riêng tư không được gửi báo cáo cho giáo viên.');
+  if (u.role !== 'student' || !str(p.contentId) || !str(p.message)) return fail('Describe the problem before sending.');
+  if (p.privateContent) return fail('Private practice items cannot be reported to a teacher.');
   const id = genId(20, 'IR_');
   await fs.doc('ieltsReports/' + id).set({ uid:u.uid, studentId:u.studentId||'', studentName:u.fullName||'', teacherUid:u.teacherUid||'', classId:u.classId||'', contentId:str(p.contentId), contentTitle:str(p.contentTitle), questionNumber:Number(p.questionNumber)||0, message:str(p.message).slice(0,2000), createdAt:nowIso(), status:'open' });
   return ok({id});
@@ -936,19 +994,19 @@ async function ieltsReportList(p) {
 }
 async function ieltsReportUpdate(p) {
   const t = await teacher(), ref = fs.doc('ieltsReports/' + str(p.id)), s = await ref.get();
-  if (!s.exists || s.data().teacherUid !== t.uid) return fail('Không có quyền cập nhật báo cáo này.');
+  if (!s.exists || s.data().teacherUid !== t.uid) return fail('You cannot update this report.');
   const status = ['open','reviewing','resolved'].includes(p.status) ? p.status : 'reviewing';
   await ref.update({status, teacherNote:str(p.teacherNote).slice(0,2000), updatedAt:nowIso()}); return ok();
 }
 async function ieltsAudioUpload(p) {
   const u = await me(), id = str(p.contentId), file = p.file;
-  if (!file || !id) return fail('Chọn file audio cho một nội dung đã lưu.');
-  if (!/^audio\/(mpeg|mp4|wav|x-wav|webm|ogg|aac|flac)$/i.test(str(file.type)) || file.size > 25 * 1024 * 1024) return fail('Chỉ nhận audio MP3, MP4, WAV, WebM, OGG, AAC hoặc FLAC tối đa 25 MB.');
+  if (!file || !id) return fail('Choose an audio file for a saved item.');
+  if (!/^audio\/(mpeg|mp4|wav|x-wav|webm|ogg|aac|flac)$/i.test(str(file.type)) || file.size > 25 * 1024 * 1024) return fail('Only MP3, MP4, WAV, WebM, OGG, AAC or FLAC audio up to 25 MB is accepted.');
   const snap = await fs.doc('ieltsContent/' + id).get();
-  if (!snap.exists) return fail('Hãy lưu bản nháp trước khi tải audio.');
+  if (!snap.exists) return fail('Save the item before uploading audio.');
   const item = snap.data();
-  const authorized = item.ownerUid === u.uid && ((u.role === 'teacher' && item.teacherUid === u.uid) || (u.role === 'student' && (item.visibility === 'private' || (item.status === 'review' && item.teacherUid === u.teacherUid))));
-  if (!authorized) return fail('Chỉ người tạo nội dung mới tải audio lên được.');
+  const authorized = ieltsCanEdit(u, item);
+  if (!authorized) return fail('Only the creator can upload audio.');
   const ext = str(file.name).split('.').pop().toLowerCase().replace(/[^a-z0-9]/g,'').slice(0,8) || 'audio';
   const path = 'ieltsAudio/' + u.uid + '/' + id + '/' + genId(18, '') + '.' + ext;
   await storage.ref(path).put(file, {contentType:file.type,customMetadata:{ownerUid:u.uid,contentId:id}});
@@ -956,18 +1014,18 @@ async function ieltsAudioUpload(p) {
 }
 async function ieltsAudioAttach(p) {
   const u = await me(), ref = fs.doc('ieltsContent/' + str(p.contentId)), snap = await ref.get();
-  if (!snap.exists) return fail('Không tìm thấy nội dung.');
+  if (!snap.exists) return fail('Item not found.');
   const item = snap.data();
-  if (item.ownerUid !== u.uid || !String(p.audioPath||'').startsWith('ieltsAudio/' + u.uid + '/' + str(p.contentId) + '/')) return fail('Không có quyền gắn audio này.');
+  if (!ieltsCanEdit(u, item) || !String(p.audioPath||'').startsWith('ieltsAudio/' + u.uid + '/' + str(p.contentId) + '/')) return fail('You cannot attach this audio.');
   const sections = item.sections || [];
-  if (!sections.length) return fail('Nội dung cần có section trước khi gắn audio.');
+  if (!sections.length) return fail('The item needs a section before audio can be attached.');
   sections[0].audio = {path:str(p.audioPath), fileName:str(p.fileName), contentType:str(p.contentType), size:Number(p.size)||0};
   await ref.update({sections,updatedAt:nowIso()});
   return ok();
 }
 async function ieltsAudioUrl(p) {
   const u = await me(), path = str(p.path);
-  if (!path.startsWith('ieltsAudio/')) return fail('Đường dẫn audio không hợp lệ.');
+  if (!path.startsWith('ieltsAudio/')) return fail('Invalid audio path.');
   return ok(await storage.ref(path).getDownloadURL());
 }
 async function ieltsImportUrl(p) {
@@ -1010,6 +1068,7 @@ const ACTIONS = {
   'translate.forStudent': translateForStudent, 'translate.get': translateGet, 'translate.saveResult': translateSaveResult,
   'translate.stats': translateStats, 'translate.myProgress': translateMyProgress,
   'readwise.save': readwiseSave, 'readwise.list': readwiseList, 'readwise.get': readwiseGet, 'readwise.delete': readwiseDelete,
+  'ielts.inclass.create': ieltsInclassCreate, 'ielts.inclass.list': ieltsInclassList, 'ielts.inclass.forStudent': ieltsInclassForStudent, 'ielts.inclass.delete': ieltsInclassDelete,
   'ielts.content.save': ieltsContentSave, 'ielts.content.list': ieltsContentList, 'ielts.content.get': ieltsContentGet, 'ielts.content.archive': ieltsContentArchive,
   'ielts.attempt.save': ieltsAttemptSave, 'ielts.attempt.list': ieltsAttemptList,
   'ielts.report.create': ieltsReportCreate, 'ielts.report.list': ieltsReportList, 'ielts.report.update': ieltsReportUpdate,
@@ -1024,12 +1083,12 @@ async function call(action, payload) {
   payload = payload || {};
   try {
     if (ACTIONS[action]) return await ACTIONS[action](payload);
-    return fail('Chức năng này không có trong bản Firebase: ' + action);
+    return fail('This action is not available in the Firebase version: ' + action);
   } catch (e) {
     const code = (e && e.code) || '';
     if (e && (e.message === 'SESSION_EXPIRED' || /unauthenticated/i.test(code))) return fail('SESSION_EXPIRED');
-    if (/permission[-_]denied/i.test(code)) return fail(auth && auth.currentUser ? 'Bạn không có quyền truy cập dữ liệu này.' : 'SESSION_EXPIRED');
-    if (/unavailable|deadline-exceeded/i.test(code)) return fail('Không kết nối được máy chủ — kiểm tra mạng và thử lại.');
+    if (/permission[-_]denied/i.test(code)) return fail(auth && auth.currentUser ? 'You do not have permission to access this data.' : 'SESSION_EXPIRED');
+    if (/unavailable|deadline-exceeded/i.test(code)) return fail('Cannot reach the server. Check your connection and try again.');
     console.error('[vm-fbdata] ' + action, e);
     return fail((e && e.message) || String(e));
   }

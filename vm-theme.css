@@ -22,7 +22,7 @@
 
   /* surfaces */
   --vm-bg:           #E8EDF0;   /* warm sand ground */
-  --vm-bg-grad: radial-gradient(900px 560px at 4% -6%,rgba(79,176,214,.45),transparent 64%),radial-gradient(820px 520px at 100% 100%,rgba(242,153,74,.42),transparent 62%),linear-gradient(135deg,#D4E8F3 0%,#E8EEF1 46%,#FBE7D2 100%);
+  --vm-bg-grad: linear-gradient(135deg,#86C5E4 0%,#C9E3F0 30%,#F2E9DF 60%,#F8B26F 100%);
   --vm-surface:      #FFFFFF;
   --vm-surface-2:    #F3F7F9;   /* fields, chips, row hover */
   --vm-border:       #D5E3EA;
@@ -588,3 +588,9 @@ button,.vm-btn,.vm-nav,.vm-tab,.vm-opt,.vm-rw-opt,.vm-page-btn{cursor:pointer}
 .vm-side{background:linear-gradient(180deg,#FFFFFF 0%,#F4F9FC 70%,#FFF6EC 100%)}
 .il-banner{background:linear-gradient(120deg,#FFFFFF 0%,#EEF6FA 60%,#FFF3E4 100%)}
 .il-qnum{background:linear-gradient(135deg,#DCEEF6,#FFE9D2)}
+
+/* stronger blue → orange page ground; titles stay dark and bold so they stand out */
+.vm-page-title{color:#0F2F42}.vm-eyebrow{color:#2A5B76;font-weight:600}
+.vm-user{box-shadow:0 4px 14px rgba(23,74,102,.16)}
+.vm-nav.active{background:linear-gradient(135deg,#1F6A92 0%,#3E9CC6 100%)!important;box-shadow:0 6px 14px rgba(31,106,146,.35)}
+.vm-side{box-shadow:0 10px 30px rgba(23,74,102,.2)}

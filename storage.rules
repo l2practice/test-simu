@@ -1,33 +1,20 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    function userProfile() {
-      return firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data;
-    }
-    function content(ownerUid, contentId) {
+    function item(contentId) {
       return firestore.get(/databases/(default)/documents/ieltsContent/$(contentId)).data;
     }
-    function authorizedReader(ownerUid, contentId) {
-      let item = content(ownerUid, contentId);
-      let profile = userProfile();
-      return request.auth != null && (
-        (request.auth.uid == ownerUid && item.ownerUid == request.auth.uid) ||
-        (profile.role == 'student' && item.archived == false
-         && item.status == 'published'
-         && item.allowedClassIds.hasAny([profile.classId]))
-      );
+    function profile() {
+      return firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data;
     }
-    function ownerCanWrite(ownerUid, contentId) {
-      let item = content(ownerUid, contentId);
-      let profile = userProfile();
-      return request.auth != null && request.auth.uid == ownerUid
-        && item.ownerUid == ownerUid
-        && ((profile.role == 'teacher' && item.teacherUid == ownerUid)
-          || (profile.role == 'student' && (item.visibility == 'private' || (item.status == 'review' && item.teacherUid == profile.teacherUid))));
+    function canEdit(contentId) {
+      return item(contentId).ownerUid == request.auth.uid
+          || (profile().role == 'teacher' && item(contentId).teacherUid == request.auth.uid);
     }
     match /ieltsAudio/{ownerUid}/{contentId}/{fileName} {
-      allow read: if authorizedReader(ownerUid, contentId);
-      allow create, update: if ownerCanWrite(ownerUid, contentId)
+      allow read: if request.auth != null
+                  && ((item(contentId).status == 'published' && item(contentId).archived == false) || canEdit(contentId));
+      allow create, update: if request.auth != null && request.auth.uid == ownerUid && canEdit(contentId)
         && request.resource.size <= 25 * 1024 * 1024
         && request.resource.contentType.matches('audio/(mpeg|mp4|wav|x-wav|webm|ogg|aac|flac)');
       allow delete: if false;

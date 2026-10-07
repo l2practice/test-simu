@@ -50,7 +50,7 @@
     return new Promise(function (res, rej) {
       var sc = document.createElement('script');
       sc.src = src; sc.onload = res;
-      sc.onerror = function () { rej(new Error('Không tải được ' + src)); };
+      sc.onerror = function () { rej(new Error('Could not load ' + src)); };
       document.head.appendChild(sc);
     });
   }
@@ -58,7 +58,7 @@
     if (!_fbLoad) {
       _fbLoad = loadScript(FB_SDK + 'firebase-app-compat.js')
         .then(function () { return Promise.all([loadScript(FB_SDK + 'firebase-auth-compat.js'), loadScript(FB_SDK + 'firebase-firestore-compat.js'), loadScript(FB_SDK + 'firebase-storage-compat.js')]); })
-        .then(function () { return loadScript('vm-fbdata.js?v=4'); })
+        .then(function () { return loadScript('vm-fbdata.js?v=7'); })
         .then(function () { return global.FB; });
       _fbLoad.catch(function () { _fbLoad = null; });   // cho phép thử lại sau lỗi mạng
     }
@@ -239,12 +239,12 @@
     div.id = 'vmGroqBanner';
     div.style.cssText = 'background:#FEF3D6;border:1.5px solid #F59E0B;border-radius:10px;padding:14px 16px;margin-bottom:14px';
     div.innerHTML =
-      '<div style="font-weight:700;font-size:.88rem;color:#7A5000;margin-bottom:6px">⚠️ Gemini API không khả dụng</div>' +
-      '<p style="font-size:.8rem;color:#7A5000;margin:0 0 10px">Dùng Groq (miễn phí) thay thế. ' +
-        '<a href="https://console.groq.com/keys" target="_blank" style="color:var(--vm-primary);font-weight:600">Lấy Groq key →</a></p>' +
+      '<div style="font-weight:700;font-size:.88rem;color:#7A5000;margin-bottom:6px">⚠️ Gemini API is unavailable</div>' +
+      '<p style="font-size:.8rem;color:#7A5000;margin:0 0 10px">Use Groq (free) instead. ' +
+        '<a href="https://console.groq.com/keys" target="_blank" style="color:var(--vm-primary);font-weight:600">Get a Groq key →</a></p>' +
       '<div style="display:flex;gap:8px">' +
         '<input id="vmGroqKeyInput" type="password" placeholder="gsk_…" style="flex:1;border:1px solid #F59E0B;border-radius:7px;padding:7px 10px;font-size:.84rem;background:#fff">' +
-        '<button id="vmGroqSaveBtn" style="background:#F59E0B;color:#3A2600;border:none;border-radius:7px;padding:7px 12px;font-weight:700;font-size:.82rem;cursor:pointer">Lưu key</button>' +
+        '<button id="vmGroqSaveBtn" style="background:#F59E0B;color:#3A2600;border:none;border-radius:7px;padding:7px 12px;font-weight:700;font-size:.82rem;cursor:pointer">Save key</button>' +
       '</div>';
     el.insertBefore(div, el.firstChild);
     document.getElementById('vmGroqSaveBtn').onclick = function(){
@@ -814,7 +814,7 @@ VM.Chat = (function(){
     }).join('') +
     (_history.length===0?
       '<div style="text-align:center;color:var(--vm-ink-3);font-size:.82rem;margin-top:20px">'+
-        (_role==='student'?'💬 Hỏi tôi về từ vựng, ngữ pháp, hay nội dung bài đọc!':'💬 Hỏi tôi bất cứ điều gì về giảng dạy!')+
+        (_role==='student'?'💬 Ask me about IELTS Reading and Listening, vocabulary or grammar!':'💬 Ask me anything about teaching!')+
       '</div>':'');
     el.scrollTop = el.scrollHeight;
   }
@@ -909,7 +909,7 @@ VM.Chat = (function(){
       _renderKeyPrompt(modelId)+
       '<div id="vmChatMsgs" style="flex:1;overflow-y:auto;padding:12px;min-height:200px;max-height:340px"></div>'+
       '<div style="border-top:1px solid var(--vm-border-2);padding:10px 12px;display:flex;gap:8px;background:var(--vm-surface)">'+
-        '<input id="vmChatInput" placeholder="Hỏi AI…" autocomplete="off" '+
+        '<input id="vmChatInput" placeholder="Ask AI…" autocomplete="off" '+
           'style="flex:1;border:1.5px solid var(--vm-border);border-radius:20px;padding:8px 14px;font-size:.85rem;font-family:inherit;outline:none">'+
         '<button id="vmChatSend" style="background:var(--vm-primary);color:#fff;border:none;border-radius:50%;width:36px;height:36px;cursor:pointer;font-size:1rem;flex:0 0 auto">↑</button>'+
       '</div>';

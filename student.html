@@ -6,7 +6,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%231B7F5E'/%3E%3Ctext x='12' y='17' text-anchor='middle' font-size='13' font-weight='700' fill='%23fff' font-family='system-ui'%3EV%3C/text%3E%3C/svg%3E">
 <meta name="theme-color" content="#2A7BA3">
 <title>Test Simulation</title>
-<link rel="stylesheet" href="vm-theme.css?v=20261006">
+<link rel="stylesheet" href="vm-theme.css?v=20261007c">
 <style>
 #app{min-height:100vh}
 
@@ -138,7 +138,7 @@
 
 <div id="app"></div>
 
-<script src="vm-common.js?v=20261006b"></script>
+<script src="vm-common.js?v=20261007c"></script>
 <script src="cefr-dict.js"></script>
 <script src="vm-cefr.js"></script>
 <script>
@@ -157,20 +157,16 @@ function showOverlay(msg){
 function hideOverlay(){ document.getElementById('globalOverlay').classList.remove('show'); }
 
 /* ── State ───────────────────────────────────── */
-var S = { assignments:[], myResults:[], activeTab:'home' };
+var S = { assignments:[], myResults:[], activeTab:'settings' };
 
 /* ── Shell ───────────────────────────────────── */
 VM.renderShell({
   mount:'app', eyebrow:'Test Simulation', title:'Home', user:sess,
   nav:[
-    {id:'home',    label:'Home',         icon:'overview'},
-    {id:'homework',label:'Homework',      icon:'hw'},
-    {id:'inclass', label:'In-class',      icon:'inclass'},
-    {id:'reading', label:'ReadWise',      icon:'reading'},
-    {id:'ielts',   label:'IELTS Practice', icon:'reading', href:'ielts.html'},
-    {id:'history',  label:'History',       icon:'results'},
-    {id:'translate', label:'Dịch',          icon:'reading'},
-    {id:'settings', label:'Settings',      icon:'edit'},
+    {id:'library', label:'IELTS Practice', icon:'reading', href:'ielts.html#library'},
+    {id:'inclass', label:'In-class', icon:'inclass', href:'ielts.html#inclass'},
+    {id:'results', label:'History', icon:'results', href:'ielts.html#results'},
+    {id:'settings', label:'Settings', icon:'edit'},
   ],
   onNav: switchTab
 });
@@ -1761,8 +1757,8 @@ function renderSettings(){
       // Gemini
       '<div class="vm-field">'+
         '<label class="vm-label" style="display:flex;align-items:center;justify-content:space-between">'+
-          '<span>Gemini API Key <span style="font-size:.7rem;font-weight:400;color:var(--vm-ink-3)">(Google AI Studio — miễn phí)</span></span>'+
-          '<a href="https://aistudio.google.com/apikey" target="_blank" style="font-size:.75rem;color:var(--vm-primary);font-weight:600">Lấy key →</a>'+
+          '<span>Gemini API Key <span style="font-size:.7rem;font-weight:400;color:var(--vm-ink-3)">(Google AI Studio — free)</span></span>'+
+          '<a href="https://aistudio.google.com/apikey" target="_blank" style="font-size:.75rem;color:var(--vm-primary);font-weight:600">Get a key →</a>'+
         '</label>'+
         '<div style="display:flex;gap:8px">'+
           '<input class="vm-input" id="stGemKey" type="password" placeholder="AIza…" value="'+VM.esc(gemKey)+'" style="flex:1">'+
@@ -1777,8 +1773,8 @@ function renderSettings(){
       // Groq
       '<div class="vm-field" style="margin-top:4px">'+
         '<label class="vm-label" style="display:flex;align-items:center;justify-content:space-between">'+
-          '<span>Groq API Key <span style="font-size:.7rem;font-weight:400;color:var(--vm-ink-3)">(Groq console — miễn phí)</span></span>'+
-          '<a href="https://console.groq.com/keys" target="_blank" style="font-size:.75rem;color:var(--vm-primary);font-weight:600">Lấy key →</a>'+
+          '<span>Groq API Key <span style="font-size:.7rem;font-weight:400;color:var(--vm-ink-3)">(Groq console — free)</span></span>'+
+          '<a href="https://console.groq.com/keys" target="_blank" style="font-size:.75rem;color:var(--vm-primary);font-weight:600">Get a key →</a>'+
         '</label>'+
         '<div style="display:flex;gap:8px">'+
           '<input class="vm-input" id="stGroqKey" type="password" placeholder="gsk_…" value="'+VM.esc(groqKey)+'" style="flex:1">'+
@@ -2276,7 +2272,7 @@ switchTab = function(id){
   else VM.Chat.setContext('');
 };
 
-switchTab((location.hash.match(/tab=(\w+)/)||[])[1]||'home');
+switchTab('settings');
 </script>
 </body>
 </html>

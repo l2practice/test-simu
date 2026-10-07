@@ -5,7 +5,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%231B7F5E'/%3E%3Ctext x='12' y='17' text-anchor='middle' font-size='13' font-weight='700' fill='%23fff' font-family='system-ui'%3EV%3C/text%3E%3C/svg%3E">
 <meta name="theme-color" content="#2A7BA3">
 <title>Teacher · Test Simulation</title>
-<link rel="stylesheet" href="vm-theme.css?v=20261006">
+<link rel="stylesheet" href="vm-theme.css?v=20261007c">
 <style>
 #app{min-height:100vh}
 /* Assign form */
@@ -330,7 +330,7 @@
   </div>
 </div>
 
-<script src="vm-common.js?v=20261006b"></script>
+<script src="vm-common.js?v=20261007c"></script>
 <script>
 if (typeof VM === 'undefined') { location.href='login.html'; throw new Error('no VM'); }
 
@@ -387,7 +387,7 @@ var state = {
   results: [],
   resultsFull: false,
   recheckMap: {},
-  activeTab: 'overview',
+  activeTab: 'classes',
   filterClass: '',
   filterMode: '',
   filterSearch: '',
@@ -401,14 +401,11 @@ var state = {
 // ── Navigation ───────────────────────────────────────────────────
 function navItems() {
   return [
-    { id:'overview',  label:'Overview',     icon:'overview' },
-    { id:'classes',   label:'Classes',      icon:'classes'  },
-    { id:'assign',    label:'Assignments',  icon:'assign'   },
-    { id:'hwbook',    label:'HW Book',      icon:'hw'       },
-    { id:'translate', label:'Dịch',         icon:'reading'  },
-    { id:'ielts',    label:'IELTS Library', icon:'reading', href:'ielts.html' },
-    { id:'results',   label:'Results',      icon:'results'  },
-    { id:'settings',  label:'Settings',     icon:'edit'     },
+    { id:'library',  label:'Library',   icon:'reading', href:'ielts.html#library' },
+    { id:'inclass',  label:'In-class',  icon:'inclass', href:'ielts.html#inclass' },
+    { id:'results',  label:'Results',   icon:'results', href:'ielts.html#results' },
+    { id:'classes',  label:'Classes',   icon:'classes'  },
+    { id:'settings', label:'Settings',  icon:'edit'     },
   ];
 }
 
@@ -2308,7 +2305,7 @@ function renderTeacherSettings(){
         '</div>'+
         '<div id="tsGemStatus" style="font-size:.75rem;margin-top:5px">'+
           (gemKey?'<span style="color:var(--vm-ok)">✓ Key saved — AI vocab generation & chat active</span>':
-                  '<span style="color:var(--vm-danger)">⚠️ No Gemini key — AI sinh câu dịch sẽ không hoạt động</span>')+
+                  '<span style="color:var(--vm-danger)">⚠️ No Gemini key — AI feedback will not work</span>')+
         '</div>'+
       '</div>'+
 
@@ -2390,7 +2387,7 @@ VM.Chat.init({
   role: 'teacher',
   context: 'Teacher managing Test Simulation: classes, homework assignments, in-class reviews, and student results.'
 });
-switchTab((location.hash.match(/tab=(\w+)/)||[])[1]||'overview');
+(function(){var h=(location.hash.match(/tab=(\w+)/)||[])[1];switchTab(h==='settings'?'settings':'classes');})();
 </script>
 </body>
 </html>
