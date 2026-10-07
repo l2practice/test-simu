@@ -837,7 +837,7 @@ function publicIelts(d) {
 function ieltsCanEdit(u, d) { return d.ownerUid === u.uid || (u.role === 'teacher' && d.teacherUid === u.uid); }
 function ieltsLibraryId(skill, book, test, part) { return ('L_' + skill + '_' + book + '_T' + test + '_P' + part).replace(/[^A-Za-z0-9_]/g, ''); }
 async function ieltsContentSave(p) {
-  const u = await me(), data = cleanIeltsContent(p);
+  const u = await me(), data = JSON.parse(JSON.stringify(cleanIeltsContent(p)));   // JSON round-trip drops undefined values, which Firestore rejects
   if (!data.book || !data.test || !data.part) return fail('Select Book, Test and Part.');
   if (!data.sections.some(s => s.questions.length)) return fail('Add at least one question.');
   if (data.sections.some(s => s.questions.some(q => !q.answers.length))) return fail('Every question needs an answer before you can finish.');
@@ -849,7 +849,8 @@ async function ieltsContentSave(p) {
   const teacherUid = prior.exists ? (prior.data().teacherUid || '') : (u.role === 'teacher' ? u.uid : (u.teacherUid || ''));
   const version = prior.exists ? (prior.data().version || 1) + 1 : 1;
   const approved = u.role === 'teacher';   // teacher-made or teacher-edited items are checked; student items wait for a teacher
-  const keySections = data.sections.map(s => ({ script: s.script || '', answers: (s.questions || []).map(q => q.answers || []) }));
+  // Firestore cannot store an array inside an array, so each question's answers live in a small map: {a:[…]}
+  const keySections = data.sections.map(s => ({ script: s.script || '', answers: (s.questions || []).map(q => ({ a: q.answers || [] })) }));
   data.sections.forEach(s => { delete s.script; (s.questions || []).forEach(q => { delete q.answers; delete q.answer; }); });
   const batch = fs.batch();
   batch.set(ref, Object.assign({}, data, {
@@ -884,7 +885,7 @@ async function ieltsContentGet(p) {
   if (!canEdit && !(d.status === 'published' && !d.archived)) return fail('You do not have access to this test.');
   if (canEdit) {
     const key = await fs.doc('ieltsAnswerKeys/' + s.id).get();
-    if (key.exists) (d.sections || []).forEach((section, si) => { const ks = (key.data().sections || [])[si] || {}; if (ks.script) section.script = ks.script; (section.questions || []).forEach((q, qi) => { q.answers = (ks.answers || [])[qi] || []; }); });
+    if (key.exists) (d.sections || []).forEach((section, si) => { const ks = (key.data().sections || [])[si] || {}; if (ks.script) section.script = ks.script; (section.questions || []).forEach((q, qi) => { const v = (ks.answers || [])[qi]; q.answers = Array.isArray(v) ? v : ((v && v.a) || []); }); });
   }
   d.canEdit = canEdit;
   return ok(canEdit ? d : publicIelts(d));

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi"><head><meta charset="UTF-8"><link rel="icon" type="image/svg+xml" href="favicon.svg?v=20261007c"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#0F6B4F"><title>Test Simulation · IELTS Practice</title><link rel="stylesheet" href="vm-theme.css?v=20261007g">
+<meta name="theme-color" content="#0F6B4F"><title>Test Simulation · IELTS Practice</title><link rel="stylesheet" href="vm-theme.css?v=20261007h">
 <style>
 #app{min-height:100vh}.ielts-wrap{max-width:1180px;margin:auto}.ielts-hero{background:linear-gradient(120deg,var(--vm-sand-2),var(--vm-primary-lt));color:var(--vm-ink);padding:24px;border-radius:var(--vm-r);margin-bottom:18px}.ielts-hero h2{margin:0 0 6px;font-family:var(--vm-font-display)}.ielts-hero p{margin:0;color:var(--vm-ink-2)}.il-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}.il-card,.il-panel{background:var(--vm-surface);border:1px solid var(--vm-border-2);border-radius:var(--vm-r);padding:18px;box-shadow:var(--vm-shadow-sm)}.il-card h3{margin:5px 0;font-family:var(--vm-font-display)}.il-meta{font-size:.78rem;color:var(--vm-ink-3);margin:6px 0 12px}.il-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}.il-practice{display:grid;grid-template-columns:minmax(300px,1fr) minmax(300px,1fr);gap:16px}.il-passage{white-space:pre-wrap;line-height:1.85;max-height:68vh;overflow:auto}.il-q{border-bottom:1px solid var(--vm-border-2);padding:12px 0}.il-q label{display:block;font-weight:650;margin-bottom:7px}.il-q input,.il-q select{width:100%}.il-badge{display:inline-block;border-radius:99px;padding:3px 9px;background:var(--vm-primary-lt);color:var(--vm-primary-dk);font-size:.7rem;font-weight:700}.il-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.il-empty{padding:35px;text-align:center;color:var(--vm-ink-3)}.il-editor{display:grid;grid-template-columns:1fr 1fr;gap:10px}.il-editor textarea{min-height:130px;font-size:.92rem}.il-section-editor{margin:14px 0;padding:14px;border:1px solid var(--vm-border-2);border-radius:16px;background:var(--vm-surface)}.il-section-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.il-section-grid.three{grid-template-columns:1fr 1fr 1fr}.il-section-grid textarea{width:100%;min-height:230px;resize:vertical;white-space:pre-wrap}.il-answer-key{margin-top:20px;padding-top:16px;border-top:3px solid var(--vm-primary-lt)}.il-ai-output{white-space:pre-wrap;line-height:1.7}.il-settings{max-width:720px;margin:18px auto}.il-settings label{display:block;margin:12px 0 5px;font-weight:650}.il-chart{width:100%;height:220px;border:1px solid var(--vm-border-2);border-radius:10px;background:var(--vm-surface);margin-top:10px}.il-note{font-size:.78rem;color:var(--vm-ink-3)}.il-error{color:var(--vm-danger);font-size:.84rem}.il-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 @media(max-width:720px){.il-practice,.il-editor,.il-section-grid,.il-section-grid.three{grid-template-columns:1fr}.il-passage{max-height:40vh}}
@@ -107,7 +107,19 @@ body.skill-reading .il-instr,body.skill-listening .il-instr{background:linear-gr
 .il-check-row{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:9px 0;border-top:1px solid var(--vm-border)}
 .vm-nav{position:relative}.vm-nav-badge{position:absolute;top:2px;right:6px;margin:0;min-width:18px;height:18px;border-radius:9px;padding:0 5px;font-size:.66rem;display:grid;place-items:center;background:var(--il-b);color:#3A1D00;font-weight:800;box-shadow:0 3px 6px rgba(196,106,28,.45)}
 .ed-imgs{margin:0 0 8px}.ed-thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}.ed-thumb{position:relative;display:inline-block}.ed-thumb img{max-height:84px;border-radius:8px;border:1px solid var(--vm-border);display:block}.ed-x{position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;border:none;background:#C23A2E;color:#fff;cursor:pointer;font-size:.8rem;line-height:1}.il-img{max-width:100%;height:auto;border-radius:10px;margin:6px 0 12px;border:1px solid var(--vm-border)}
-</style></head><body><div id="app"></div><script src="vm-common.js?v=20261007g"></script><script>
+
+/* question layouts */
+.il-group{margin:6px 0 20px}.il-qt{width:100%;border-collapse:collapse;border:none;margin:4px 0}.il-qt td{border:none;padding:8px 6px;vertical-align:middle}.il-qt tr:nth-child(odd) td{background:rgba(10,63,48,.035)}.il-qt .qn{width:44px;text-align:center}.il-qt .qt{line-height:1.5;padding-right:14px}.il-qt .qa{width:150px}.mg .il-qt .qa{width:76px}.il-qt .qt{min-width:120px}.il-qt .qm{width:34px;text-align:center}
+.il-ans{width:100%;padding:8px 10px}.mt-in{max-width:90px;text-align:center;font-weight:700;text-transform:uppercase}.il-sel{width:100%;padding:8px 10px}.il-sel-fixed{min-width:150px}
+.il-mk{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;font-weight:800;font-size:.8rem;color:#fff}.il-mk.ok{background:#1E8A5E}.il-mk.bad{background:#C23A2E}
+.il-ans.ok,.gap-in.ok,.il-sel.ok{border-color:#1E8A5E!important;background:#E6F6EC!important}.il-ans.bad,.gap-in.bad,.il-sel.bad{border-color:#C23A2E!important;background:#FDECEA!important}
+.mg{display:block}.mg-two{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(190px,1fr);gap:16px;align-items:start}.mg-opts{background:linear-gradient(180deg,#fff,var(--il-asoft));border:1px solid var(--vm-border);border-radius:14px;padding:12px 14px;position:sticky;top:8px}.mg-title{font-weight:800;color:var(--il-adk);margin-bottom:8px}.mg-opt{display:flex;gap:10px;padding:5px 0;font-size:.9rem;line-height:1.4;border-top:1px dashed var(--vm-border)}.mg-opt b{min-width:20px;color:var(--il-a)}.mg-hint{margin:4px 0}
+@media(max-width:1100px){.mg-two{grid-template-columns:1fr}.mg-opts{position:static}}
+.il-gapbox{background:linear-gradient(180deg,#fff,var(--il-asoft));border:1px solid var(--vm-border);border-radius:14px;padding:14px 16px}.il-gaptext{white-space:pre-wrap;line-height:2.3}.gap-wrap{display:inline-flex;align-items:center;gap:4px;vertical-align:middle;margin:0 2px}.gap-n{display:inline-grid;place-items:center;min-width:22px;height:22px;border-radius:50%;background:var(--il-a);color:#fff;font-size:.72rem}.gap-in{width:150px;padding:4px 8px;border-radius:8px;border:1.5px solid var(--il-a)}.gap-sel{min-width:130px;padding:4px 8px}
+.lab-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin:8px 0}.lab-cell{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--vm-border);border-radius:12px;padding:6px 8px}.lab-in{width:100%;padding:6px 8px}
+.il-opts-ro{display:grid;gap:4px;margin:6px 0 10px}.il-opt-ro{display:flex;gap:10px;padding:6px 10px;border:1px solid var(--vm-border);border-radius:10px;background:#fff}.il-opt-ro b{min-width:18px;color:var(--il-a)}.il-multi{display:flex;gap:10px;flex-wrap:wrap}.il-multi-c{display:flex;align-items:center;gap:8px}
+.il-busy{position:fixed;inset:0;z-index:400;background:rgba(10,63,48,.42);display:grid;place-items:center}.il-busy-card{background:#fff;border-radius:20px;padding:26px 34px;text-align:center;box-shadow:0 30px 60px -20px rgba(0,0,0,.5);max-width:340px}.il-busy-card b{display:block;margin-top:12px;color:var(--il-adk)}.il-spinner{width:44px;height:44px;border-radius:50%;border:5px solid var(--il-alt);border-top-color:var(--il-a);margin:0 auto;animation:ilspin .8s linear infinite}@keyframes ilspin{to{transform:rotate(360deg)}}
+</style></head><body><div id="app"></div><script src="vm-common.js?v=20261007h"></script><script>
 
 
 (function(){
@@ -122,6 +134,9 @@ VM.renderShell({mount:'app',eyebrow:'Test Simulation · IELTS',title:'IELTS Prac
 function esc(x){return VM.esc(String(x==null?'':x));}
 function root(){return document.getElementById('vmContent');}
 function say(msg){VM.toast(msg,'err',4500);}
+function busy(msg){unbusy();var d=document.createElement('div');d.id='ilBusy';d.className='il-busy';d.innerHTML='<div class="il-busy-card"><div class="il-spinner"></div><b>'+esc(msg||'Working…')+'</b></div>';document.body.appendChild(d);}
+function unbusy(){var d=document.getElementById('ilBusy');if(d)d.remove();}
+function isPrev(){return teacher||!!state.previewBack;}
 function call(a,p){return VM.api(a,p||{}).then(function(r){if(!r||!r.success)throw new Error(r&&r.error||'Could not load data.');return r.data;});}
 function qa(sel){return Array.from(document.querySelectorAll(sel));}
 function titleItem(x){return x.title||'Untitled practice';}
@@ -141,7 +156,7 @@ function route(){
  var h=(location.hash||'').replace('#','')||(teacher?'glance':'library');
  var ok=teacher?['glance','library','inclass','results']:['glance','library','inclass'];
  state.view=ok.indexOf(h)>=0?h:(teacher?'glance':'library');
- stopTimer();state.active=null;state.run=null;state.review=null;state.assignment=null;
+ stopTimer();state.active=null;state.run=null;state.review=null;state.assignment=null;state.previewBack=null;
  markNav();
  if(!state.loaded)return load();
  render();
@@ -262,13 +277,15 @@ function drawToCheck(){
  qa('[data-rv]').forEach(function(b){b.onclick=function(){openReview(b.getAttribute('data-rv'));};});
 }
 function openReview(id){
- call('ielts.content.get',{id:id}).then(function(x){reviewDialog(x);}).catch(function(e){say(e.message);});
+ busy('Loading the test…');
+ call('ielts.content.get',{id:id}).then(function(x){unbusy();reviewDialog(x);}).catch(function(e){unbusy();say(e.message);});
 }
 function reviewDialog(x){
  var s=(x.sections||[])[0]||{},qs=s.questions||[];
- root().innerHTML='<div class="ielts-wrap wide"><div class="il-toolbar il-sticky"><button class="vm-btn vm-btn-ghost" id="rvBack">← Back</button><strong class="il-title">Check · '+esc(titleItem(x))+'</strong><span class="il-spacer"></span><button class="vm-btn vm-btn-ghost" id="rvRemove">Remove</button><button class="vm-btn vm-btn-ghost" id="rvEdit">Edit</button><button class="vm-btn vm-btn-primary" id="rvOk">Approve</button></div><div class="il-note" style="margin:0 0 10px">Compare the passage, questions and answers with the original source'+(x.sourceUrl?' ('+esc(x.sourceUrl)+')':'')+'. Approving opens this test for students.</div><div class="il-split'+(x.skill==='listening'?' two':'')+'"><section class="il-panel il-pane"><h3>'+(x.skill==='listening'?'Script':'Passage')+'</h3><div class="il-text">'+esc((x.skill==='listening'?s.script:s.text)||'(empty)')+'</div></section><section class="il-panel il-pane"><h3>Questions &amp; answers</h3>'+qs.map(function(q,i){return (q.instruction?'<div class="il-instr">'+esc(q.instruction)+'</div>':'')+'<div class="il-q"><div class="il-qhead"><span class="il-qnum">'+(q.number||i+1)+'</span><span class="il-note">'+esc(typeName(q.type))+'</span></div><div class="il-qprompt">'+esc(q.prompt)+'</div>'+((q.options||[]).length?'<div class="il-note">Options: '+esc(q.options.join(' | '))+'</div>':'')+'<div><b>Answer:</b> '+esc((q.answers||[]).join(' / ')||'—')+'</div></div>';}).join('')+'</section></div></div>';
+ root().innerHTML='<div class="ielts-wrap wide"><div class="il-toolbar il-sticky"><button class="vm-btn vm-btn-ghost" id="rvBack">← Back</button><strong class="il-title">Check · '+esc(titleItem(x))+'</strong><span class="il-spacer"></span><button class="vm-btn vm-btn-ghost" id="rvRemove">Remove</button><button class="vm-btn vm-btn-ghost" id="rvPrev">Preview as student</button><button class="vm-btn vm-btn-ghost" id="rvEdit">Edit</button><button class="vm-btn vm-btn-primary" id="rvOk">Approve</button></div><div class="il-note" style="margin:0 0 10px">Compare the passage, questions and answers with the original source'+(x.sourceUrl?' ('+esc(x.sourceUrl)+')':'')+'. Approving opens this test for students.</div><div class="il-split'+(x.skill==='listening'?' two':'')+'"><section class="il-panel il-pane"><h3>'+(x.skill==='listening'?'Script':'Passage')+'</h3><div class="il-text">'+esc((x.skill==='listening'?s.script:s.text)||'(empty)')+'</div></section><section class="il-panel il-pane"><h3>Questions &amp; answers</h3>'+qs.map(function(q,i){return (q.instruction?'<div class="il-instr">'+esc(q.instruction)+'</div>':'')+'<div class="il-q"><div class="il-qhead"><span class="il-qnum">'+(q.number||i+1)+'</span><span class="il-note">'+esc(typeName(q.type))+'</span></div><div class="il-qprompt">'+esc(q.prompt)+'</div>'+((q.options||[]).length?'<div class="il-note">Options: '+esc(q.options.join(' | '))+'</div>':'')+'<div><b>Answer:</b> '+esc((q.answers||[]).join(' / ')||'—')+'</div></div>';}).join('')+'</section></div></div>';
  document.getElementById('rvBack').onclick=function(){render();};
  document.getElementById('rvEdit').onclick=function(){editorDialog({existing:x});};
+ document.getElementById('rvPrev').onclick=function(){state.active=JSON.parse(JSON.stringify(x));(state.active.sections||[]).forEach(function(sec){(sec.questions||[]).forEach(function(q){q.answers=[];});});state.run=null;state.review=null;state.assignment=null;state.previewBack=function(){state.previewBack=null;state.active=null;state.run=null;setExam(false);reviewDialog(x);};render();window.scrollTo(0,0);};
  document.getElementById('rvOk').onclick=function(){this.disabled=true;call('ielts.content.approve',{id:x.id||x._id}).then(function(){VM.toast('Approved. Students can now practise it.','ok');state.loaded=false;load();}).catch(function(e){say(e.message);});};
  document.getElementById('rvRemove').onclick=function(){if(confirm('Remove this test from the Library?'))call('ielts.content.archive',{id:x.id||x._id}).then(function(){VM.toast('Removed.','ok');state.loaded=false;load();}).catch(function(e){say(e.message);});};
  window.scrollTo(0,0);
@@ -345,7 +362,9 @@ function fetchItems(ids,opts){
  });
 }
 function openItems(ids,assignment,opts){
- return fetchItems(ids,opts).then(function(x){state.active=x;state.run=null;state.review=null;state.assignment=assignment||null;state.started=new Date().toISOString();render();window.scrollTo(0,0);}).catch(function(e){say(e.message);qa('#tyGo').forEach(function(b){b.disabled=false;});});
+
+ busy('Loading the test…');
+ return fetchItems(ids,opts).then(function(x){unbusy();state.active=x;state.run=null;state.review=null;state.assignment=assignment||null;state.started=new Date().toISOString();render();window.scrollTo(0,0);}).catch(function(e){unbusy();say(e.message);qa('#tyGo').forEach(function(b){b.disabled=false;});});
 }
 
 /* ───────── In-class (teacher) ───────── */
@@ -499,6 +518,7 @@ function parseQuestions(text){
    var instrText=c.instr.join(' ').toLowerCase(),mi=itemRe.exec(line),n=mi?+mi[1]:0,lastIt=c.items[c.items.length-1];
    var inRange=mi&&(!g.from||(n>=g.from&&n<=g.to)||(c.items.length>0&&n>lastIt.number&&n<=Math.max(g.to,lastIt.number+1)))&&(!lastIt||n>lastIt.number);
    if(inRange&&!(c.items.length===0&&/list of headings/.test(instrText)&&false)){c.items.push({number:n,prompt:mi[2].trim(),opts:[],extra:[]});return;}
+   if(/^list of\b/i.test(line.trim())){c.optTitle=line.trim();if(c.items.length)return;}
    var o=optRe.exec(line);
    if(o){var matchy=/match|list of|which (paragraph|section)|label|using the list/.test(instrText);
     if(!c.items.length||matchy){c.opts.push(o[2].trim());return;}
@@ -523,7 +543,7 @@ function parseQuestions(text){
    var t=type2;
    if(!options.length&&(t==='matching'||t==='matching-features'||t==='plan-map-diagram-labelling'))options=letterRange(instrText);
    if(t==='multiple-choice'&&!options.length)t=hasBlank?'sentence-completion':'short-answer';
-   out.push({number:num(it.number),type:t,prompt:prompt,options:options,instruction:i===0?instrText:''});
+   out.push({number:num(it.number),type:t,prompt:prompt,options:options,optTitle:c.optTitle||'',instruction:i===0?instrText:''});
   });
  });
  return out;
@@ -594,9 +614,9 @@ function renderPractice(){
  if(rv){
   root().innerHTML='<div class="ielts-wrap wide"><div class="il-toolbar il-sticky"><button class="vm-btn vm-btn-ghost" id="exit">← '+(state.assignment?'In-class':'Back')+'</button><span class="il-badge il-badge-'+esc(x.skill)+'">'+esc(x.skill)+'</span><strong class="il-title">'+esc(titleItem(x))+'</strong><span class="il-spacer"></span><button class="vm-btn vm-btn-ghost" id="report">Report issue</button></div><div id="reviewBanner"></div>'+(listen?'<div class="il-panel il-audio" id="audioBar"></div>':'')+'<div class="il-tabs" id="partTabs"></div><div id="splitArea" class="il-split'+(listen?' two':'')+'"></div><div class="il-row il-nav" id="navRow"></div><div id="insights"></div><div class="il-panel" id="aiBox"><h3>AI feedback</h3><div id="aiFeedback" class="il-ai-output"></div><div class="il-row" style="margin-top:10px"><button class="vm-btn vm-btn-ghost" id="aiAgain">Analyse again</button><button class="vm-btn vm-btn-ghost" id="openAiSettings">AI settings</button></div></div><section class="il-answer-key" id="answerKey"></section><div id="extra"></div></div>';
  }else{
-  root().innerHTML='<div class="exam"><div class="exam-top"><button class="exam-btn" id="exit">← Exit</button><div class="exam-title">'+esc(titleItem(x))+'</div><div class="exam-clock" id="clock">0:00</div><span class="il-spacer"></span><span class="exam-prog" id="prog"></span>'+(teacher?'<span class="exam-tag">Preview</span>':'')+'<button class="exam-btn" id="report">Report issue</button></div>'+(listen?'<div class="exam-audio" id="audioBar"></div>':'')+'<div class="exam-part" id="partBar"></div><div id="splitArea" class="exam-split'+(listen?' single':'')+'"></div><div class="exam-bottom" id="examNav"></div></div><div id="extra"></div>';
+  root().innerHTML='<div class="exam"><div class="exam-top"><button class="exam-btn" id="exit">'+(state.previewBack?'← Back to editor':'← Exit')+'</button><div class="exam-title">'+esc(titleItem(x))+'</div><div class="exam-clock" id="clock">0:00</div><span class="il-spacer"></span><span class="exam-prog" id="prog"></span>'+(isPrev()?'<span class="exam-tag">Preview</span>':'')+'<button class="exam-btn" id="report">Report issue</button></div>'+(listen?'<div class="exam-audio" id="audioBar"></div>':'')+'<div class="exam-part" id="partBar"></div><div id="splitArea" class="exam-split'+(listen?' single':'')+'"></div><div class="exam-bottom" id="examNav"></div></div><div id="extra"></div>';
  }
- document.getElementById('exit').onclick=function(){if(!rv&&!teacher&&answeredCount()&&!confirm('Leave the test and discard your answers?'))return;stopTimer();state.active=null;state.run=null;state.review=null;state.assignment=null;render();window.scrollTo(0,0);};
+ document.getElementById('exit').onclick=function(){var pb=state.previewBack;if(!rv&&!isPrev()&&answeredCount()&&!confirm('Leave the test and discard your answers?'))return;stopTimer();if(pb){pb();return;}state.active=null;state.run=null;state.review=null;state.assignment=null;render();window.scrollTo(0,0);};
  document.getElementById('report').onclick=function(){var n=prompt('Which question number has a problem? (optional)'),message=prompt('Describe the problem for your teacher:');if(!message)return;call('ielts.report.create',{contentId:String(x.id||x._id).split(',')[0],contentTitle:titleItem(x),questionNumber:n,message:message,privateContent:false}).then(function(){VM.toast('Report sent to your teacher.','ok');}).catch(function(e){say(e.message);});};
  var split=document.getElementById('splitArea');
  split.addEventListener('input',function(e){var el=e.target,r=state.run;if(rv||!el.hasAttribute('data-q'))return;r.answers[+el.getAttribute('data-q')]=el.value;updateProgress();});
@@ -637,7 +657,7 @@ function drawPartBar(){
 function drawExamNav(light){
  var box=document.getElementById('examNav');if(!box)return;
  var x=state.active,r=state.run,flat=flatQs(x),n=(x.sections||[]).length;
- box.innerHTML='<div class="en-parts">'+(x.sections||[]).map(function(s,p){var rg=partRange(flat,p);return '<div class="en-part'+(p===r.part?' cur':'')+'"><button class="en-label" data-pt="'+p+'">'+esc(secLabel(x,p))+'</button><span class="en-nums">'+flat.filter(function(f){return f.part===p;}).map(function(f){return '<button class="en-n'+(filled(r.answers[f.n-1])?' done':'')+'" data-qn="'+f.n+'" data-pp="'+p+'">'+f.num+'</button>';}).join('')+'</span></div>';}).join('')+'</div><div class="en-actions"><button class="exam-btn" id="enPrev"'+(r.part===0?' disabled':'')+'>‹ Previous</button><button class="exam-btn" id="enNext"'+(r.part>=n-1?' disabled':'')+'>Next ›</button>'+(teacher?'':'<button class="exam-submit" id="enSubmit">Finish test</button>')+'</div>';
+ box.innerHTML='<div class="en-parts">'+(x.sections||[]).map(function(s,p){var rg=partRange(flat,p);return '<div class="en-part'+(p===r.part?' cur':'')+'"><button class="en-label" data-pt="'+p+'">'+esc(secLabel(x,p))+'</button><span class="en-nums">'+flat.filter(function(f){return f.part===p;}).map(function(f){return '<button class="en-n'+(filled(r.answers[f.n-1])?' done':'')+'" data-qn="'+f.n+'" data-pp="'+p+'">'+f.num+'</button>';}).join('')+'</span></div>';}).join('')+'</div><div class="en-actions"><button class="exam-btn" id="enPrev"'+(r.part===0?' disabled':'')+'>‹ Previous</button><button class="exam-btn" id="enNext"'+(r.part>=n-1?' disabled':'')+'>Next ›</button>'+(isPrev()?'':'<button class="exam-submit" id="enSubmit">Finish test</button>')+'</div>';
  qa('[data-pt]').forEach(function(b){b.onclick=function(){gotoPart(+b.getAttribute('data-pt'));};});
  qa('[data-qn]').forEach(function(b){b.onclick=function(){gotoPart(+b.getAttribute('data-pp'));var t=document.getElementById('q'+b.getAttribute('data-qn'));if(t){t.scrollIntoView({block:'center',behavior:'smooth'});var inp=t.querySelector('input[type=text],input:not([type]),select,input[type=radio]');if(inp&&inp.type!=='radio')inp.focus({preventScroll:true});}};});
  document.getElementById('enPrev').onclick=function(){gotoPart(r.part-1);};
@@ -664,21 +684,80 @@ function drawNavRow(){
  document.getElementById('navNext').onclick=function(){gotoPart(r.part+1);};
 }
 
+/* ───────── Question layouts by task type ───────── */
+function groupQuestions(list){
+ var groups=[];
+ list.forEach(function(f){var g=groups[groups.length-1];
+  if(!g||f.q.instruction||g.type!==f.q.type)groups.push({qs:[f],type:f.q.type,instruction:f.q.instruction||''});else g.qs.push(f);});
+ return groups;
+}
+function qmark(c,f){if(!c.rv)return '';var rr=c.resp[f.n-1]||{};return rr.correct===true?'<span class="il-mk ok" title="Correct">✓</span>':(rr.correct===false?'<span class="il-mk bad" title="'+(filled(rr.answer)?'Incorrect':'Blank')+'">✗</span>':'');}
+function qcls(c,f){if(!c.rv)return '';var rr=c.resp[f.n-1]||{};return rr.correct===true?' ok':(rr.correct===false?' bad':'');}
+function selCtl(c,f,opts,extra){
+ var q=f.q,i=f.n-1,val=c.r.answers[i]||'';
+ return '<select class="vm-select il-sel'+qcls(c,f)+(extra||'')+'" data-q="'+i+'"'+c.dis+'><option value="">Select…</option>'+opts.map(function(o,oi){var v=optValue(q,o,oi);return '<option value="'+esc(v)+'"'+(val===v?' selected':'')+'>'+esc(optText(q,o,oi))+'</option>';}).join('')+'</select>';
+}
+function txtCtl(c,f,cls,ph){var i=f.n-1;return '<input class="vm-input '+(cls||'il-ans')+qcls(c,f)+'" type="text" data-q="'+i+'" value="'+esc(c.r.answers[i]||'')+'" placeholder="'+esc(ph||'')+'" autocomplete="off"'+c.dis+'>';}
+function gapInline(text,byNum,mk){
+ var re=/(^|[^\d])(\d{1,2})(\s*\)?\s*[‘'"“]?\s*)(?:[\.…_]{3,}|…)([’'"”]?)/g,out='',last=0,m,used={};
+ while((m=re.exec(text))){var f=byNum[+m[2]];if(!f)continue;out+=esc(text.slice(last,m.index+m[1].length))+mk(f);used[+m[2]]=1;last=m.index+m[0].length;}
+ return{html:out+esc(text.slice(last)),used:used};
+}
+function qrowTable(c,g,ctl){
+ return '<table class="il-qt">'+g.qs.map(function(f){return '<tr id="q'+f.n+'"><td class="qn"><span class="il-qnum">'+f.num+'</span></td><td class="qt" data-hk="q'+f.n+'">'+esc(f.q.prompt)+'</td><td class="qa">'+ctl(f)+'</td><td class="qm">'+qmark(c,f)+'</td></tr>';}).join('')+'</table>';
+}
+function renderGroup(g,c){
+ var t=g.type,first=g.qs[0],instr=g.instruction,out='',byNum={};
+ g.qs.forEach(function(f){byNum[f.num]=f;});
+ function instrBlock(){return instr?'<div class="il-instr" data-hk="i'+first.n+'">'+esc(instr)+'</div>':'';}
+ // gap-fill: the text itself carries the numbered blanks, so the controls sit inside it
+ if(instr&&/(?:[\.…_]{3,}|…)/.test(instr)){
+  var gi=gapInline(instr,byNum,function(f){var o=f.q.options||[];return '<span class="gap-wrap" id="q'+f.n+'"><b class="gap-n">'+f.num+'</b>'+(o.length?selCtl(c,f,o,' gap-sel'):txtCtl(c,f,'gap-in','…'))+qmark(c,f)+'</span>';});
+  if(Object.keys(gi.used).length>=Math.max(1,g.qs.length-1)){
+   var rest=g.qs.filter(function(f){return !gi.used[f.num];});
+   return '<div class="il-group il-gapbox">'+(c.img&&/diagram|labelling/.test(t)?c.img:'')+'<div class="il-gaptext">'+gi.html+'</div>'+(rest.length?qrowTable(c,{qs:rest},function(f){return txtCtl(c,f,'il-ans','Your answer');}):'')+'</div>';
+  }
+ }
+ if(t==='true-false-not-given'||t==='yes-no-not-given')
+  return '<div class="il-group">'+instrBlock()+qrowTable(c,g,function(f){return selCtl(c,f,qOptions(f.q),' il-sel-fixed');})+'</div>';
+ if(t==='matching'||t==='matching-features'||t==='matching-headings'){
+  var opts=(first.q.options||[]),letters=opts.length&&opts.every(function(o){return /^[A-I]$/.test(o);});
+  var panel=(opts.length&&!letters)?'<aside class="mg-opts"><div class="mg-title">'+esc(first.q.optTitle||(t==='matching-headings'?'List of Headings':'Options'))+'</div>'+opts.map(function(o,oi){var lab=t==='matching-headings'?'':'<b>'+letterOf(oi)+'</b>';return '<div class="mg-opt">'+lab+'<span>'+esc(o)+'</span></div>';}).join('')+'</aside>':(letters?'<div class="il-note mg-hint">Choose from '+esc(opts[0])+'–'+esc(opts[opts.length-1])+'.</div>':'');
+  return '<div class="il-group">'+instrBlock()+'<div class="mg'+(panel&&!letters?' mg-two':'')+'"><div class="mg-q">'+qrowTable(c,g,function(f){return txtCtl(c,f,'il-ans mt-in','');})+'</div>'+panel+'</div></div>';
+ }
+ if(t==='plan-map-diagram-labelling'||t==='diagram-completion'){
+  var lo=(first.q.options||[]),lletters=lo.length&&lo.every(function(o){return /^[A-I]$/.test(o);});
+  return '<div class="il-group">'+instrBlock()+(c.img||'')+'<div class="lab-grid">'+g.qs.map(function(f){return '<div class="lab-cell" id="q'+f.n+'"><span class="il-qnum">'+f.num+'</span>'+(lletters?selCtl(c,f,lo,' lab-sel'):txtCtl(c,f,'il-ans lab-in',''))+qmark(c,f)+'</div>';}).join('')+'</div></div>';
+ }
+ if(t==='multiple-choice'){
+  var same=g.qs.length>1&&g.qs.every(function(f){return f.q.prompt===first.q.prompt&&(f.q.options||[]).join('|')===(first.q.options||[]).join('|');});
+  if(same){
+   var mo=first.q.options||[];
+   return '<div class="il-group">'+instrBlock()+'<div class="il-q"><div class="il-qprompt" data-hk="q'+first.n+'">'+esc(first.q.prompt)+'</div><div class="il-opts il-opts-ro">'+mo.map(function(o,oi){return '<div class="il-opt-ro"><b>'+letterOf(oi)+'</b><span>'+esc(o)+'</span></div>';}).join('')+'</div><div class="il-multi">'+g.qs.map(function(f){return '<label class="il-multi-c" id="q'+f.n+'"><span class="il-qnum">'+f.num+'</span>'+selCtl(c,f,mo)+qmark(c,f)+'</label>';}).join('')+'</div></div></div>';
+  }
+  return '<div class="il-group">'+instrBlock()+g.qs.map(function(f){
+   var q=f.q,opts=qOptions(q),i=f.n-1,val=c.r.answers[i]||'',inp;
+   if(opts.length&&opts.length<=8)inp='<div class="il-opts">'+opts.map(function(o,oi){var v=optValue(q,o,oi);return '<label class="il-opt"><input type="radio" name="q'+i+'" data-q="'+i+'" value="'+esc(v)+'"'+(val===v?' checked':'')+c.dis+'> <span data-hk="o'+f.n+'_'+oi+'">'+esc(optText(q,o,oi))+'</span></label>';}).join('')+'</div>';
+   else if(opts.length)inp=selCtl(c,f,opts);else inp=txtCtl(c,f,'il-ans','Your answer');
+   return '<div class="il-q" id="q'+f.n+'"><div class="il-qhead"><span class="il-qnum">'+f.num+'</span>'+qmark(c,f)+'</div><div class="il-qprompt" data-hk="q'+f.n+'">'+esc(q.prompt)+'</div>'+inp+'</div>';}).join('')+'</div>';
+ }
+ // short answer / sentence completion / anything else: question on the left, answer box on the right
+ return '<div class="il-group">'+instrBlock()+qrowTable(c,g,function(f){
+  var o=f.q.options||[];return o.length?selCtl(c,f,o):txtCtl(c,f,'il-ans','Your answer');})+'</div>';
+}
+
 function drawSplit(){
  var x=state.active,r=state.run,rv=state.review,p=r.part,s=(x.sections||[])[p]||{},flat=flatQs(x),listen=x.skill==='listening',rg=partRange(flat,p),resp=rv?rv.attempt.responses:[];
  var snap=rv&&rv.attempt.snapshot&&rv.attempt.snapshot.sections?rv.attempt.snapshot.sections[p]:null,scriptTxt=(snap&&snap.script)||s.script||'';
  var exam=!rv,pc=exam?'exam-pane':'il-panel il-pane';
 
  var imgs=(s.images||[]).filter(function(u){return /^https:\/\//i.test(u);}).map(function(u){return '<img class="il-img" src="'+esc(u)+'" alt="Figure" loading="lazy" referrerpolicy="no-referrer">';}).join('');
- var left='<section class="'+pc+'"><h3 class="pane-h">'+(listen?'Notes':esc(secLabel(x,p)))+'</h3>'+(listen?'':imgs)+'<div class="il-text" data-hk="p'+p+'">'+(s.text?esc(s.text):'<span class="il-note">'+(listen?'Listen to the audio and answer the questions.':'No passage text.')+'</span>')+'</div></section>';
- var qs=flat.filter(function(f){return f.part===p;}).map(function(f){
-  var i=f.n-1,q=f.q,opts=qOptions(q),val=r.answers[i]||'',dis=rv?' disabled':'',input,mark='';
-  if(opts.length&&opts.length<=8)input='<div class="il-opts">'+opts.map(function(o,oi){var v=optValue(q,o,oi);return '<label class="il-opt"><input type="radio" name="q'+i+'" data-q="'+i+'" value="'+esc(v)+'"'+(val===v?' checked':'')+dis+'> <span data-hk="o'+f.n+'_'+oi+'">'+esc(optText(q,o,oi))+'</span></label>';}).join('')+'</div>';
-  else if(opts.length)input='<select class="vm-select" data-q="'+i+'"'+dis+'><option value="">Select…</option>'+opts.map(function(o,oi){var v=optValue(q,o,oi);return '<option value="'+esc(v)+'"'+(val===v?' selected':'')+'>'+esc(optText(q,o,oi))+'</option>';}).join('')+'</select>';
-  else input='<input class="vm-input" type="text" data-q="'+i+'" value="'+esc(val)+'" placeholder="Your answer" autocomplete="off"'+dis+'>';
-  if(rv){var rr=resp[i]||{};mark=rr.correct===true?'<span class="il-mark ok">✓ Correct</span>':(rr.correct===false?'<span class="il-mark bad">✗ '+(filled(rr.answer)?'Incorrect':'Blank')+'</span>':'<span class="il-mark">No answer key</span>');}
-  return (q.instruction?'<div class="il-instr" data-hk="i'+f.n+'">'+esc(q.instruction)+'</div>':'')+'<div class="il-q" id="q'+f.n+'"><div class="il-qhead"><span class="il-qnum">'+f.num+'</span><span class="il-note">'+esc(typeName(q.type))+'</span>'+mark+'</div><div class="il-qprompt" data-hk="q'+f.n+'">'+esc(q.prompt)+'</div>'+input+'</div>';}).join('');
- var right='<section class="'+pc+'"><h3 class="pane-h">Questions'+(rg.count?' <span class="il-note">'+rg.from+'–'+rg.to+'</span>':'')+'</h3>'+(listen?imgs:'')+(qs||'<div class="il-empty">No questions in this part.</div>')+'</section>';
+ var left='<section class="'+pc+'"><h3 class="pane-h">'+(listen?'Notes':esc(secLabel(x,p)))+'</h3>'+(listen||imgInGroup?'':imgs)+'<div class="il-text" data-hk="p'+p+'">'+(s.text?esc(s.text):'<span class="il-note">'+(listen?'Listen to the audio and answer the questions.':'No passage text.')+'</span>')+'</div></section>';
+ var partQs=flat.filter(function(f){return f.part===p;}),groups=groupQuestions(partQs);
+ var imgInGroup=groups.some(function(g){return g.type==='plan-map-diagram-labelling'||g.type==='diagram-completion';});
+ var ctx={r:r,rv:rv,resp:resp,dis:rv?' disabled':'',img:imgInGroup?imgs:''},imgGiven=false;
+ var qs=groups.map(function(g){var c=ctx;if(imgInGroup&&imgGiven)c=Object.assign({},ctx,{img:''});if(imgInGroup&&/diagram|labelling/.test(g.type))imgGiven=true;return renderGroup(g,c);}).join('');
+ var right='<section class="'+pc+'"><h3 class="pane-h">Questions'+(rg.count?' <span class="il-note">'+rg.from+'–'+rg.to+'</span>':'')+'</h3>'+(listen&&!imgInGroup?imgs:'')+(qs||'<div class="il-empty">No questions in this part.</div>')+'</section>';
  var script=listen&&rv?'<section class="il-panel il-pane"><h3 class="pane-h">Script · '+esc(secLabel(x,p))+'</h3><div class="il-text">'+(scriptTxt?esc(scriptTxt):'<span class="il-note">No script has been added for this part yet.</span>')+'</div></section>':'';
  document.getElementById('splitArea').innerHTML=(listen?(exam?right:right+script):left+right);
  qa('#splitArea [data-hk]').forEach(function(el){var h=r.hl[el.getAttribute('data-hk')];if(h)el.innerHTML=h;});
@@ -732,7 +811,7 @@ function buildTelemetry(x,r,flat){
   per:flat.map(function(f,i){return{n:f.n,num:f.num,part:f.part+1,type:f.q.type||'short-answer',sec:Math.round((r.qMs[i]||0)/1000),changes:r.qChanges[i]||0,firstAtSec:r.qFirst[i]!=null?Math.round(r.qFirst[i]/1000):null};})};
 }
 function submitAttempt(force){
- var x=state.active,r=state.run,flat=flatQs(x);if(teacher)return;syncVisible();
+ var x=state.active,r=state.run,flat=flatQs(x);if(isPrev())return;syncVisible();
  var blanks=flat.filter(function(f,i){return !filled(r.answers[i]);}).length;
  if(force!==true&&!confirm(blanks?blanks+' question'+(blanks===1?' is':'s are')+' unanswered. Submit anyway?':'Submit your answers?'))return;
  flushTiming();
@@ -813,12 +892,13 @@ function runAnalysis(){
 var BOOKS=[];for(var bi=1;bi<=30;bi++)BOOKS.push('Cam'+bi);
 function importUrl(){
  var url=prompt('Paste an IELTS Training Online lesson URL (HTTPS).');if(!url)return;
- call('ielts.importUrl',{url:url}).then(function(d){
+ busy('Fetching the page and splitting it into passages, questions and answers…');
+ call('ielts.importUrl',{url:url}).then(function(d){unbusy();
   var m=/cam(?:bridge)?-?(\d+)-(reading|listening)-test-?(\d+)/i.exec(url)||[];
   editorDialog({skill:d.skill||(m[2]||'reading').toLowerCase(),book:m[1]?'Cam'+m[1]:'',test:m[3]?String(parseInt(m[3],10)):'',sourceUrl:url,sourceTitle:d.sourceTitle||'',imported:d.sections||[]});
   if(d.warning)say(d.warning);
   VM.toast('Imported. Please check everything against the original before you click Finish.','warn',7000);
- }).catch(function(e){say(e.message);});
+ }).catch(function(e){unbusy();say(e.message);});
 }
 function editorDialog(init){
  init=init||{};var ex=init.existing||null;
@@ -853,7 +933,7 @@ function editorDialog(init){
  }
  function build(){
   var dis=ex?' disabled':'',nxt=nextPart();
-  root().innerHTML='<div class="ielts-wrap wide"><div class="il-toolbar il-sticky"><button class="vm-btn vm-btn-ghost" id="edBack">← Back</button><strong class="il-title">'+(ex?'Edit test in Library':'Add test to Library')+'</strong><span class="il-spacer"></span>'+(ex&&ex.canEdit?'<button class="vm-btn vm-btn-ghost" id="edArchive">Remove from Library</button>':'')+'<button class="vm-btn vm-btn-primary" id="edDone">'+(ex&&teacher&&ex.review==='pending'?'Approve &amp; finish':'Finish')+'</button></div>'+
+  root().innerHTML='<div class="ielts-wrap wide"><div class="il-toolbar il-sticky"><button class="vm-btn vm-btn-ghost" id="edBack">← Back</button><strong class="il-title">'+(ex?'Edit test in Library':'Add test to Library')+'</strong><span class="il-spacer"></span>'+(ex&&ex.canEdit?'<button class="vm-btn vm-btn-ghost" id="edArchive">Remove from Library</button>':'')+'<button class="vm-btn vm-btn-ghost" id="edPreview">Preview as student</button>'+'<button class="vm-btn vm-btn-primary" id="edDone">'+(ex&&teacher&&ex.review==='pending'?'Approve &amp; finish':'Finish')+'</button></div>'+
    '<div class="il-panel"><div class="il-meta-grid"><div><label class="vm-label">Skill *</label><select class="vm-select" id="edSkill"'+dis+'><option value="reading">Reading</option><option value="listening">Listening</option></select></div><div><label class="vm-label">Book *</label><select class="vm-select" id="edBook"'+dis+'><option value="">— Select —</option>'+optHtml(BOOKS,book)+'</select></div><div><label class="vm-label">Test *</label><select class="vm-select" id="edTest"'+dis+'><option value="">— Select —</option>'+optHtml(['1','2','3','4','5','6','7','8','9','10','11','12'],test)+'</select></div></div><div class="il-note" style="margin-top:8px">Each '+partWord(skill)+' is saved as its own item in the Library. Book, Test and the '+partWord(skill)+' number are required.'+(init.sourceUrl||ex&&ex.sourceUrl?' Source: '+esc(init.sourceUrl||ex.sourceUrl):'')+'</div></div>'+
    (init.imported&&init.imported.length?'<div class="il-warn"><b>Check before you finish.</b> This content was imported from a website. The importer can miss or misread items, so compare every passage, question, option and answer with the original page.</div>':'')+'<div class="il-warn il-warn-soft">'+(teacher?'Tests you finish are approved immediately, so please check the content carefully.':'Your teacher will check this test before anyone can practise it. Please make sure the passage, questions and answers match the original.')+'</div>'+'<div id="edRows">'+ed.rows.map(function(r,i){return rowHtml(i);}).join('')+'</div>'+
    (ex?'':'<div class="il-row" style="margin:6px 0 16px"><button class="vm-btn vm-btn-ghost" id="edAdd"'+(nxt?'':' disabled')+'>＋ Add '+(nxt?partWord(skill)+' '+nxt:'another '+partWord(skill).toLowerCase())+'</button><span class="il-note">'+(nxt?'':'All '+maxParts()+' '+partWord(skill).toLowerCase()+'s are used or already in the Library.')+'</span></div>')+
@@ -895,6 +975,19 @@ function editorDialog(init){
   var add=document.getElementById('edAdd');if(add)add.onclick=function(){var p=nextPart();if(!p)return;var imp=init.imported&&init.imported.filter(function(s){return String(s.part)===String(p);})[0];ed.rows.push(newRow(p,imp));ed.rows.sort(function(a,b){return +a.part-+b.part;});build();};
   var ar=document.getElementById('edArchive');if(ar)ar.onclick=function(){if(confirm('Remove this item from the Library? Past attempts are kept.'))call('ielts.content.archive',{id:ex.id||ex._id}).then(function(){VM.toast('Removed from the Library.','ok');state.loaded=false;load();}).catch(function(e){say(e.message);});};
   document.getElementById('edDone').onclick=done;
+  document.getElementById('edPreview').onclick=preview;
+ }
+ function preview(){
+  err('');
+  var act=ed.rows.filter(function(r){return r.text.trim()||r.qtext.trim();});
+  if(!act.length)return err('Add a passage and its questions first, then preview them.');
+  var secs=act.map(function(r){
+   var qs=r.questions.map(function(q,k){return{number:qNum(q,k),type:q.type,prompt:q.prompt,options:q.options||[],optTitle:q.optTitle||'',instruction:q.instruction||'',answers:[]};});
+   var audio=r.audio;if(skill==='listening'){if(r.audioMode==='link'&&/^https?:\/\//i.test(r.audioUrl.trim()))audio={url:r.audioUrl.trim()};else if(r.audioMode==='file'&&r.file)audio={url:URL.createObjectURL(r.file)};}
+   return{title:partWord(skill)+' '+r.part,part:r.part,text:skill==='reading'?r.text:'',script:r.script,images:(r.images||[]).filter(function(u){return /^https:\/\//i.test(u);}),questions:qs,audio:audio};});
+  state.active={title:'Preview · '+(book||'Book')+' · Test '+(test||'?'),skill:skill,sections:secs};state.run=null;state.review=null;state.assignment=null;
+  state.previewBack=function(){state.previewBack=null;state.active=null;state.run=null;setExam(false);build();window.scrollTo(0,0);};
+  render();window.scrollTo(0,0);
  }
  function leave(){render();}
  function err(m){var e=document.getElementById('edError');e.textContent=m;if(m)e.scrollIntoView({block:'center'});}
@@ -910,7 +1003,7 @@ function editorDialog(init){
    if(skill==='reading'&&!r.text.trim())return problem=L+'the passage text is missing.';
    if(!r.questions.length)return problem=L+'no questions were detected. Paste the full question section.';
    var missing=[];
-   var questions=r.questions.map(function(q,k){var key=qNum(q,k),a=(r.ans[key]||[]).filter(Boolean);if(!a.length)missing.push(key);return{number:key,type:q.type,prompt:q.prompt,options:q.options||[],instruction:q.instruction||'',answers:a};});
+   var questions=r.questions.map(function(q,k){var key=qNum(q,k),a=(r.ans[key]||[]).filter(Boolean);if(!a.length)missing.push(key);return{number:key,type:q.type,prompt:q.prompt,options:q.options||[],optTitle:q.optTitle||'',instruction:q.instruction||'',answers:a};});
    if(missing.length)return problem=L+'answers missing for question'+(missing.length>1?'s':'')+' '+missing.join(', ')+'.';
    var audio=r.audio;
    if(skill==='listening'){
@@ -922,14 +1015,15 @@ function editorDialog(init){
   });
   if(problem)return err(problem);
   var btn=document.getElementById('edDone');btn.disabled=true;
+  busy('Saving to the Library…');
   var saved=0,warn='';
   payloads.reduce(function(p,pl){return p.then(function(){
    return call('ielts.content.save',pl.body).then(function(res){saved++;
     if(skill==='listening'&&pl.row.audioMode==='file'&&pl.row.file)return call('ielts.audio.upload',{contentId:res.id,file:pl.row.file}).then(function(up){return call('ielts.audio.attach',{contentId:res.id,audioPath:up.path,fileName:up.fileName,contentType:up.contentType,size:up.size});}).catch(function(e){warn=' Audio upload failed ('+e.message+'). Paste an audio link instead.';});});
   });},Promise.resolve()).then(function(){
-   VM.toast('Added '+saved+' '+partWord(skill).toLowerCase()+(saved===1?'':'s')+' to the Library.'+(teacher?'':' Your teacher will check it before others can practise it.')+warn,warn?'warn':'ok',warn?7000:2600);
+   unbusy();VM.toast('Added '+saved+' '+partWord(skill).toLowerCase()+(saved===1?'':'s')+' to the Library.'+(teacher?'':' Your teacher will check it before others can practise it.')+warn,warn?'warn':'ok',warn?7000:2600);
    state.libSkill=skill;state.libMode='tests';state.bookFilter='';state.loaded=false;if(init.after==='inclass')location.hash='#inclass';load();
-  }).catch(function(e){btn.disabled=false;err((saved?saved+' saved. ':'')+e.message);});
+  }).catch(function(e){unbusy();btn.disabled=false;err((saved?saved+' saved. ':'')+e.message);});
  }
  build();window.scrollTo(0,0);
 }

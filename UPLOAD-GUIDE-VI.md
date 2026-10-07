@@ -104,3 +104,11 @@ Sau khi tải mã mới, publish lại `firestore.rules` và `storage.rules` tro
 - **Listening.** Mỗi Part nhận link audio gốc (chỉ lưu link, không tải file). Có thể xoá link ở khung Audio nếu muốn dùng file riêng.
 - **Xem trước.** Sau khi nhập, form tạo đề chính là màn Preview: sửa passage, câu hỏi, đáp án, loại câu và xoá ảnh thừa rồi mới bấm Finish. Đề của sinh viên vẫn chờ giáo viên duyệt.
 - Thứ tự cập nhật: dán `gas/Code.gs` vào Apps Script rồi Deploy ▸ New version; thay `ielts.html` (và các file đã đổi version) trên GitHub. Không cần đổi Firestore Rules.
+
+
+## Bản cập nhật: sửa lỗi Finish, overlay chờ, Preview, bố cục câu hỏi theo dạng
+- **Lỗi Finish.** Firestore không cho mảng nằm trong mảng nên kho đáp án (`ieltsAnswerKeys`) bị từ chối. Đáp án mỗi câu giờ lưu dạng `{a:[…]}`; Apps Script chấm bài đọc được cả định dạng cũ lẫn mới. Dữ liệu cũng được làm sạch giá trị `undefined` trước khi lưu.
+- **Overlay chờ** khi nhập URL, khi lưu vào Library và khi mở đề.
+- **Preview as student** trong form tạo đề và màn kiểm tra của giáo viên: xem đề đúng như sinh viên sẽ làm, có nút quay lại chỉnh sửa, không nộp được.
+- **Bố cục theo dạng câu:** Short answer = bảng (câu hỏi trái, ô trả lời phải); True/False/Not given và Yes/No/Not given = dropdown trong bảng không viền; Matching = câu hỏi bên trái với ô điền, danh sách để ghép (List of Headings/People…) bên phải; Gap-fill (summary/notes/table/form) = ô điền nằm ngay trong đoạn văn; Labelling = hình ở trên, các ô đáp án bên dưới; "Choose TWO letters" = một câu hỏi chung với hai ô chọn.
+- Thứ tự cập nhật: dán `gas/FirebaseVM.gs` vào Apps Script rồi Deploy ▸ New version; thay `ielts.html`, `vm-fbdata.js`, `vm-common.js` và các trang đổi số phiên bản trên GitHub. Không cần đổi Firestore Rules.
