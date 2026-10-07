@@ -854,8 +854,8 @@ async function ieltsContentSave(p) {
   if (prior && prior.exists && prior.data().ownerUid !== u.uid && !(u.role === 'teacher' && prior.data().teacherUid === u.uid && prior.data().status === 'review')) return fail('Không có quyền sửa bài này.');
   const status = privateOnly ? 'private' : (p.status === 'published' ? 'published' : (p.status === 'review' ? 'review' : 'draft'));
   const version = prior && prior.exists ? (prior.data().version || 1) + (JSON.stringify(prior.data().sections) === JSON.stringify(data.sections) ? 0 : 1) : 1;
-  const keySections = data.sections.map(s => ({ answers:(s.questions||[]).map(q => q.answers || []) }));
-  data.sections.forEach(s => (s.questions||[]).forEach(q => { delete q.answers; delete q.answer; }));
+  const keySections = data.sections.map(s => ({ script:s.script || '', answers:(s.questions||[]).map(q => q.answers || []) }));
+  data.sections.forEach(s => { delete s.script; (s.questions||[]).forEach(q => { delete q.answers; delete q.answer; }); });
   const batch = fs.batch();
   batch.set(fs.doc('ieltsContent/' + id), Object.assign({}, data, {
     ownerUid: u.uid, teacherUid: u.role === 'teacher' ? u.uid : (u.teacherUid || ''),
@@ -890,7 +890,7 @@ async function ieltsContentGet(p) {
   if (d.ownerUid !== u.uid && !teacherReview && !(d.status === 'published' && !d.archived && u.classId && (d.allowedClassIds || []).includes(u.classId))) return fail('Bạn chưa được cấp quyền xem bài này.');
   if (d.ownerUid === u.uid || teacherReview) {
     const key = await fs.doc('ieltsAnswerKeys/' + s.id).get();
-    if (key.exists) (d.sections||[]).forEach((section,si) => (section.questions||[]).forEach((q,qi) => { q.answers = ((key.data().sections||[])[si]||{}).answers[qi] || []; }));
+    if (key.exists) (d.sections||[]).forEach((section,si) => { const ks = (key.data().sections||[])[si]||{}; if (ks.script) section.script = ks.script; (section.questions||[]).forEach((q,qi) => { q.answers = (ks.answers||[])[qi] || []; }); });
   }
   return ok(u.role === 'teacher' || d.ownerUid === u.uid ? d : publicIelts(d));
 }

@@ -32,3 +32,17 @@ Firebase Web API key trong `vm-common.js` là client config công khai. Không c
 ## Gói cập nhật form đề và AI feedback
 
 Sau khi tải mã mới, publish lại `firestore.rules` và `storage.rules` trong Firebase Console. GitHub Pages cần cập nhật các file `ielts.html`, `vm-fbdata.js`, `vm-common.js`, `firestore.rules`, `storage.rules`, `tests/ielts-model.test.js` và hướng dẫn này. API key AI không cần cấu hình trên Firebase hoặc Apps Script.
+
+## Bản cập nhật: màn chia đôi, đăng nhập trước, sidebar
+
+- **Đăng nhập trước.** Trang chủ chỉ còn Sign in / Sign up. Sau khi đăng nhập, sinh viên vào IELTS Practice mới thấy lựa chọn **Reading / Listening**.
+- **Làm bài theo tab Passage 1–3 (Reading) hoặc Part 1–4 (Listening).** Bên trái là bài đọc, bên phải là câu hỏi của đúng phần đó. Listening có thêm cột **Script** (khoá đến khi nộp bài) và thanh audio cố định phía trên. Đáp án nằm cuối trang, chỉ mở sau khi nộp.
+- **Phân tích khi làm bài.** Hệ thống ghi thời gian từng câu/từng phần, số lần đổi đáp án, câu bỏ trống, số lần rời tab. Khi nộp bài, trang hiện phân tích cục bộ; nếu đã nhập key Gemini/Groq trong AI settings thì AI viết nhận xét tiếng Việt cho từng câu sai.
+- **Form tạo đề (giáo viên và sinh viên đóng góp).** Tab cho từng Passage/Part: nội dung bên trái, câu hỏi bên phải (Listening thêm cột Script), **đáp án ở cuối, mỗi câu một ô** nên không lệch thứ tự.
+- **Giao diện đồng bộ với Vocab-master.** Dùng đúng `vm-theme.css` của repo `l2practice/vocab-master` (nền sand, xanh forest, cam đất, font Be Vietnam Pro), thanh icon nổi bên trái đủ 8 tab cho cả giáo viên và sinh viên, kể cả trang IELTS. Trên điện thoại thanh này ẩn, mở bằng nút ☰. Trang chủ, favicon, màu biểu đồ cũng đổi theo bảng màu này.
+- **Script không còn nằm trong tài liệu đề mà sinh viên đọc được.** Nó được lưu cùng kho đáp án, chỉ trả về sau khi nộp bài.
+
+### Việc cần làm khi cập nhật
+1. Thay các file: `index.html`, `login.html`, `ielts.html`, `student.html`, `teacher.html`, `vm-common.js`, `vm-fbdata.js`, `vm-theme.css`, `favicon.svg`.
+2. Apps Script: dán lại `gas/FirebaseVM.gs`, rồi **Deploy ▸ Manage deployments ▸ Edit ▸ New version**. Bước này cần để sinh viên nhận đáp án đúng và script sau khi nộp.
+3. Đề Listening đã lưu trước bản này có thể còn script trong tài liệu đề; mở **Edit** rồi **Lưu** lại để chuyển script vào kho đáp án.

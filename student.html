@@ -2276,7 +2276,7 @@ switchTab = function(id){
   else VM.Chat.setContext('');
 };
 
-switchTab('home');
+switchTab((location.hash.match(/tab=(\w+)/)||[])[1]||'home');
 </script>
 </body>
 </html>

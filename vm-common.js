@@ -392,7 +392,7 @@
       if (sd && sd.classList.contains('open') && !sd.contains(e.target) && !(mb&&mb.contains(e.target))) sd.classList.remove('open');
     });
     VM.els('[data-nav]').forEach(function(a){
-      a.onclick = function(){ if(opts.onNav) opts.onNav(a.getAttribute('data-nav')); };
+      a.onclick = function(){ var sd=document.getElementById('vmSide'); if(sd) sd.classList.remove('open'); if(opts.onNav) opts.onNav(a.getAttribute('data-nav')); };
     });
     return document.getElementById('vmContent');
   };
