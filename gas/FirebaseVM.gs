@@ -191,7 +191,7 @@ function vmfbIeltsGradeAttempt(p) {
     (d.sections || []).forEach(function(sec,si){
       var copy = JSON.parse(JSON.stringify(sec));
       copy.script = (((keys[di].sections || [])[si] || {}).script) || copy.script || '';
-      (copy.questions || []).forEach(function(q,qi){ q.__accepted = (((keys[di].sections || [])[si] || {}).answers || [])[qi] || []; });
+      (copy.questions || []).forEach(function(q,qi){ var kv = (((keys[di].sections || [])[si] || {}).answers || [])[qi]; q.__accepted = Array.isArray(kv) ? kv : ((kv && kv.a) || []); });
       if (taskType) { copy.questions = (copy.questions || []).filter(function(q){ return q.type === taskType; }); if (!copy.questions.length) return; }
       sections.push(copy);
     });
