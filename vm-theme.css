@@ -594,3 +594,11 @@ button,.vm-btn,.vm-nav,.vm-tab,.vm-opt,.vm-rw-opt,.vm-page-btn{cursor:pointer}
 .vm-user{box-shadow:0 4px 14px rgba(23,74,102,.16)}
 .vm-nav.active{background:linear-gradient(135deg,#1F6A92 0%,#3E9CC6 100%)!important;box-shadow:0 6px 14px rgba(31,106,146,.35)}
 .vm-side{box-shadow:0 10px 30px rgba(23,74,102,.2)}
+/* sign-in / sign-up hero: light text on the blue→orange panel */
+.vm-auth-hero .vm-logo,.vm-auth-hero .vm-logo-name{color:#fff}
+.vm-auth-hero-title{color:#fff}
+.vm-auth-hero-title em{background:linear-gradient(100deg,#FFD9A8 0%,#FFB066 55%,#FF9A3C 100%);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent}
+.vm-auth-hero-text{color:rgba(255,255,255,.92)}
+.vm-auth-stats{border-top-color:rgba(255,255,255,.28)}
+.vm-auth-stats b{color:#fff}.vm-auth-stats span{color:rgba(255,255,255,.82)}
+.vm-auth-tag{color:#174A66}
