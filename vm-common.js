@@ -885,7 +885,7 @@ VM.Chat = (function(){
     btn.innerHTML = '💬';
     btn.style.cssText = 'position:fixed;bottom:24px;right:20px;z-index:7000;width:52px;height:52px;'+
       'border-radius:50%;background:var(--vm-primary);color:#fff;border:none;font-size:1.4rem;'+
-      'cursor:pointer;box-shadow:0 4px 20px rgba(27,127,94,.4);transition:transform .15s;line-height:1;'+
+      'cursor:pointer;box-shadow:0 4px 20px rgba(42,123,163,.4);transition:transform .15s;line-height:1;'+
       'display:flex;align-items:center;justify-content:center';
     btn.title = 'AI Assistant';
     btn.onclick = function(){ VM.Chat.toggle(); };

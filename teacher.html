@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%231B7F5E'/%3E%3Ctext x='12' y='17' text-anchor='middle' font-size='13' font-weight='700' fill='%23fff' font-family='system-ui'%3EV%3C/text%3E%3C/svg%3E">
-<meta name="theme-color" content="#1B7F5E">
+<meta name="theme-color" content="#2A7BA3">
 <title>Teacher · Test Simulation</title>
 <link rel="stylesheet" href="vm-theme.css?v=20261006">
 <style>
@@ -13,7 +13,7 @@
 .asgn-section h3{font-family:var(--vm-font-display);font-size:1rem;font-weight:700;margin:0 0 14px;color:var(--vm-ink)}
 .asgn-section-dark{background:#0D2B1E;border-radius:var(--vm-r);padding:18px 20px;color:#fff;margin-bottom:16px}
 .asgn-section-dark h3{font-size:.88rem;font-weight:700;margin:0 0 6px;display:flex;align-items:center;gap:7px;color:#fff}
-.asgn-section-dark p{font-size:.76rem;color:#80DFAB;margin:0 0 14px}
+.asgn-section-dark p{font-size:.76rem;color:#8CCBE8;margin:0 0 14px}
 .vm-classes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin-bottom:22px}
 .vm-class-card{background:var(--vm-surface);border:1.5px solid var(--vm-border-2);border-radius:var(--vm-r);padding:18px 20px;cursor:pointer;transition:border-color .14s,box-shadow .15s,transform .13s;box-shadow:var(--vm-shadow-sm)}
 .vm-class-card:hover{border-color:var(--vm-primary);box-shadow:var(--vm-shadow-lg);transform:translateY(-2px)}
@@ -25,7 +25,7 @@
 .vm-period-note{font-size:.78rem;color:var(--vm-ink-3);margin-left:auto;display:flex;align-items:center;gap:8px}
 .vm-btn-sm{padding:7px 14px;font-size:.82rem}
 /* Loading overlay */
-.vm-overlay{position:fixed;inset:0;background:rgba(13,79,58,.55);z-index:8888;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px}
+.vm-overlay{position:fixed;inset:0;background:rgba(23,74,102,.55);z-index:8888;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px}
 .vm-overlay.show{display:flex}
 .vm-overlay .vm-spin{width:38px;height:38px;border-width:4px}
 .vm-overlay p{color:#fff;font-size:.95rem;font-weight:600;margin:0}
@@ -133,12 +133,12 @@
         <input id="af-gemini-key" type="password" placeholder="••••• (key saved)" style="flex:1;min-width:200px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:9px 12px;color:#fff;font-size:.88rem">
         <button class="vm-btn" id="af-verify-key" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);padding:9px 16px;font-size:.84rem;border-radius:8px">✓ Verify</button>
       </div>
-      <div id="af-key-status" style="font-size:.76rem;margin-bottom:12px;color:#80DFAB"></div>
+      <div id="af-key-status" style="font-size:.76rem;margin-bottom:12px;color:#8CCBE8"></div>
       <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <button class="vm-btn" id="af-analyze" style="background:#1B7F5E;color:#fff;border:1px solid #2DA67B">✨ Analyse Vocabulary</button>
+        <button class="vm-btn" id="af-analyze" style="background:#2A7BA3;color:#fff;border:1px solid #2DA67B">✨ Analyse Vocabulary</button>
         <button class="vm-btn vm-btn-ghost" id="af-parse-only" style="background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.2);color:#ccc;font-size:.84rem">Parse only (no AI)</button>
       </div>
-      <div id="af-ai-progress" style="margin-top:10px;font-size:.8rem;color:#80DFAB;display:none">
+      <div id="af-ai-progress" style="margin-top:10px;font-size:.8rem;color:#8CCBE8;display:none">
         <span class="vm-spin" style="width:13px;height:13px;margin-right:6px"></span> Analysing vocabulary…
       </div>
     </div>
@@ -1231,7 +1231,7 @@ function initIeltsResultsTrend(){
   box.innerHTML='<h3 style="margin:0 0 10px">IELTS practice progress</h3><div class="vm-toolbar" style="flex-wrap:wrap;gap:8px"><select class="vm-select" id="irClass"><option value="">Choose class</option>'+state.classes.map(function(c){return'<option value="'+VM.esc(c.classId)+'">'+VM.esc(c.className)+'</option>';}).join('')+'</select><select class="vm-select" id="irSkill"><option value="all">Reading & Listening</option><option value="reading">Reading</option><option value="listening">Listening</option></select><select class="vm-select" id="irStudent"><option value="all">All students</option></select><select class="vm-select" id="irItem"><option value="all">All lessons</option></select><input type="date" class="vm-input" id="irDate" aria-label="Start date"></div><div id="irMetric" style="font-size:.78rem;color:var(--vm-ink-3);margin-top:8px">Choose a class to load IELTS attempts.</div><div id="irChart"></div>';
   var rows=[];
   function load(){var cid=document.getElementById('irClass').value;if(!cid){rows=[];render();return;}VM.api('ielts.attempt.list',{classId:cid}).then(function(res){if(!res||!res.success)throw new Error(res&&res.error||'Could not load IELTS attempts.');rows=res.data||[];var students=Array.from(new Set(rows.map(function(r){return r.studentId;}))),items=Array.from(new Set(rows.map(function(r){return r.contentId;})));document.getElementById('irStudent').innerHTML='<option value="all">All students</option>'+students.map(function(id){var r=rows.find(function(x){return x.studentId===id;});return'<option value="'+VM.esc(id)+'">'+VM.esc(r.studentName||id)+'</option>';}).join('');document.getElementById('irItem').innerHTML='<option value="all">All lessons</option>'+items.map(function(id){var r=rows.find(function(x){return x.contentId===id;});return'<option value="'+VM.esc(id)+'">'+VM.esc(r.title)+'</option>';}).join('');render();}).catch(function(e){document.getElementById('irMetric').textContent=e.message;});}
-  function render(){var skill=document.getElementById('irSkill').value,student=document.getElementById('irStudent').value,item=document.getElementById('irItem').value,date=document.getElementById('irDate').value;var data=rows.filter(function(r){return(skill==='all'||r.skill===skill)&&(student==='all'||r.studentId===student)&&(item==='all'||r.contentId===item)&&(!date||String(r.completedAt).slice(0,10)>=date);}),scored=data.filter(function(r){return typeof r.score==='number'&&isFinite(r.score);});document.getElementById('irMetric').textContent=data.length?scored.length+' scored attempts of '+data.length+' total · score is practice accuracy, not an official IELTS band score.':'No IELTS attempts match this filter.';var chart=document.getElementById('irChart');chart.innerHTML='';if(!scored.length)return;var w=760,h=210,p=32,pts=scored.map(function(r,i){return[p+(scored.length<2?0:i*(w-2*p)/(scored.length-1)),h-p-r.score*(h-2*p)/100];});chart.innerHTML='<svg viewBox="0 0 '+w+' '+h+'" role="img" aria-label="IELTS practice score over time" style="width:100%;max-height:220px"><line x1="'+p+'" y1="'+p+'" x2="'+p+'" y2="'+(h-p)+'" stroke="#9ca3af"/><line x1="'+p+'" y1="'+(h-p)+'" x2="'+(w-p)+'" y2="'+(h-p)+'" stroke="#9ca3af"/><text x="4" y="'+(p+4)+'" font-size="12">100%</text><text x="15" y="'+(h-p)+'" font-size="12">0</text><polyline fill="none" stroke="#1B7F5E" stroke-width="3" points="'+pts.map(function(a){return a.join(',');}).join(' ')+'"/>'+pts.map(function(a,i){return'<circle cx="'+a[0]+'" cy="'+a[1]+'" r="4" fill="#1B7F5E"><title>'+scored[i].score+'% · '+VM.esc(scored[i].studentName)+' · '+VM.esc(scored[i].title)+'</title></circle>';}).join('')+'</svg>';}
+  function render(){var skill=document.getElementById('irSkill').value,student=document.getElementById('irStudent').value,item=document.getElementById('irItem').value,date=document.getElementById('irDate').value;var data=rows.filter(function(r){return(skill==='all'||r.skill===skill)&&(student==='all'||r.studentId===student)&&(item==='all'||r.contentId===item)&&(!date||String(r.completedAt).slice(0,10)>=date);}),scored=data.filter(function(r){return typeof r.score==='number'&&isFinite(r.score);});document.getElementById('irMetric').textContent=data.length?scored.length+' scored attempts of '+data.length+' total · score is practice accuracy, not an official IELTS band score.':'No IELTS attempts match this filter.';var chart=document.getElementById('irChart');chart.innerHTML='';if(!scored.length)return;var w=760,h=210,p=32,pts=scored.map(function(r,i){return[p+(scored.length<2?0:i*(w-2*p)/(scored.length-1)),h-p-r.score*(h-2*p)/100];});chart.innerHTML='<svg viewBox="0 0 '+w+' '+h+'" role="img" aria-label="IELTS practice score over time" style="width:100%;max-height:220px"><line x1="'+p+'" y1="'+p+'" x2="'+p+'" y2="'+(h-p)+'" stroke="#9ca3af"/><line x1="'+p+'" y1="'+(h-p)+'" x2="'+(w-p)+'" y2="'+(h-p)+'" stroke="#9ca3af"/><text x="4" y="'+(p+4)+'" font-size="12">100%</text><text x="15" y="'+(h-p)+'" font-size="12">0</text><polyline fill="none" stroke="#2A7BA3" stroke-width="3" points="'+pts.map(function(a){return a.join(',');}).join(' ')+'"/>'+pts.map(function(a,i){return'<circle cx="'+a[0]+'" cy="'+a[1]+'" r="4" fill="#2A7BA3"><title>'+scored[i].score+'% · '+VM.esc(scored[i].studentName)+' · '+VM.esc(scored[i].title)+'</title></circle>';}).join('')+'</svg>';}
   document.getElementById('irClass').onchange=load;['irSkill','irStudent','irItem','irDate'].forEach(function(id){document.getElementById(id).onchange=render;});
 }
 function renderResults() {

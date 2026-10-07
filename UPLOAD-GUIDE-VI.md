@@ -39,7 +39,7 @@ Sau khi tải mã mới, publish lại `firestore.rules` và `storage.rules` tro
 - **Làm bài theo tab Passage 1–3 (Reading) hoặc Part 1–4 (Listening).** Bên trái là bài đọc, bên phải là câu hỏi của đúng phần đó. Listening có thêm cột **Script** (khoá đến khi nộp bài) và thanh audio cố định phía trên. Đáp án nằm cuối trang, chỉ mở sau khi nộp.
 - **Phân tích khi làm bài.** Hệ thống ghi thời gian từng câu/từng phần, số lần đổi đáp án, câu bỏ trống, số lần rời tab. Khi nộp bài, trang hiện phân tích cục bộ; nếu đã nhập key Gemini/Groq trong AI settings thì AI viết nhận xét tiếng Việt cho từng câu sai.
 - **Form tạo đề (giáo viên và sinh viên đóng góp).** Tab cho từng Passage/Part: nội dung bên trái, câu hỏi bên phải (Listening thêm cột Script), **đáp án ở cuối, mỗi câu một ô** nên không lệch thứ tự.
-- **Giao diện đồng bộ với Vocab-master.** Dùng đúng `vm-theme.css` của repo `l2practice/vocab-master` (nền sand, xanh forest, cam đất, font Be Vietnam Pro), thanh icon nổi bên trái đủ 8 tab cho cả giáo viên và sinh viên, kể cả trang IELTS. Trên điện thoại thanh này ẩn, mở bằng nút ☰. Trang chủ, favicon, màu biểu đồ cũng đổi theo bảng màu này.
+- **Giao diện đồng bộ với Vocab-master.** Dùng đúng `vm-theme.css` của repo `l2practice/vocab-master` (bố cục thanh icon nổi, panel trắng bo tròn, font Be Vietnam Pro) với bảng màu xanh dương và cam nhạt theo ảnh mẫu của bạn, thanh icon nổi bên trái đủ 8 tab cho cả giáo viên và sinh viên, kể cả trang IELTS. Trên điện thoại thanh này ẩn, mở bằng nút ☰. Trang chủ, favicon, màu biểu đồ cũng đổi theo bảng màu này.
 - **Script không còn nằm trong tài liệu đề mà sinh viên đọc được.** Nó được lưu cùng kho đáp án, chỉ trả về sau khi nộp bài.
 
 ### Việc cần làm khi cập nhật
