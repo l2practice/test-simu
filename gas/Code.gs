@@ -201,7 +201,9 @@ function ieltsImportUrl(p) {
   var title = '', tm = /<h1[^>]*>([\s\S]*?)<\/h1>/i.exec(html) || /<title[^>]*>([\s\S]*?)<\/title>/i.exec(html);
   if (tm) title = ieltsHtmlText(tm[1]).slice(0, 180);
   var skill = /listening/i.test(path + ' ' + title) ? 'listening' : 'reading';
-  var parsed = skill === 'listening' ? ieltsParseListeningPage_(html, title) : ieltsParseReadingPage_(html, title);
+  var parsed;
+  try { parsed = skill === 'listening' ? ieltsParseListeningPage_(html, title) : ieltsParseReadingPage_(html, title); }
+  catch (pe) { return { success:false, error:'Importer failed while reading the page structure: ' + pe.message }; }
   if (!parsed.sections.length || parsed.sections.every(function(s){return s.text.length < 40 && s.questionsText.length < 40;})) return { success:false, error:'The importer could not find the lesson content reliably. Check the URL or paste the content manually.' };
   return { success:true, data:{ title:title, sourceTitle:title, skill:skill,
     sections:parsed.sections.slice(0,4),
@@ -232,6 +234,16 @@ function ieltsBlocks_(html) {
   var end = body.search(/<\/article>/i); if (end > 0) body = body.slice(0, end);
   body = body.replace(/<!--[\s\S]*?-->/g, ' ')
     .replace(/<(script|style|noscript|svg|iframe|form|nav|header|footer|ins|button)\b[^>]*>[\s\S]*?<\/\1>/gi, ' ');
+  // tables → one block: rows on separate lines, cells separated by a tab
+  body = body.replace(/<table\b[\s\S]*?<\/table>/gi, function (t) {
+    var rows = [], rr = /<tr\b[\s\S]*?<\/tr>/gi, r;
+    while ((r = rr.exec(t))) {
+      var cells = [], cr = /<t[hd]\b[^>]*>([\s\S]*?)<\/t[hd]>/gi, c;
+      while ((c = cr.exec(r[0]))) cells.push(ieltsPlain_(c[1]).replace(/\s+/g, ' ').trim());
+      if (cells.length) rows.push(cells.join('\t'));
+    }
+    return rows.length ? '<p>' + rows.join('<br>') + '</p>' : ' ';
+  });
   body = body.replace(/<audio\b[\s\S]*?<\/audio>/gi, function (a) {
     var s = /<source[^>]+src=["']([^"']+)["']/i.exec(a) || /\bsrc=["']([^"']+\.mp3[^"']*)["']/i.exec(a) || /href=["']([^"']+\.mp3[^"']*)["']/i.exec(a);
     return s ? '<p data-audio="' + ieltsHtmlText(s[1]).replace(/"/g, '') + '"></p>' : ' ';
