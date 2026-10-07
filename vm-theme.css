@@ -22,7 +22,7 @@
 
   /* surfaces */
   --vm-bg:           #E8EDF0;   /* warm sand ground */
-  --vm-bg-grad: radial-gradient(900px 520px at 6% -8%,rgba(79,176,214,.40),transparent 62%),radial-gradient(760px 480px at 98% 104%,rgba(242,153,74,.36),transparent 60%),#E8EDF0;
+  --vm-bg-grad: radial-gradient(900px 560px at 4% -6%,rgba(79,176,214,.45),transparent 64%),radial-gradient(820px 520px at 100% 100%,rgba(242,153,74,.42),transparent 62%),linear-gradient(135deg,#D4E8F3 0%,#E8EEF1 46%,#FBE7D2 100%);
   --vm-surface:      #FFFFFF;
   --vm-surface-2:    #F3F7F9;   /* fields, chips, row hover */
   --vm-border:       #D5E3EA;
@@ -314,7 +314,7 @@ h1,h2,h3,h4,.vm-display{font-family:var(--vm-font-display);letter-spacing:-.01em
   floating icon rail, white soft-shadow panels, pill buttons, tile KPIs.
   Colours from the travel site. Text ≥ 5.7:1, buttons ≥ 5.3:1.
 ═══════════════════════════════════════════════════*/
-body{background:var(--vm-bg);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+body{background:var(--vm-bg-grad);background-attachment:fixed;background-color:var(--vm-bg);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
 h1,h2,h3,h4,.vm-display{font-weight:700;letter-spacing:-.015em;color:var(--vm-ink)}
 ::selection{background:var(--vm-sand);color:var(--vm-ink)}
 button,.vm-btn,.vm-nav,.vm-tab,.vm-opt,.vm-rw-opt,.vm-page-btn{cursor:pointer}
@@ -576,3 +576,15 @@ button,.vm-btn,.vm-nav,.vm-tab,.vm-opt,.vm-rw-opt,.vm-page-btn{cursor:pointer}
   .vm-pt-vocab td:nth-child(3){grid-column:1/-1}
   .vm-pt-vocab td:nth-child(4){grid-column:1/-1;font-size:.98rem}
 }
+
+/* blended blue → light-orange accents (solid white panels stay) */
+.vm-btn-primary,.vm-nav.active,.il-tab.active{background:linear-gradient(135deg,#226F99 0%,#3E9CC6 100%);color:#fff}
+.vm-btn-primary:hover{background:linear-gradient(135deg,#1B5F85 0%,#3490BB 100%)}
+.vm-btn-accent,.vm-nav-badge{background:linear-gradient(135deg,#F2994A 0%,#F8B878 100%)}
+.vm-logo-mark{background:linear-gradient(135deg,#2A7BA3 0%,#4FB0D6 55%,#F2994A 130%)!important}
+.vm-avatar{background:linear-gradient(135deg,#CFE6F1,#FFE2BF)}
+.vm-auth-hero{background:linear-gradient(150deg,#174A66 0%,#2A7BA3 55%,#E98A24 135%)!important}
+.ielts-hero{background:linear-gradient(120deg,#D8EAF4 0%,#EEF2F4 50%,#FDE6CE 100%)!important}
+.vm-side{background:linear-gradient(180deg,#FFFFFF 0%,#F4F9FC 70%,#FFF6EC 100%)}
+.il-banner{background:linear-gradient(120deg,#FFFFFF 0%,#EEF6FA 60%,#FFF3E4 100%)}
+.il-qnum{background:linear-gradient(135deg,#DCEEF6,#FFE9D2)}
