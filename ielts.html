@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi"><head><meta charset="UTF-8"><link rel="icon" type="image/svg+xml" href="favicon.svg?v=20261007c"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#0F6B4F"><title>Test Simulation · IELTS Practice</title><link rel="stylesheet" href="vm-theme.css?v=20261007f">
+<meta name="theme-color" content="#0F6B4F"><title>Test Simulation · IELTS Practice</title><link rel="stylesheet" href="vm-theme.css?v=20261007g">
 <style>
 #app{min-height:100vh}.ielts-wrap{max-width:1180px;margin:auto}.ielts-hero{background:linear-gradient(120deg,var(--vm-sand-2),var(--vm-primary-lt));color:var(--vm-ink);padding:24px;border-radius:var(--vm-r);margin-bottom:18px}.ielts-hero h2{margin:0 0 6px;font-family:var(--vm-font-display)}.ielts-hero p{margin:0;color:var(--vm-ink-2)}.il-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}.il-card,.il-panel{background:var(--vm-surface);border:1px solid var(--vm-border-2);border-radius:var(--vm-r);padding:18px;box-shadow:var(--vm-shadow-sm)}.il-card h3{margin:5px 0;font-family:var(--vm-font-display)}.il-meta{font-size:.78rem;color:var(--vm-ink-3);margin:6px 0 12px}.il-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}.il-practice{display:grid;grid-template-columns:minmax(300px,1fr) minmax(300px,1fr);gap:16px}.il-passage{white-space:pre-wrap;line-height:1.85;max-height:68vh;overflow:auto}.il-q{border-bottom:1px solid var(--vm-border-2);padding:12px 0}.il-q label{display:block;font-weight:650;margin-bottom:7px}.il-q input,.il-q select{width:100%}.il-badge{display:inline-block;border-radius:99px;padding:3px 9px;background:var(--vm-primary-lt);color:var(--vm-primary-dk);font-size:.7rem;font-weight:700}.il-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.il-empty{padding:35px;text-align:center;color:var(--vm-ink-3)}.il-editor{display:grid;grid-template-columns:1fr 1fr;gap:10px}.il-editor textarea{min-height:130px;font-size:.92rem}.il-section-editor{margin:14px 0;padding:14px;border:1px solid var(--vm-border-2);border-radius:16px;background:var(--vm-surface)}.il-section-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.il-section-grid.three{grid-template-columns:1fr 1fr 1fr}.il-section-grid textarea{width:100%;min-height:230px;resize:vertical;white-space:pre-wrap}.il-answer-key{margin-top:20px;padding-top:16px;border-top:3px solid var(--vm-primary-lt)}.il-ai-output{white-space:pre-wrap;line-height:1.7}.il-settings{max-width:720px;margin:18px auto}.il-settings label{display:block;margin:12px 0 5px;font-weight:650}.il-chart{width:100%;height:220px;border:1px solid var(--vm-border-2);border-radius:10px;background:var(--vm-surface);margin-top:10px}.il-note{font-size:.78rem;color:var(--vm-ink-3)}.il-error{color:var(--vm-danger);font-size:.84rem}.il-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 @media(max-width:720px){.il-practice,.il-editor,.il-section-grid,.il-section-grid.three{grid-template-columns:1fr}.il-passage{max-height:40vh}}
@@ -106,7 +106,8 @@ body.skill-reading .il-instr,body.skill-listening .il-instr{background:linear-gr
 .il-tocheck{border-left:6px solid var(--il-b)}.il-count{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 6px;border-radius:99px;background:var(--il-b);color:#3A1D00;font-size:.75rem;font-weight:800;margin-left:6px}
 .il-check-row{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:9px 0;border-top:1px solid var(--vm-border)}
 .vm-nav{position:relative}.vm-nav-badge{position:absolute;top:2px;right:6px;margin:0;min-width:18px;height:18px;border-radius:9px;padding:0 5px;font-size:.66rem;display:grid;place-items:center;background:var(--il-b);color:#3A1D00;font-weight:800;box-shadow:0 3px 6px rgba(196,106,28,.45)}
-</style></head><body><div id="app"></div><script src="vm-common.js?v=20261007f"></script><script>
+.ed-imgs{margin:0 0 8px}.ed-thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}.ed-thumb{position:relative;display:inline-block}.ed-thumb img{max-height:84px;border-radius:8px;border:1px solid var(--vm-border);display:block}.ed-x{position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;border:none;background:#C23A2E;color:#fff;cursor:pointer;font-size:.8rem;line-height:1}.il-img{max-width:100%;height:auto;border-radius:10px;margin:6px 0 12px;border:1px solid var(--vm-border)}
+</style></head><body><div id="app"></div><script src="vm-common.js?v=20261007g"></script><script>
 
 
 (function(){
@@ -439,13 +440,13 @@ function drawResultsPage(){
 /* ───────── Auto-classify pasted questions + answers ───────── */
 function detectType(instr, hasOptions, hasBlank){
  var t=String(instr||'').toLowerCase();
- if(/true\W+false\W+(or\W+|and\W+)?not given/.test(t))return 'true-false-not-given';
- if(/yes\W+no\W+(or\W+|and\W+)?not given/.test(t))return 'yes-no-not-given';
+ if(/true\W+false\W+(or\W+|and\W+)?not given/.test(t)||(/\btrue\b[\s\S]*\bfalse\b[\s\S]*not given/.test(t)&&/agree|statement|information/.test(t)))return 'true-false-not-given';
+ if(/yes\W+no\W+(or\W+|and\W+)?not given/.test(t)||(/\byes\b[\s\S]*\bno\b[\s\S]*not given/.test(t)&&/agree|statement|views|claims/.test(t)))return 'yes-no-not-given';
  if(/list of headings|choose the correct heading/.test(t))return 'matching-headings';
  if(/label the (map|plan)|label the diagram|labell?ing|map below|plan below/.test(t)&&!/complete the/.test(t))return 'plan-map-diagram-labelling';
- if(/choose (the )?(correct )?letter|choose (two|three)|choose the correct answer|circle the correct/.test(t)&&!/which (paragraph|section)/.test(t))return 'multiple-choice';
+ if(/choose (the )?(correct )?letter|choose (two|three|2|3)|choose the correct answer|circle the correct/.test(t)&&!/which (paragraph|section)/.test(t))return 'multiple-choice';
  if(/which (paragraph|section)|matching information/.test(t))return 'matching';
- if(/match each|matching features|list of (people|researchers|names|places|options)/.test(t))return 'matching-features';
+ if(/match each|matching features|list of (people|researchers|names|places|options|phrases)|using the list of/.test(t))return 'matching-features';
  if(/diagram/.test(t))return 'diagram-completion';
  if(/summary/.test(t))return 'summary-completion';
  if(/complete the (notes|table|flow|form)|notes below|table below|flow-?chart|form below/.test(t))return 'form-note-table-flow-chart-summary-completion';
@@ -455,75 +456,100 @@ function detectType(instr, hasOptions, hasBlank){
  return hasBlank?'sentence-completion':'short-answer';
 }
 function letterRange(instr){
- var m=/\b([A-H])\s*(?:[-–—]|to)\s*([A-H])\b/.exec(String(instr||''));
+ var m=/\b([A-I])\s*(?:[-–—]|to)\s*([A-Il])\b/.exec(String(instr||''));
  if(!m)return [];
- var a=m[1].charCodeAt(0),b=m[2].charCodeAt(0),out=[];
+ var a=m[1].charCodeAt(0),b=(m[2]==='l'?'I':m[2]).charCodeAt(0),out=[];
  for(var c=a;c<=b;c++)out.push(String.fromCharCode(c));
  return out;
 }
+var GAP_RE=/(?:^|[^\d])(\d{1,2})\s*\)?\s*[‘'"“]?\s*(?:[\.…_]{3,}|…)/g;
 function parseQuestions(text){
  var lines=String(text||'').replace(/\r/g,'').split('\n'),groups=[],cur=null;
- var headRe=/^\s*questions?\s+(\d{1,2})\s*(?:[-–—]|to|and)\s*(\d{1,2})\b/i;
- var itemRe=/^\s*(\d{1,2})\s*[\.\):]?\s+(\S.*)$/;
- var optRe=/^\s*([A-H])\s*[\.\):]?\s+(\S.*)$/;
- var romanRe=/^\s*((?:x{0,1}(?:ix|iv|v?i{0,3})))\s*[\.\):]?\s+(\S.*)$/i;
- function ng(from,to){cur={from:from,to:to,instr:[],body:[],items:[],opts:[]};groups.push(cur);}
- lines.forEach(function(raw){
-  var line=raw.replace(/\s+$/,'');
-  if(!line.trim()){if(cur&&!cur.items.length&&cur.instr.length)cur.instr.push('');return;}
-  var h=headRe.exec(line);
-  if(h){ng(+h[1],+h[2]);cur.instr.push(line.trim());return;}
-  if(!cur)ng(0,0);
-  var instrText=cur.instr.join(' ').toLowerCase();
-  var m=itemRe.exec(line),n=m?+m[1]:0,last=cur.items[cur.items.length-1];
-  var inRange=m&&(!cur.from||(n>=cur.from&&n<=cur.to))&&(!last||n>last.number);
-  if(inRange){cur.items.push({number:n,prompt:m[2].trim(),opts:[],extra:[]});return;}
-  var o=optRe.exec(line);
-  if(o){
-   var matchy=/match|list of|which (paragraph|section)|label/.test(instrText);
-   if(!cur.items.length||matchy&&cur.opts.length){cur.opts.push(o[2].trim());return;}
-   if(last){last.opts.push(o[2].trim());return;}
-  }
-  if(!cur.items.length&&/heading/.test(instrText)){var r=romanRe.exec(line);if(r&&r[1]){cur.opts.push(r[1].toLowerCase()+' '+r[2].trim());return;}}
-  if(last){last.extra.push(line.trim());return;}
-  cur.instr.push(line.trim());
- });
- var out=[],seq=0;
+ var headRe=/^\s*questions?\s+(\d{1,2})\s*(?:[-–—]|to|and|&)\s*(\d{1,2})\b/i;
+ lines.forEach(function(raw){var line=raw.replace(/\s+$/,''),h=headRe.exec(line);
+  if(h){cur={from:+h[1],to:+h[2],raw:[line.trim()]};groups.push(cur);return;}
+  if(!cur){cur={from:0,to:0,raw:[]};groups.push(cur);}cur.raw.push(line);});
+ var out=[],seq=0,last=0;
+ function num(n){if(n<=last)n=last+1;last=n;seq++;return n;}
  groups.forEach(function(g){
-  var instrText=g.instr.join('\n').trim();
-  if(!g.items.length){
-   var re=/\(?\b(\d{1,2})\b\)?\s*[\.…_–-]{2,}/g,mm,nums=[];
-   while((mm=re.exec(instrText))){nums.push(+mm[1]);}
-   if(!nums.length&&g.from){for(var k=g.from;k<=g.to;k++)nums.push(k);}
-   nums.forEach(function(nn){g.items.push({number:nn,prompt:'Chỗ trống '+nn,opts:[],extra:[]});});
+  var gtext=g.raw.join('\n').trim();if(!gtext)return;
+  // 1) gap-fill groups (notes / form / table / summary): numbered blanks inside running text
+  var nums=[],m;GAP_RE.lastIndex=0;
+  while((m=GAP_RE.exec(gtext))){var n=+m[1];if((!g.from||(n>=g.from&&n<=g.to))&&nums.indexOf(n)<0)nums.push(n);}
+  if(nums.length>=2){
+   var firstGap=gtext.search(GAP_RE);var head=gtext.slice(0,firstGap>0?firstGap:200);
+   var gopts=[];
+   if(/list of|letter|[A-I]\s*[-–—]\s*[A-Il]\b/i.test(head)){g.raw.forEach(function(l){var om=/^\s*([A-I])\s{1,}(\S.*)$/.exec(l);if(om&&gopts.length<9&&String.fromCharCode(65+gopts.length)===om[1])gopts.push(om[2].trim());});}
+   var type=gopts.length>=2?(/summary/i.test(head)?'summary-completion':'sentence-completion'):detectType(head,false,true);
+   nums.forEach(function(n,i){
+    var ln=g.raw.filter(function(l){var r=new RegExp('(?:^|[^\\d])'+n+'\\s*\\)?\\s*[‘\'"“]?\\s*(?:[\\.…_]{3,}|…)');return r.test(l);})[0]||'';
+    var cleaned=ln.replace(/[\.…_]{3,}|…/g,' ____ ').replace(/\s+/g,' ').trim(),at=cleaned.search(new RegExp('(?:^|[^\\d])'+n+'\\s*\\)?\\s*[‘\'"“]?\\s*____'));
+    var prompt=cleaned.length>150&&at>=0?('…'+cleaned.slice(Math.max(0,at-60),at+70).trim()+'…'):cleaned;
+    prompt=prompt||('Blank '+n);
+    out.push({number:num(n),type:type,prompt:prompt,options:gopts.length>=2?gopts.slice():[],instruction:i===0?gtext:''});
+   });
+   return;
   }
-  if(!g.items.length)return;
-  var hasBlank=g.items.some(function(it){return /[…_]{2,}|\.{4,}/.test(it.prompt);});
-  var type=detectType(instrText,g.items.some(function(it){return it.opts.length;})||g.opts.length>0,hasBlank);
-  g.items.forEach(function(it,i){
+  // 2) numbered items with optional options
+  var itemRe=/^\s*(\d{1,2})\s*[\.\):]?\s+(\S.*)$/,optRe=/^\s*([A-I])\s*[\.\):]?\s+(\S.*)$/,romanRe=/^\s*((?:x{0,1}(?:ix|iv|v?i{0,3})))\s*[\.\):]?\s+(\S.*)$/i;
+  var c={instr:[],items:[],opts:[]};
+  g.raw.forEach(function(line,idx){
+   if(!line.trim()){if(!c.items.length&&c.instr.length)c.instr.push('');return;}
+   if(idx===0&&headRe.test(line)){c.instr.push(line.trim());return;}
+   var instrText=c.instr.join(' ').toLowerCase(),mi=itemRe.exec(line),n=mi?+mi[1]:0,lastIt=c.items[c.items.length-1];
+   var inRange=mi&&(!g.from||(n>=g.from&&n<=g.to)||(c.items.length>0&&n>lastIt.number&&n<=Math.max(g.to,lastIt.number+1)))&&(!lastIt||n>lastIt.number);
+   if(inRange&&!(c.items.length===0&&/list of headings/.test(instrText)&&false)){c.items.push({number:n,prompt:mi[2].trim(),opts:[],extra:[]});return;}
+   var o=optRe.exec(line);
+   if(o){var matchy=/match|list of|which (paragraph|section)|label|using the list/.test(instrText);
+    if(!c.items.length||matchy){c.opts.push(o[2].trim());return;}
+    if(lastIt){lastIt.opts.push(o[2].trim());return;}}
+   if(!c.items.length&&/heading/.test(instrText)){var r=romanRe.exec(line);if(r&&r[1]){c.opts.push(r[1].toLowerCase()+' '+r[2].trim());return;}}
+   if(lastIt){lastIt.extra.push(line.trim());return;}
+   c.instr.push(line.trim());
+  });
+  var instrText=c.instr.join('\n').trim();
+  if(!c.items.length){
+   // "Choose TWO letters" style: no numbered items, just a stem and options for questions from..to
+   var stem=c.instr.filter(function(l){return /\?\s*$/.test(l);}).pop()||'Choose the correct answer.';
+   if(g.from&&c.opts.length){for(var k=g.from;k<=g.to;k++)c.items.push({number:k,prompt:stem,opts:[],extra:[]});}
+   else if(g.from){for(var k2=g.from;k2<=g.to;k2++)c.items.push({number:k2,prompt:'Question '+k2,opts:[],extra:[]});}
+  }
+  if(!c.items.length)return;
+  var hasBlank=c.items.some(function(it){return /[…_]{2,}|\.{4,}/.test(it.prompt);});
+  var type2=detectType(instrText,c.items.some(function(it){return it.opts.length;})||c.opts.length>0,hasBlank);
+  c.items.forEach(function(it,i){
    var prompt=(it.prompt+(it.extra.length?' '+it.extra.join(' '):'')).trim();
-   var options=it.opts.length?it.opts:(g.opts.length?g.opts.slice():[]);
-   if(!options.length&&(type==='matching'||type==='matching-features'||type==='plan-map-diagram-labelling')){options=letterRange(instrText).map(function(l){return l;});}
-   if(type==='matching-headings'&&!options.length)options=[];
-   if(type==='multiple-choice'&&!options.length)type=hasBlank?'sentence-completion':'short-answer';
-   seq++;
-   out.push({number:it.number||seq,type:type,prompt:prompt,options:options,instruction:i===0?instrText:''});
+   var options=it.opts.length?it.opts:(c.opts.length?c.opts.slice():[]);
+   var t=type2;
+   if(!options.length&&(t==='matching'||t==='matching-features'||t==='plan-map-diagram-labelling'))options=letterRange(instrText);
+   if(t==='multiple-choice'&&!options.length)t=hasBlank?'sentence-completion':'short-answer';
+   out.push({number:num(it.number),type:t,prompt:prompt,options:options,instruction:i===0?instrText:''});
   });
  });
  return out;
 }
+function answerAlts(s){
+ var alts=String(s||'').split(/\s*(?:\/|\||;)\s*|\s+or\s+|\s*,\s*(?=[A-Za-z]\b)/i).map(function(v){return v.trim();}).filter(Boolean),res=[];
+ alts.forEach(function(a){
+  var m=/\(([^)]+)\)/.exec(a);
+  if(m){var withIt=a.replace(/[()]/g,'').replace(/\s+/g,' ').trim(),without=a.replace(/\([^)]*\)/g,'').replace(/\s+/g,' ').trim();[withIt,without].forEach(function(v){if(v&&res.indexOf(v)<0)res.push(v);});}
+  else if(res.indexOf(a)<0)res.push(a);
+ });
+ return res;
+}
 function parseAnswers(text){
  var map={},lines=String(text||'').replace(/\r/g,'').split('\n');
- function alts(s){return s.split(/\s*(?:\/|\|)\s*|\s+or\s+/i).map(function(v){return v.trim().replace(/^\(|\)$/g,'');}).filter(Boolean);}
  lines.forEach(function(line){
+  var pair=/^\s*(?:Q(?:uestions?)?\s*)?(\d{1,2})\s*(?:&|and|,)\s*(\d{1,2})\s*[\.\):\-–—=]?\s+(\S.*?)\s*$/i.exec(line);
+  if(pair){var al=answerAlts(pair[3]);map[+pair[1]]=al;map[+pair[2]]=al;return;}
   var m=/^\s*(?:Q(?:uestion)?\s*)?(\d{1,2})\s*[\.\):\-–—=]?\s*(\S.*?)\s*$/i.exec(line);
-  if(m&&!/^\d/.test(m[2]))map[+m[1]]=alts(m[2]);
+  if(m&&!/^\d/.test(m[2]))map[+m[1]]=answerAlts(m[2]);
  });
  var keys=Object.keys(map),inlineNeeded=!keys.length||keys.some(function(k){return map[k].some(function(v){return /\s\d{1,2}\s*[\.\):\-–—=]\s/.test(v);});});
  if(inlineNeeded){
   map={};
   var re=/(\d{1,2})\s*[\.\):\-–—=]\s*([A-Za-z][^\d]*?)(?=\s+\d{1,2}\s*[\.\):\-–—=]|$)/g,mm,flat=String(text||'').replace(/\s+/g,' ');
-  while((mm=re.exec(flat)))map[+mm[1]]=alts(mm[2].trim());
+  while((mm=re.exec(flat)))map[+mm[1]]=answerAlts(mm[2].trim());
  }
  return map;
 }
@@ -642,7 +668,9 @@ function drawSplit(){
  var x=state.active,r=state.run,rv=state.review,p=r.part,s=(x.sections||[])[p]||{},flat=flatQs(x),listen=x.skill==='listening',rg=partRange(flat,p),resp=rv?rv.attempt.responses:[];
  var snap=rv&&rv.attempt.snapshot&&rv.attempt.snapshot.sections?rv.attempt.snapshot.sections[p]:null,scriptTxt=(snap&&snap.script)||s.script||'';
  var exam=!rv,pc=exam?'exam-pane':'il-panel il-pane';
- var left='<section class="'+pc+'"><h3 class="pane-h">'+(listen?'Notes':esc(secLabel(x,p)))+'</h3><div class="il-text" data-hk="p'+p+'">'+(s.text?esc(s.text):'<span class="il-note">'+(listen?'Listen to the audio and answer the questions.':'No passage text.')+'</span>')+'</div></section>';
+
+ var imgs=(s.images||[]).filter(function(u){return /^https:\/\//i.test(u);}).map(function(u){return '<img class="il-img" src="'+esc(u)+'" alt="Figure" loading="lazy" referrerpolicy="no-referrer">';}).join('');
+ var left='<section class="'+pc+'"><h3 class="pane-h">'+(listen?'Notes':esc(secLabel(x,p)))+'</h3>'+(listen?'':imgs)+'<div class="il-text" data-hk="p'+p+'">'+(s.text?esc(s.text):'<span class="il-note">'+(listen?'Listen to the audio and answer the questions.':'No passage text.')+'</span>')+'</div></section>';
  var qs=flat.filter(function(f){return f.part===p;}).map(function(f){
   var i=f.n-1,q=f.q,opts=qOptions(q),val=r.answers[i]||'',dis=rv?' disabled':'',input,mark='';
   if(opts.length&&opts.length<=8)input='<div class="il-opts">'+opts.map(function(o,oi){var v=optValue(q,o,oi);return '<label class="il-opt"><input type="radio" name="q'+i+'" data-q="'+i+'" value="'+esc(v)+'"'+(val===v?' checked':'')+dis+'> <span data-hk="o'+f.n+'_'+oi+'">'+esc(optText(q,o,oi))+'</span></label>';}).join('')+'</div>';
@@ -650,7 +678,7 @@ function drawSplit(){
   else input='<input class="vm-input" type="text" data-q="'+i+'" value="'+esc(val)+'" placeholder="Your answer" autocomplete="off"'+dis+'>';
   if(rv){var rr=resp[i]||{};mark=rr.correct===true?'<span class="il-mark ok">✓ Correct</span>':(rr.correct===false?'<span class="il-mark bad">✗ '+(filled(rr.answer)?'Incorrect':'Blank')+'</span>':'<span class="il-mark">No answer key</span>');}
   return (q.instruction?'<div class="il-instr" data-hk="i'+f.n+'">'+esc(q.instruction)+'</div>':'')+'<div class="il-q" id="q'+f.n+'"><div class="il-qhead"><span class="il-qnum">'+f.num+'</span><span class="il-note">'+esc(typeName(q.type))+'</span>'+mark+'</div><div class="il-qprompt" data-hk="q'+f.n+'">'+esc(q.prompt)+'</div>'+input+'</div>';}).join('');
- var right='<section class="'+pc+'"><h3 class="pane-h">Questions'+(rg.count?' <span class="il-note">'+rg.from+'–'+rg.to+'</span>':'')+'</h3>'+(qs||'<div class="il-empty">No questions in this part.</div>')+'</section>';
+ var right='<section class="'+pc+'"><h3 class="pane-h">Questions'+(rg.count?' <span class="il-note">'+rg.from+'–'+rg.to+'</span>':'')+'</h3>'+(listen?imgs:'')+(qs||'<div class="il-empty">No questions in this part.</div>')+'</section>';
  var script=listen&&rv?'<section class="il-panel il-pane"><h3 class="pane-h">Script · '+esc(secLabel(x,p))+'</h3><div class="il-text">'+(scriptTxt?esc(scriptTxt):'<span class="il-note">No script has been added for this part yet.</span>')+'</div></section>':'';
  document.getElementById('splitArea').innerHTML=(listen?(exam?right:right+script):left+right);
  qa('#splitArea [data-hk]').forEach(function(el){var h=r.hl[el.getAttribute('data-hk')];if(h)el.innerHTML=h;});
@@ -800,7 +828,7 @@ function editorDialog(init){
  function taken(part){return !ex&&book&&test&&state.items.some(function(i){return i.skill===skill&&i.book===book&&String(i.test)===String(test)&&String(i.part)===String(part);});}
  function newRow(part,sec){
   sec=sec||{};
-  var r={part:String(part),text:sec.text||'',script:sec.script||'',audio:sec.audio||null,audioMode:(sec.audio&&sec.audio.url)?'link':'file',audioUrl:(sec.audio&&sec.audio.url)||'',file:null,ans:{},types:{},questions:[]};
+  var r={part:String(part),text:sec.text||'',script:sec.script||'',images:(sec.images||[]).slice(0,6),pendingAns:sec.answersText?parseAnswers(sec.answersText):null,audio:sec.audio||null,audioMode:(sec.audio&&sec.audio.url)?'link':'file',audioUrl:(sec.audio&&sec.audio.url)||'',file:null,ans:{},types:{},questions:[]};
   var qs=sec.questions||[];
   qs.forEach(function(q,i){var k=q.number||i+1;r.ans[k]=(q.answers||[]).slice();if(q.type)r.types[k]=q.type;});
   r.qtext=sec.questionsText||serializeQuestions(qs);
@@ -808,7 +836,7 @@ function editorDialog(init){
  }
  function nextPart(){for(var p=1;p<=maxParts();p++){var s=String(p);if(!ed.rows.some(function(r){return r.part===s;})&&!taken(s))return s;}return '';}
  if(ex)ed.rows=[newRow(ex.part,(ex.sections||[])[0])];
- else if(init.imported&&init.imported.length)ed.rows=init.imported.slice(0,maxParts()).map(function(s,i){return newRow(i+1,s);});
+ else if(init.imported&&init.imported.length)ed.rows=init.imported.slice(0,maxParts()).map(function(s,i){return newRow(s.part||i+1,s);});
  else ed.rows=[newRow(init.part||nextPart()||'1')];
  function optHtml(list,sel){return list.map(function(v){return '<option value="'+esc(v)+'"'+(String(v)===String(sel)?' selected':'')+'>'+esc(v)+'</option>';}).join('');}
  function qNum(q,i){return q.number||i+1;}
@@ -821,7 +849,7 @@ function editorDialog(init){
   var frameA='<section class="il-panel ed-frame"><h4><span class="ed-n">3</span>Answers</h4><div class="il-note">Paste the answer list (one per line, e.g. “1 B”) and click Fill, or type each answer. Separate accepted alternatives with “/”.</div><div class="il-row"><textarea class="vm-input" id="ap'+i+'" rows="3" style="flex:1;min-width:140px" placeholder="1 B&#10;2 FALSE&#10;3 heating"></textarea><button class="vm-btn vm-btn-ghost vm-btn-sm" data-fill="'+i+'">Fill</button></div><div id="ans'+i+'" class="il-ans-list"></div></section>';
   var frameAudio='<section class="il-panel ed-frame"><h4><span class="ed-n">2</span>Audio <span class="il-note">optional</span></h4><div class="il-note">Add a file or a link. If you skip this, students add the audio themselves when they take the test.</div><div class="il-opts" style="margin:8px 0"><label class="il-opt"><input type="radio" name="am'+i+'" data-am="'+i+'" value="file"'+(r.audioMode==='file'?' checked':'')+'> <span>Upload a file</span></label><label class="il-opt"><input type="radio" name="am'+i+'" data-am="'+i+'" value="link"'+(r.audioMode==='link'?' checked':'')+'> <span>Paste a link</span></label></div><div id="amf'+i+'"'+(r.audioMode==='file'?'':' style="display:none"')+'><input class="vm-input" type="file" data-af="'+i+'" accept="audio/mpeg,audio/mp4,audio/wav,audio/x-wav,audio/webm,audio/ogg,audio/aac,audio/flac"><div class="il-note">MP3, MP4, WAV, WebM, OGG, AAC or FLAC · max 25 MB'+(r.audio&&r.audio.path?' · current: '+esc(r.audio.fileName||'uploaded file'):'')+'</div></div><div id="aml'+i+'"'+(r.audioMode==='link'?'':' style="display:none"')+'><input class="vm-input" data-r="'+i+'" data-f="audioUrl" placeholder="https://… direct link to an .mp3 file" value="'+esc(r.audioUrl)+'"><div class="il-note">Use a direct audio URL. Only use audio you have permission to share.</div></div></section>';
   var frameScript='<section class="il-panel ed-frame"><h4><span class="ed-n">4</span>Script <span class="il-note">optional</span></h4><div class="il-note">Students see the script only after they submit. You can leave it empty and add it later.</div><textarea class="vm-input ed-area" data-r="'+i+'" data-f="script" placeholder="Paste the listening script (optional)">'+esc(r.script)+'</textarea></section>';
-  return '<div class="ed-row">'+head+'<div class="ed-grid '+(listen?'ed-4':'ed-3')+'">'+(listen?frameQ+frameAudio+frameA+frameScript:frameText+frameQ+frameA)+'</div></div>';
+  return '<div class="ed-row">'+head+'<div class="ed-imgs" id="img'+i+'"></div><div class="ed-grid '+(listen?'ed-4':'ed-3')+'">'+(listen?frameQ+frameAudio+frameA+frameScript:frameText+frameQ+frameA)+'</div></div>';
  }
  function build(){
   var dis=ex?' disabled':'',nxt=nextPart();
@@ -837,8 +865,11 @@ function editorDialog(init){
  function recompute(i){
   var r=ed.rows[i];
   r.questions=parseQuestions(r.qtext).map(function(q,k){var key=qNum(q,k);if(r.types[key])q.type=r.types[key];return q;});
+  if(r.pendingAns){r.questions.forEach(function(q,k){var key=qNum(q,k);if(r.pendingAns[key]&&!(r.ans[key]&&r.ans[key].length))r.ans[key]=r.pendingAns[key];});r.pendingAns=null;}
   var counts={};r.questions.forEach(function(q){counts[q.type]=(counts[q.type]||0)+1;});
   var instr=r.questions.filter(function(q){return q.instruction;}).length;
+  var ib=document.getElementById('img'+i);
+  if(ib)ib.innerHTML=(r.images||[]).length?'<div class="il-note">Images found on the page (kept with this '+partWord(skill).toLowerCase()+'). Remove any that do not belong:</div><div class="ed-thumbs">'+r.images.map(function(u,k){return '<span class="ed-thumb"><img src="'+esc(u)+'" alt="" referrerpolicy="no-referrer"><button type="button" class="ed-x" data-rmimg="'+i+'|'+k+'" title="Remove">×</button></span>';}).join('')+'</div>':'';
   var det=document.getElementById('det'+i);
   if(det)det.innerHTML=r.questions.length?'<div class="il-note">Detected <b>'+r.questions.length+'</b> question'+(r.questions.length===1?'':'s')+' in '+instr+' group'+(instr===1?'':'s')+': '+Object.keys(counts).map(function(t){return esc(typeName(t))+' × '+counts[t];}).join(' · ')+'</div>':'<div class="il-note">No questions detected yet. Paste the full question section.</div>';
   var list=document.getElementById('ans'+i);
@@ -859,8 +890,9 @@ function editorDialog(init){
    else if(el.hasAttribute('data-af')){ed.rows[+el.getAttribute('data-af')].file=el.files&&el.files[0]||null;}});
   rowsEl.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;
    if(b.hasAttribute('data-fill')){var i=+b.getAttribute('data-fill'),r=ed.rows[i],m=parseAnswers(document.getElementById('ap'+i).value),n=0;r.questions.forEach(function(q,k){var key=qNum(q,k);if(m[key]){r.ans[key]=m[key];n++;}});recompute(i);document.getElementById('edError').textContent=n?'':'None of the pasted answers matched the question numbers.';if(n)VM.toast('Filled '+n+' answers.','ok');}
+   else if(b.hasAttribute('data-rmimg')){var ra=b.getAttribute('data-rmimg').split('|');ed.rows[+ra[0]].images.splice(+ra[1],1);recompute(+ra[0]);}
    else if(b.hasAttribute('data-rm')){ed.rows.splice(+b.getAttribute('data-rm'),1);build();}});
-  var add=document.getElementById('edAdd');if(add)add.onclick=function(){var p=nextPart();if(!p)return;var imp=init.imported&&init.imported[(+p)-1];ed.rows.push(newRow(p,imp));ed.rows.sort(function(a,b){return +a.part-+b.part;});build();};
+  var add=document.getElementById('edAdd');if(add)add.onclick=function(){var p=nextPart();if(!p)return;var imp=init.imported&&init.imported.filter(function(s){return String(s.part)===String(p);})[0];ed.rows.push(newRow(p,imp));ed.rows.sort(function(a,b){return +a.part-+b.part;});build();};
   var ar=document.getElementById('edArchive');if(ar)ar.onclick=function(){if(confirm('Remove this item from the Library? Past attempts are kept.'))call('ielts.content.archive',{id:ex.id||ex._id}).then(function(){VM.toast('Removed from the Library.','ok');state.loaded=false;load();}).catch(function(e){say(e.message);});};
   document.getElementById('edDone').onclick=done;
  }
@@ -886,7 +918,7 @@ function editorDialog(init){
     else if(!(r.audio&&r.audio.path))audio=undefined;
    }
    payloads.push({row:r,body:{id:ex?(ex.id||ex._id):undefined,title:book+' · Test '+test+' · '+partWord(skill)+' '+r.part,skill:skill,book:book,test:test,part:r.part,sourceUrl:init.sourceUrl||(ex&&ex.sourceUrl)||'',sourceTitle:init.sourceTitle||(ex&&ex.sourceTitle)||'',attribution:(ex&&ex.attribution)||'',
-    sections:[{title:partWord(skill)+' '+r.part,part:r.part,text:skill==='reading'?r.text:'',script:skill==='listening'?r.script:'',questionsText:r.qtext,questions:questions,audio:audio}]}});
+    sections:[{title:partWord(skill)+' '+r.part,part:r.part,images:(r.images||[]).filter(function(u){return /^https:\/\//i.test(u);}).slice(0,6),text:skill==='reading'?r.text:'',script:skill==='listening'?r.script:'',questionsText:r.qtext,questions:questions,audio:audio}]}});
   });
   if(problem)return err(problem);
   var btn=document.getElementById('edDone');btn.disabled=true;

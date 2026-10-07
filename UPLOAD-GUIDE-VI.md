@@ -96,3 +96,11 @@ Sau khi tải mã mới, publish lại `firestore.rules` và `storage.rules` tro
 1. Firestore Rules: dán `firestore.rules`, Publish (thêm kiểm tra trạng thái duyệt).
 2. Apps Script: dán **cả hai** `gas/Code.gs` và `gas/FirebaseVM.gs`, rồi Deploy ▸ New version.
 3. GitHub: thay `ielts.html`, `vm-fbdata.js`, `vm-common.js`, `vm-theme.css`, `index.html`, `login.html`, `signup.html`, `student.html`, `teacher.html`, `favicon.svg`, `firestore.rules`, `gas/Code.gs`, `gas/FirebaseVM.gs`.
+
+
+## Bản cập nhật: trình nhập URL đọc đúng cấu trúc trang
+- **Cách tách mới (Apps Script).** Đọc theo thẻ HTML của ieltstrainingonline.com thay vì lọc chữ thô: `h3 "READING PASSAGE n" / "PART n"` mở một passage/part; `h3 "Questions a–b"` mở một nhóm câu hỏi (giữ nguyên Instruction, các mục, lựa chọn A–I, danh sách tiêu đề i–viii); `h2 "Answer …"` + `h5 "Passage n"` là bảng đáp án; thẻ `<audio>` cho Listening; ảnh trong bài được giữ lại. Quảng cáo, thanh điều hướng và liên kết bài khác bị loại.
+- **Phân loại phía app.** Nhận diện Matching headings/features/information, Multiple choice (kể cả "Choose TWO letters"), True/False/Not given, Yes/No/Not given, Summary/Note/Form/Table completion, điền từ trong đoạn có danh sách lựa chọn. Số câu trùng được đánh lại; đáp án dạng "11&12 B, C", "(animal) movement", "fifty / 50" được hiểu đúng và điền sẵn.
+- **Listening.** Mỗi Part nhận link audio gốc (chỉ lưu link, không tải file). Có thể xoá link ở khung Audio nếu muốn dùng file riêng.
+- **Xem trước.** Sau khi nhập, form tạo đề chính là màn Preview: sửa passage, câu hỏi, đáp án, loại câu và xoá ảnh thừa rồi mới bấm Finish. Đề của sinh viên vẫn chờ giáo viên duyệt.
+- Thứ tự cập nhật: dán `gas/Code.gs` vào Apps Script rồi Deploy ▸ New version; thay `ielts.html` (và các file đã đổi version) trên GitHub. Không cần đổi Firestore Rules.
