@@ -179,30 +179,32 @@ function ieltsImportUrl(p) {
   var raw = String((p && p.url) || '').trim();
   var verified = vmfbIeltsVerifiedUser(p && p.idToken);
   if (!verified.success) return verified;
-  if (verified.user.role !== 'teacher') return { success:false, error:'Chỉ giáo viên mới nhập nội dung vào Library.' };
-  if (!raw || raw.length > 2048) return { success:false, error:'Nhập URL bài viết hợp lệ (tối đa 2048 ký tự).' };
-  if (raw.indexOf('\\') >= 0) return { success:false, error:'URL không hợp lệ.' };
+  var throttle = CacheService.getScriptCache(), tkey = 'imp_' + verified.uid, used = parseInt(throttle.get(tkey) || '0', 10);
+  if (used >= 10) return { success:false, error:'Import limit reached (10 per hour). Please try again later.' };
+  throttle.put(tkey, String(used + 1), 3600);
+  if (!raw || raw.length > 2048) return { success:false, error:'Enter a valid page URL (up to 2048 characters).' };
+  if (raw.indexOf('\\') >= 0) return { success:false, error:'Invalid URL.' };
   var m = /^https:\/\/ieltstrainingonline\.com(?::443)?(?=\/|\?|#|$)([^?#]*)(?:\?[^#]*)?(?:#.*)?$/i.exec(raw);
-  if (!m) return { success:false, error:'URL không hợp lệ.' };
+  if (!m) return { success:false, error:'Invalid URL.' };
   var path = m[1] || '/';
-  if (path === '/' || /\.(?:mp3|mp4|wav|m4a|zip|pdf)$/i.test(path)) return { success:false, error:'Hãy nhập URL của một trang bài cụ thể; importer không tải audio hoặc tệp.' };
+  if (path === '/' || /\.(?:mp3|mp4|wav|m4a|zip|pdf)$/i.test(path)) return { success:false, error:'Enter the URL of one specific lesson page. The importer never downloads audio or files.' };
   var response;
   try { response = UrlFetchApp.fetch(raw, { method:'get', followRedirects:false, muteHttpExceptions:true, headers:{'User-Agent':'VocabMaster lesson importer','Range':'bytes=0-999999','Accept-Encoding':'identity'} }); }
-  catch (e) { return { success:false, error:'Không tải được trang nguồn: ' + e.message }; }
+  catch (e) { return { success:false, error:'Could not load the source page: ' + e.message }; }
   var code = response.getResponseCode();
-  if (code >= 300 && code < 400) return { success:false, error:'Trang nguồn chuyển hướng. Vì lý do an toàn, hãy dùng URL HTTPS cuối cùng thuộc ieltstrainingonline.com.' };
-  if (code !== 200 && code !== 206) return { success:false, error:'Trang nguồn trả về HTTP ' + code + '.' };
+  if (code >= 300 && code < 400) return { success:false, error:'The source page redirects. For safety, use the final HTTPS URL on ieltstrainingonline.com.' };
+  if (code !== 200 && code !== 206) return { success:false, error:'The source page returned HTTP ' + code + '.' };
   var headers = response.getHeaders(), length = Number(headers['Content-Length'] || headers['content-length'] || 0);
-  if (length > 1000000) return { success:false, error:'Trang vượt giới hạn 1 MB.' };
+  if (length > 1000000) return { success:false, error:'The page is larger than 1 MB.' };
   var html = response.getContentText();
-  if (html.length > 1000000) return { success:false, error:'Trang vượt giới hạn 1 MB.' };
+  if (html.length > 1000000) return { success:false, error:'The page is larger than 1 MB.' };
   var title = '', tm = /<h1[^>]*>([\s\S]*?)<\/h1>/i.exec(html) || /<title[^>]*>([\s\S]*?)<\/title>/i.exec(html);
   if (tm) title = ieltsHtmlText(tm[1]).slice(0, 180);
   var skill = /listening/i.test(path + ' ' + title) ? 'listening' : 'reading';
   var parsed = skill === 'listening' ? ieltsParseListeningPage_(html, title) : ieltsParseReadingPage_(html, title);
-  if (!parsed.sections.length || parsed.sections.every(function(s){return s.text.length < 40;})) return { success:false, error:'Parser không nhận diện được nội dung bài đủ tin cậy. Hãy kiểm tra URL hoặc nhập nội dung thủ công.' };
+  if (!parsed.sections.length || parsed.sections.every(function(s){return s.text.length < 40;})) return { success:false, error:'The importer could not find the lesson content reliably. Check the URL or paste the content manually.' };
   return { success:true, data:{ title:title, sourceTitle:title, skill:skill,
-    sections:parsed.sections.slice(0,3),
+    sections:parsed.sections.slice(0,4),
     warning:parsed.warning } };
 }
 function ieltsParseReadingPage_(html, title) { return ieltsParsePage_(html, title, 'reading'); }
@@ -251,8 +253,8 @@ function ieltsParsePage_(html, title, skill) {
     return {title:group.title,text:passage.join('\n').slice(0,30000),questions:qs};
   }).filter(function(s){return s.text.length || s.questions.length;});
   var warning = foundQuestions
-    ? 'Đã nhận diện một số câu hỏi theo cấu trúc trang. Hãy so sánh từng câu/lựa chọn với nguồn; parser có thể bỏ sót hoặc phân loại sai. Đáp án chỉ được nhập nếu nhận diện được phần Answer Key. Bài được lưu ở trạng thái Chờ kiểm tra.'
-    : 'Đã trích xuất văn bản thành bản nháp nhưng chưa nhận diện chắc chắn câu hỏi. Hãy kiểm tra và bổ sung câu hỏi/đáp án trước khi publish.';
+    ? 'Some questions were detected from the page structure. Compare every question and option with the source; the importer can miss items or misclassify them. Answers are only filled in when an answer key was found. A teacher will check the test before students can practise it.'
+    : 'The text was extracted, but the questions could not be identified reliably. Check the content and add the questions and answers before you finish.';
   return {sections:sections,warning:warning};
 }
 function ieltsGuessTaskType_(text, skill) {

@@ -164,6 +164,7 @@ function vmfbIeltsGradeAttempt(p) {
   if (docs.some(function(d){ return !d; })) return { success:false, error:'One of the tests could not be found.' };
   var keys = ids.map(function(id){ return fsGet('ieltsAnswerKeys/' + id); });
   if (keys.some(function(k){ return !k; })) return { success:false, error:'This test has no answer key yet; please tell your teacher.' };
+  if (docs.some(function(d){ return d.review === 'pending'; })) return { success:false, error:'This test is waiting for a teacher to check it. It opens for practice once it is approved.' };
   var accessible = docs.every(function(d){ return !d.archived && d.status === 'published' || d.ownerUid === uid; });
   if (!accessible) return { success:false, error:'You do not have access to this test.' };
   var assignmentId = String(p.assignmentId || '');
