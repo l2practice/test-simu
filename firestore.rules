@@ -119,10 +119,12 @@ service cloud.firestore {
       allow create: if signedIn() && request.resource.data.ownerUid == request.auth.uid
                     && request.resource.data.status == 'published'
                     && request.resource.data.archived == false
+                    && request.resource.data.review == (isTeacher() ? 'approved' : 'pending')
                     && request.resource.data.teacherUid == (isTeacher() ? request.auth.uid : profile().teacherUid);
       allow update: if signedIn() && (resource.data.ownerUid == request.auth.uid || (isTeacher() && resource.data.teacherUid == request.auth.uid))
                     && request.resource.data.ownerUid == resource.data.ownerUid
-                    && request.resource.data.teacherUid == resource.data.teacherUid;
+                    && request.resource.data.teacherUid == resource.data.teacherUid
+                    && (isTeacher() || request.resource.data.review == 'pending');
       allow delete: if false;
     }
     // Answer keys are stored separately because Firestore cannot redact fields

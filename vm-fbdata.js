@@ -848,12 +848,14 @@ async function ieltsContentSave(p) {
   const ownerUid = prior.exists ? prior.data().ownerUid : u.uid;
   const teacherUid = prior.exists ? (prior.data().teacherUid || '') : (u.role === 'teacher' ? u.uid : (u.teacherUid || ''));
   const version = prior.exists ? (prior.data().version || 1) + 1 : 1;
+  const approved = u.role === 'teacher';   // teacher-made or teacher-edited items are checked; student items wait for a teacher
   const keySections = data.sections.map(s => ({ script: s.script || '', answers: (s.questions || []).map(q => q.answers || []) }));
   data.sections.forEach(s => { delete s.script; (s.questions || []).forEach(q => { delete q.answers; delete q.answer; }); });
   const batch = fs.batch();
   batch.set(ref, Object.assign({}, data, {
     ownerUid, ownerName: prior.exists ? (prior.data().ownerName || '') : (u.fullName || ''), ownerRole: prior.exists ? (prior.data().ownerRole || '') : u.role,
     teacherUid, classId: '', allowedClassIds: [], visibility: 'library', status: 'published', archived: false, version,
+    review: approved ? 'approved' : 'pending', reviewedBy: approved ? u.uid : '', reviewedAt: approved ? nowIso() : '',
     createdAt: prior.exists ? prior.data().createdAt : nowIso(), updatedAt: nowIso()
   }));
   batch.set(fs.doc('ieltsAnswerKeys/' + id), { ownerUid, teacherUid, visibility: 'library', sections: keySections, version, updatedAt: nowIso() });
@@ -872,7 +874,7 @@ async function ieltsContentList(p) {
   return ok(rows.map(d => ({
     id: d._id, title: d.title, skill: d.skill, book: d.book || '', test: d.test || '', part: d.part || '', taskTypes: d.taskTypes || [],
     questionCount: (d.sections || []).reduce((n, s) => n + (s.questions || []).length, 0), hasAudio: !!(d.sections || []).some(s => s.audio && s.audio.path),
-    ownerName: d.ownerName || '', ownerRole: d.ownerRole || '', version: d.version || 1, updatedAt: d.updatedAt || '', canEdit: ieltsCanEdit(u, d)
+    ownerName: d.ownerName || '', ownerRole: d.ownerRole || '', review: d.review || 'approved', version: d.version || 1, updatedAt: d.updatedAt || '', canEdit: ieltsCanEdit(u, d)
   })));
 }
 async function ieltsContentGet(p) {
@@ -886,6 +888,11 @@ async function ieltsContentGet(p) {
   }
   d.canEdit = canEdit;
   return ok(canEdit ? d : publicIelts(d));
+}
+async function ieltsContentApprove(p) {
+  const u = await teacher(), ref = fs.doc('ieltsContent/' + str(p.id)), s = await ref.get();
+  if (!s.exists || !ieltsCanEdit(u, s.data())) return fail('You cannot approve this item.');
+  await ref.update({ review: 'approved', reviewedBy: u.uid, reviewedAt: nowIso() }); return ok();
 }
 async function ieltsContentArchive(p) {
   const u = await me(), ref = fs.doc('ieltsContent/' + str(p.id)), s = await ref.get();
@@ -912,6 +919,7 @@ async function ieltsInclassCreate(p) {
   for (const cid of ids) {
     const c = await fs.doc('ieltsContent/' + cid).get();
     if (!c.exists || c.data().archived || c.data().status !== 'published') return fail('One of the tests is no longer in the Library.');
+    if ((c.data().review || 'approved') === 'pending') return fail('Only teacher-approved tests can be assigned. Approve it first.');
     meta.push({ id: cid, title: c.data().title, skill: c.data().skill, book: c.data().book || '', test: c.data().test || '', part: c.data().part || '' });
   }
   if (meta.some(m => m.skill !== meta[0].skill)) return fail('A session can only contain one skill.');
@@ -1029,7 +1037,7 @@ async function ieltsAudioUrl(p) {
   return ok(await storage.ref(path).getDownloadURL());
 }
 async function ieltsImportUrl(p) {
-  const t = await teacher(), current = auth.currentUser;
+  await me(); const current = auth.currentUser;
   if (!current) return fail('SESSION_EXPIRED');
   return gas('ielts.importUrl', { url:str(p.url), idToken:await current.getIdToken() });
 }
@@ -1069,7 +1077,7 @@ const ACTIONS = {
   'translate.stats': translateStats, 'translate.myProgress': translateMyProgress,
   'readwise.save': readwiseSave, 'readwise.list': readwiseList, 'readwise.get': readwiseGet, 'readwise.delete': readwiseDelete,
   'ielts.inclass.create': ieltsInclassCreate, 'ielts.inclass.list': ieltsInclassList, 'ielts.inclass.forStudent': ieltsInclassForStudent, 'ielts.inclass.delete': ieltsInclassDelete,
-  'ielts.content.save': ieltsContentSave, 'ielts.content.list': ieltsContentList, 'ielts.content.get': ieltsContentGet, 'ielts.content.archive': ieltsContentArchive,
+  'ielts.content.approve': ieltsContentApprove, 'ielts.content.save': ieltsContentSave, 'ielts.content.list': ieltsContentList, 'ielts.content.get': ieltsContentGet, 'ielts.content.archive': ieltsContentArchive,
   'ielts.attempt.save': ieltsAttemptSave, 'ielts.attempt.list': ieltsAttemptList,
   'ielts.report.create': ieltsReportCreate, 'ielts.report.list': ieltsReportList, 'ielts.report.update': ieltsReportUpdate,
   'ielts.audio.upload': ieltsAudioUpload, 'ielts.audio.attach': ieltsAudioAttach, 'ielts.audio.url': ieltsAudioUrl,

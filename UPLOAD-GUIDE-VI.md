@@ -78,3 +78,21 @@ Sau khi tải mã mới, publish lại `firestore.rules` và `storage.rules` tro
 1. Firebase Console ▸ Firestore ▸ Rules: dán `firestore.rules`, Publish.
 2. Apps Script: dán `gas/FirebaseVM.gs`, Deploy ▸ Manage deployments ▸ Edit ▸ New version.
 3. GitHub: thay `index.html`, `login.html`, `signup.html`, `ielts.html`, `student.html`, `teacher.html`, `vm-common.js`, `vm-fbdata.js`, `vm-theme.css`, `gas/FirebaseVM.gs`.
+
+
+## Bản cập nhật: giao diện Emerald & Amber (xanh lục + cam)
+- Bảng màu lấy theo ảnh mẫu và repo Vocab-master: xanh lục đậm `#0F6B4F`, cam `#F08A3C`, nền sage xám nhạt có vòng tròn đào và đá xám, nút và thẻ bóng nổi có vệt phản quang.
+- Trang chung dùng xanh lục và cam xen kẽ (Reading xanh, Listening cam). Khi vào làm bài: **Reading toàn xanh lục, Listening toàn cam** (kể cả màn xem kết quả sau khi nộp).
+- Các file đổi: `vm-theme.css`, `ielts.html`, `login.html`, `signup.html`, `student.html`, `teacher.html`, `index.html`, `vm-common.js`, `favicon.svg`.
+
+
+## Bản cập nhật: sinh viên nhập URL, giáo viên duyệt đề trước khi sinh viên làm
+- **Nhập từ URL cho cả sinh viên** (chỉ trang ieltstrainingonline.com, tối đa 10 lần/giờ/người). Form luôn có lời nhắc đối chiếu nội dung với bản gốc trước khi bấm Finish; đề nhập từ URL có thêm cảnh báo riêng. Tối đa 4 phần mỗi lần nhập (đủ Listening).
+- **Duyệt đề.** Đề do sinh viên tạo ở trạng thái *awaiting check*: hiện trong Library nhưng bị khoá, không làm được, không dùng cho full test, task type hay In-class. Đề do giáo viên tạo hoặc sửa được duyệt ngay. Máy chủ chấm bài cũng từ chối đề chưa duyệt.
+- **Thông báo cho giáo viên.** Huy hiệu số trên mục Library; khung *To check* ở đầu Library (nút *Check & approve*: xem bài, câu hỏi, đáp án rồi Approve, Edit hoặc Remove); mục *New Practice* ở Glance có nút Check. Giáo viên của sinh viên đó là người duyệt.
+- Sinh viên sửa lại đề đã duyệt thì đề quay về trạng thái chờ kiểm tra.
+
+### Thứ tự cập nhật (lần này cần cả ba)
+1. Firestore Rules: dán `firestore.rules`, Publish (thêm kiểm tra trạng thái duyệt).
+2. Apps Script: dán **cả hai** `gas/Code.gs` và `gas/FirebaseVM.gs`, rồi Deploy ▸ New version.
+3. GitHub: thay `ielts.html`, `vm-fbdata.js`, `vm-common.js`, `vm-theme.css`, `index.html`, `login.html`, `signup.html`, `student.html`, `teacher.html`, `favicon.svg`, `firestore.rules`, `gas/Code.gs`, `gas/FirebaseVM.gs`.

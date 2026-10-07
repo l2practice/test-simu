@@ -58,7 +58,7 @@
     if (!_fbLoad) {
       _fbLoad = loadScript(FB_SDK + 'firebase-app-compat.js')
         .then(function () { return Promise.all([loadScript(FB_SDK + 'firebase-auth-compat.js'), loadScript(FB_SDK + 'firebase-firestore-compat.js'), loadScript(FB_SDK + 'firebase-storage-compat.js')]); })
-        .then(function () { return loadScript('vm-fbdata.js?v=7'); })
+        .then(function () { return loadScript('vm-fbdata.js?v=8'); })
         .then(function () { return global.FB; });
       _fbLoad.catch(function () { _fbLoad = null; });   // cho phép thử lại sau lỗi mạng
     }
@@ -885,7 +885,7 @@ VM.Chat = (function(){
     btn.innerHTML = '💬';
     btn.style.cssText = 'position:fixed;bottom:24px;right:20px;z-index:7000;width:52px;height:52px;'+
       'border-radius:50%;background:var(--vm-primary);color:#fff;border:none;font-size:1.4rem;'+
-      'cursor:pointer;box-shadow:0 4px 20px rgba(42,123,163,.4);transition:transform .15s;line-height:1;'+
+      'cursor:pointer;box-shadow:0 4px 20px rgba(15,107,79,.4);transition:transform .15s;line-height:1;'+
       'display:flex;align-items:center;justify-content:center';
     btn.title = 'AI Assistant';
     btn.onclick = function(){ VM.Chat.toggle(); };
