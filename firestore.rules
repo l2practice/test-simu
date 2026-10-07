@@ -112,43 +112,46 @@ service cloud.firestore {
     // IELTS Library: teachers own their authored items. Students can read only
     // published items granted to their class, plus their own private practice.
     match /ieltsContent/{id} {
-      allow read: if (isTeacher() && resource.data.ownerUid == request.auth.uid)
-                  || (isMe(resource.data.ownerUid) && resource.data.visibility == 'private')
+      allow read: if (isTeacher() && (resource.data.ownerUid == request.auth.uid || (resource.data.teacherUid == request.auth.uid && resource.data.status == 'review')))
+                  || (isMe(resource.data.ownerUid) && resource.data.visibility in ['private','library'])
                   || (signedIn() && profile().role == 'student'
-                      && resource.data.status in ['published','review'] && resource.data.archived == false
+                      && resource.data.status == 'published' && resource.data.archived == false
                       && resource.data.allowedClassIds.hasAny([profile().classId]));
       allow create: if (isTeacher() && request.resource.data.ownerUid == request.auth.uid
                        && request.resource.data.teacherUid == request.auth.uid
                        && ((request.resource.data.status == 'draft' && request.resource.data.classId == '' && request.resource.data.allowedClassIds == [])
                            || (classActiveOwned(request.resource.data.classId) && request.resource.data.allowedClassIds == [request.resource.data.classId])))
                     || (isMe(request.resource.data.ownerUid) && profile().role == 'student'
-                        && request.resource.data.visibility == 'private'
-                        && request.resource.data.status == 'private'
-                        && request.resource.data.classId == profile().classId);
-      allow update: if (isTeacher() && resource.data.ownerUid == request.auth.uid
-                       && request.resource.data.ownerUid == resource.data.ownerUid
+                        && request.resource.data.classId == profile().classId
+                        && request.resource.data.teacherUid == profile().teacherUid
+                        && ((request.resource.data.visibility == 'private' && request.resource.data.status == 'private')
+                            || (request.resource.data.visibility == 'library' && request.resource.data.status == 'review')));
+      allow update: if (isTeacher() && (resource.data.ownerUid == request.auth.uid || (resource.data.teacherUid == request.auth.uid && resource.data.status == 'review'))
+                       && request.resource.data.ownerUid == request.auth.uid
                        && request.resource.data.teacherUid == resource.data.teacherUid
                        && (((request.resource.data.status == 'draft' || request.resource.data.status == 'archived') && request.resource.data.classId == '' && request.resource.data.allowedClassIds == [])
                            || (request.resource.data.status == 'archived' && classOwned(request.resource.data.classId) && request.resource.data.allowedClassIds == [request.resource.data.classId])
                            || (classActiveOwned(request.resource.data.classId) && request.resource.data.allowedClassIds == [request.resource.data.classId])))
                     || (isMe(resource.data.ownerUid) && profile().role == 'student'
-                        && resource.data.visibility == 'private' && request.resource.data.visibility == 'private'
-                        && request.resource.data.status == 'private' && request.resource.data.classId == profile().classId
-                        && request.resource.data.ownerUid == resource.data.ownerUid);
+                        && request.resource.data.classId == profile().classId
+                        && request.resource.data.ownerUid == resource.data.ownerUid
+                        && ((resource.data.visibility == 'private' && request.resource.data.visibility == 'private' && request.resource.data.status == 'private')
+                            || (resource.data.visibility in ['private','library'] && request.resource.data.visibility == 'library' && request.resource.data.status == 'review')));
       allow delete: if false;
     }
     // Answer keys are stored separately because Firestore cannot redact fields
     // from a document read by an authorized student.
     match /ieltsAnswerKeys/{id} {
-      allow read: if (isTeacher() && resource.data.ownerUid == request.auth.uid)
-                  || (isMe(resource.data.ownerUid) && profile().role == 'student' && resource.data.visibility == 'private');
+      allow read: if (isTeacher() && (resource.data.ownerUid == request.auth.uid || resource.data.teacherUid == request.auth.uid))
+                  || (isMe(resource.data.ownerUid) && profile().role == 'student' && resource.data.visibility in ['private','library']);
       allow create, update: if (isTeacher() && request.resource.data.ownerUid == request.auth.uid
                                && request.resource.data.teacherUid == request.auth.uid
                                && getAfter(/databases/$(db)/documents/ieltsContent/$(id)).data.ownerUid == request.auth.uid)
                             || (isMe(request.resource.data.ownerUid) && profile().role == 'student'
-                                && request.resource.data.visibility == 'private'
+                                && request.resource.data.teacherUid == profile().teacherUid
+                                && request.resource.data.visibility in ['private','library']
                                 && getAfter(/databases/$(db)/documents/ieltsContent/$(id)).data.ownerUid == request.auth.uid
-                                && getAfter(/databases/$(db)/documents/ieltsContent/$(id)).data.visibility == 'private');
+                                && getAfter(/databases/$(db)/documents/ieltsContent/$(id)).data.visibility == request.resource.data.visibility);
       allow delete: if false;
     }
     match /ieltsAttempts/{id} {

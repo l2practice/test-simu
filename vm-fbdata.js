@@ -809,11 +809,12 @@ async function vocabToday(p) {
 // ════════════════════════════════════════════
 function cleanIeltsContent(p) {
   const skill = p.skill === 'listening' ? 'listening' : 'reading';
-  const sections = Array.isArray(p.sections) ? p.sections.slice(0, 3) : [];
-  const types = ['short-answer','sentence-completion','summary-completion','diagram-completion','multiple-choice','matching-features','matching-headings','true-false-not-given'];
+  const sections = Array.isArray(p.sections) ? p.sections.slice(0, (p.skill === 'listening' ? 4 : 3)) : [];
+  const types = ['short-answer','sentence-completion','summary-completion','diagram-completion','multiple-choice','matching-features','matching-headings','true-false-not-given','matching','plan-map-diagram-labelling','form-note-table-flow-chart-summary-completion'];
   if (!str(p.title) || !sections.length) throw new Error('Nhập tiêu đề và ít nhất một passage/section.');
   sections.forEach(s => {
-    if (!str(s.text)) throw new Error('Mỗi passage/section cần có nội dung hoặc transcript.');
+    if (!str(s.text) && !str(s.script)) throw new Error('Mỗi passage/section cần có nội dung hoặc script.');
+    s.script = str(s.script).slice(0, 50000);
     if (!Array.isArray(s.questions)) s.questions = [];
     s.questions.forEach(q => {
       if (!str(q.prompt) || !types.includes(q.type)) throw new Error('Câu hỏi thiếu nội dung hoặc task type không hợp lệ.');
@@ -826,13 +827,13 @@ function cleanIeltsContent(p) {
 }
 function publicIelts(d) {
   const copy = JSON.parse(JSON.stringify(d));
-  (copy.sections || []).forEach(s => (s.questions || []).forEach(q => { delete q.answers; delete q.answer; }));
+  (copy.sections || []).forEach(s => { delete s.script; (s.questions || []).forEach(q => { delete q.answers; delete q.answer; }); });
   return copy;
 }
 async function ieltsContentSave(p) {
   const u = await me(), data = cleanIeltsContent(p);
   const privateOnly = p.visibility === 'private';
-  if (u.role !== 'teacher' && !privateOnly) return fail('Chỉ giáo viên mới lưu được vào Library.');
+  if (u.role !== 'teacher' && !privateOnly && !(u.role === 'student' && p.status === 'review')) return fail('Sinh viên chỉ có thể lưu nháp riêng hoặc gửi bài để giáo viên duyệt.');
   if (u.role === 'teacher' && (p.status === 'published' || p.status === 'review')) {
     if (!Array.isArray(p.allowedClassIds) || !p.allowedClassIds.length) return fail('Chọn một lớp được cấp quyền.');
   }
@@ -850,7 +851,7 @@ async function ieltsContentSave(p) {
   }
   const id = str(p.id) || genId(18, 'IELTS_');
   const prior = p.id ? await fs.doc('ieltsContent/' + id).get() : null;
-  if (prior && prior.exists && prior.data().ownerUid !== u.uid) return fail('Không có quyền sửa bài này.');
+  if (prior && prior.exists && prior.data().ownerUid !== u.uid && !(u.role === 'teacher' && prior.data().teacherUid === u.uid && prior.data().status === 'review')) return fail('Không có quyền sửa bài này.');
   const status = privateOnly ? 'private' : (p.status === 'published' ? 'published' : (p.status === 'review' ? 'review' : 'draft'));
   const version = prior && prior.exists ? (prior.data().version || 1) + (JSON.stringify(prior.data().sections) === JSON.stringify(data.sections) ? 0 : 1) : 1;
   const keySections = data.sections.map(s => ({ answers:(s.questions||[]).map(q => q.answers || []) }));
@@ -869,10 +870,11 @@ async function ieltsContentSave(p) {
 async function ieltsContentList(p) {
   const u = await me(); let rows = [];
   if (u.role === 'teacher') {
-    rows = docs(await fs.collection('ieltsContent').where('ownerUid', '==', u.uid).get());
+    const [owned, reviewQueue] = await Promise.all([fs.collection('ieltsContent').where('ownerUid', '==', u.uid).get(), fs.collection('ieltsContent').where('teacherUid', '==', u.uid).where('status', '==', 'review').get()]);
+    rows = docs(owned).concat(docs(reviewQueue).filter(d => d.ownerUid !== u.uid));
   } else {
     const [pub, own] = await Promise.all([
-      u.classId ? fs.collection('ieltsContent').where('status','in',['published','review']).where('archived','==',false).where('allowedClassIds','array-contains',u.classId).get() : Promise.resolve({docs:[]}),
+      u.classId ? fs.collection('ieltsContent').where('status','==','published').where('archived','==',false).where('allowedClassIds','array-contains',u.classId).get() : Promise.resolve({docs:[]}),
       fs.collection('ieltsContent').where('ownerUid','==',u.uid).where('visibility','==','private').get()
     ]);
     rows = docs(pub).concat(docs(own));
@@ -884,8 +886,9 @@ async function ieltsContentGet(p) {
   const u = await me(), s = await fs.doc('ieltsContent/' + str(p.id)).get();
   if (!s.exists) return fail('Không tìm thấy bài.');
   const d = Object.assign({id:s.id},s.data());
-  if (d.ownerUid !== u.uid && !(['published','review'].includes(d.status) && !d.archived && u.classId && d.allowedClassIds.includes(u.classId))) return fail('Bạn chưa được cấp quyền xem bài này.');
-  if (d.ownerUid === u.uid) {
+  const teacherReview = u.role === 'teacher' && d.teacherUid === u.uid && d.status === 'review' && !d.archived;
+  if (d.ownerUid !== u.uid && !teacherReview && !(d.status === 'published' && !d.archived && u.classId && (d.allowedClassIds || []).includes(u.classId))) return fail('Bạn chưa được cấp quyền xem bài này.');
+  if (d.ownerUid === u.uid || teacherReview) {
     const key = await fs.doc('ieltsAnswerKeys/' + s.id).get();
     if (key.exists) (d.sections||[]).forEach((section,si) => (section.questions||[]).forEach((q,qi) => { q.answers = ((key.data().sections||[])[si]||{}).answers[qi] || []; }));
   }
@@ -944,7 +947,7 @@ async function ieltsAudioUpload(p) {
   const snap = await fs.doc('ieltsContent/' + id).get();
   if (!snap.exists) return fail('Hãy lưu bản nháp trước khi tải audio.');
   const item = snap.data();
-  const authorized = item.ownerUid === u.uid && ((u.role === 'teacher' && item.teacherUid === u.uid) || (u.role === 'student' && item.visibility === 'private'));
+  const authorized = item.ownerUid === u.uid && ((u.role === 'teacher' && item.teacherUid === u.uid) || (u.role === 'student' && (item.visibility === 'private' || (item.status === 'review' && item.teacherUid === u.teacherUid))));
   if (!authorized) return fail('Chỉ người tạo nội dung mới tải audio lên được.');
   const ext = str(file.name).split('.').pop().toLowerCase().replace(/[^a-z0-9]/g,'').slice(0,8) || 'audio';
   const path = 'ieltsAudio/' + u.uid + '/' + id + '/' + genId(18, '') + '.' + ext;

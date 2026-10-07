@@ -13,7 +13,7 @@ service firebase.storage {
       return request.auth != null && (
         (request.auth.uid == ownerUid && item.ownerUid == request.auth.uid) ||
         (profile.role == 'student' && item.archived == false
-         && item.status in ['published', 'review']
+         && item.status == 'published'
          && item.allowedClassIds.hasAny([profile.classId]))
       );
     }
@@ -23,7 +23,7 @@ service firebase.storage {
       return request.auth != null && request.auth.uid == ownerUid
         && item.ownerUid == ownerUid
         && ((profile.role == 'teacher' && item.teacherUid == ownerUid)
-          || (profile.role == 'student' && item.visibility == 'private'));
+          || (profile.role == 'student' && (item.visibility == 'private' || (item.status == 'review' && item.teacherUid == profile.teacherUid))));
     }
     match /ieltsAudio/{ownerUid}/{contentId}/{fileName} {
       allow read: if authorizedReader(ownerUid, contentId);

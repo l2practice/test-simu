@@ -14,6 +14,18 @@ assert.deepEqual(Array.from(item.sections[0].questions[0].answers), ['North', 't
 const publicItem = appContext.window.FB._helpers.publicIelts(item);
 assert.equal('answers' in publicItem.sections[0].questions[0], false);
 assert.equal('answers' in item.sections[0].questions[0], true);
+
+const listeningModel = clean({ title:'Museum tour', skill:'listening', sections:[
+  { title:'Part 1', text:'Audio notes', script:'Good morning, visitors.', questions:[{ type:'matching', prompt:'Match the visitor.', options:['A','B'], answers:['A'] }] },
+  { title:'Part 2', text:'Audio notes', script:'Turn left at the hall.', questions:[{ type:'plan-map-diagram-labelling', prompt:'Where is the entrance?', answers:['north'] }] },
+  { title:'Part 3', text:'Audio notes', script:'The research group meets weekly.', questions:[{ type:'form-note-table-flow-chart-summary-completion', prompt:'How often?', answers:['weekly'] }] },
+  { title:'Part 4', text:'Audio notes', script:'The lecture begins at nine.', questions:[{ type:'sentence-completion', prompt:'The lecture begins at ___', answers:['nine'] }] }
+] });
+assert.equal(listeningModel.sections.length, 4, 'Listening supports four parts');
+assert.equal(listeningModel.sections[0].script, 'Good morning, visitors.');
+const publicListening = appContext.window.FB._helpers.publicIelts(listeningModel);
+assert.equal('script' in publicListening.sections[0], false, 'published scripts stay hidden before a student submits');
+assert.equal(listeningModel.sections[1].questions[0].type, 'plan-map-diagram-labelling');
 assert.equal(clean({ ...base, skill: 'video' }).skill, 'reading');
 assert.throws(() => clean({ ...base, title: '' }), /tiêu đề/);
 assert.throws(() => clean({ ...base, sections: [{ text: '', questions: [] }] }), /nội dung/);
