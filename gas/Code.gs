@@ -202,61 +202,116 @@ function ieltsImportUrl(p) {
   if (tm) title = ieltsHtmlText(tm[1]).slice(0, 180);
   var skill = /listening/i.test(path + ' ' + title) ? 'listening' : 'reading';
   var parsed = skill === 'listening' ? ieltsParseListeningPage_(html, title) : ieltsParseReadingPage_(html, title);
-  if (!parsed.sections.length || parsed.sections.every(function(s){return s.text.length < 40;})) return { success:false, error:'The importer could not find the lesson content reliably. Check the URL or paste the content manually.' };
+  if (!parsed.sections.length || parsed.sections.every(function(s){return s.text.length < 40 && s.questionsText.length < 40;})) return { success:false, error:'The importer could not find the lesson content reliably. Check the URL or paste the content manually.' };
   return { success:true, data:{ title:title, sourceTitle:title, skill:skill,
     sections:parsed.sections.slice(0,4),
     warning:parsed.warning } };
 }
-function ieltsParseReadingPage_(html, title) { return ieltsParsePage_(html, title, 'reading'); }
-function ieltsParseListeningPage_(html, title) { return ieltsParsePage_(html, title, 'listening'); }
-function ieltsParsePage_(html, title, skill) {
-  var body = html, main = /<(?:article|main)[^>]*>([\s\S]*?)<\/(?:article|main)>/i.exec(html);
-  if (main) body = main[1];
-  body = body.replace(/<(script|style|nav|header|footer|noscript|svg|audio|video|iframe)\b[^>]*>[\s\S]*?<\/\1>/gi, ' ')
-             .replace(/<(?:br|\/p|\/div|\/li|\/h[1-6]|\/tr|\/section|\/article)>/gi, '\n')
-             .replace(/<[^>]+>/g, ' ');
-  var text = ieltsHtmlText(body).replace(/[ \t]+/g, ' ').replace(/\n\s*\n+/g, '\n').trim();
-  if (text.length > 60000) text = text.slice(0,60000);
-  var lines = text.split('\n').map(function(x){return x.trim();}).filter(Boolean);
-  var groups = [], current = {title:title || (skill === 'reading' ? 'Passage 1' : 'Section 1'),lines:[]};
-  lines.forEach(function(line){
-    if (/^(?:passage|section|part)\s*[1-3]\b/i.test(line) && current.lines.length) { groups.push(current); current={title:line,lines:[]}; }
-    else if (/^(?:passage|section|part)\s*[1-3]\b/i.test(line) && !current.lines.length) current.title=line;
-    current.lines.push(line);
-  });
-  if (current.lines.length) groups.push(current);
-  var keyMap = {}, keyAt = -1;
-  lines.forEach(function(line,i){if (/^(?:answer\s*key|answers)\b/i.test(line)) keyAt=i;});
-  if (keyAt >= 0) lines.slice(keyAt+1).forEach(function(line){
-    var m=/^(\d{1,3})[.)\s:-]+(.{1,80})$/.exec(line);
-    if (m) keyMap[Number(m[1])] = m[2].trim();
-  });
-  var questionNo = 0, foundQuestions = false;
-  var sections = groups.slice(0,3).map(function(group){
-    var raw = group.lines.join('\n'), type = ieltsGuessTaskType_(raw,skill), qs=[], passage=[];
-    var answerBlock = false, options = [];
-    group.lines.forEach(function(line){
-      if (/^(?:answer\s*key|answers)\b/i.test(line)) {answerBlock=true;return;}
-      if (answerBlock) return;
-      var qm=/^(\d{1,3})[.)\s]+(.{4,300})$/.exec(line);
-      if (qm && Number(qm[1]) >= 1 && Number(qm[1]) <= 300) {
-        foundQuestions=true; questionNo=Number(qm[1]);
-        var prompt=qm[2].trim();
-        if (/^(?:True|False|Not Given|Yes|No|Not Given|[A-D])\b/i.test(prompt)) { if(qs.length) qs[qs.length-1].answers.push(prompt); return; }
-        qs.push({type:type,prompt:prompt,options:[],answers:keyMap[questionNo]?[keyMap[questionNo]]:[]});
-        return;
-      }
-      var om=/^([A-H])[.)]\s*(.{1,180})$/.exec(line);
-      if (om && qs.length) { qs[qs.length-1].options.push(om[2].trim()); return; }
-      if (qs.length) qs[qs.length-1].prompt += ' ' + line; else passage.push(line);
-    });
-    return {title:group.title,text:passage.join('\n').slice(0,30000),questions:qs};
-  }).filter(function(s){return s.text.length || s.questions.length;});
-  var warning = foundQuestions
-    ? 'Some questions were detected from the page structure. Compare every question and option with the source; the importer can miss items or misclassify them. Answers are only filled in when an answer key was found. A teacher will check the test before students can practise it.'
-    : 'The text was extracted, but the questions could not be identified reliably. Check the content and add the questions and answers before you finish.';
-  return {sections:sections,warning:warning};
+/* ───────── IELTS Training Online page parser (structure-first) ─────────
+   The lesson pages are built from block elements:
+     h3 "READING PASSAGE n" / "PART n"      → starts a passage / part
+     h3 "Questions a-b" (+ following p/li)  → one group of questions (instructions, items, options)
+     h2 "Answer …" then h5 "Passage n" + p  → answer key, one "n   answer" line per question
+     <audio><source src=…mp3>               → Listening audio (link only, never downloaded)
+   Everything is returned as text blocks that the app classifies and shows in a preview before saving. */
+function ieltsParseReadingPage_(html, title) { return ieltsParseDom_(html, title, 'reading'); }
+function ieltsParseListeningPage_(html, title) { return ieltsParseDom_(html, title, 'listening'); }
+function ieltsPlain_(s) {
+  return ieltsHtmlText(String(s || '').replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, '')).replace(/[   ]/g, ' ').replace(/[ \t]+\n/g, '\n');
 }
+function ieltsImgOk_(tag) {
+  var src = /\bsrc=["']([^"']+)["']/i.exec(tag); if (!src) return '';
+  var u = ieltsHtmlText(src[1]);
+  if (!/^https:\/\//i.test(u) || /logo|icon|avatar|gravatar|emoji|spinner|loading|banner|favicon|pixel|\.svg(?:\?|$)|\/ads?\//i.test(u)) return '';
+  var w = /\bwidth=["']?(\d+)/i.exec(tag); if (w && Number(w[1]) < 120) return '';
+  return u.slice(0, 600);
+}
+function ieltsBlocks_(html) {
+  var body = String(html || ''), m = /<div[^>]*class="[^"]*entry-content[^"]*"[^>]*>/i.exec(body);
+  if (m) body = body.slice(m.index + m[0].length);
+  var end = body.search(/<\/article>/i); if (end > 0) body = body.slice(0, end);
+  body = body.replace(/<!--[\s\S]*?-->/g, ' ')
+    .replace(/<(script|style|noscript|svg|iframe|form|nav|header|footer|ins|button)\b[^>]*>[\s\S]*?<\/\1>/gi, ' ');
+  body = body.replace(/<audio\b[\s\S]*?<\/audio>/gi, function (a) {
+    var s = /<source[^>]+src=["']([^"']+)["']/i.exec(a) || /\bsrc=["']([^"']+\.mp3[^"']*)["']/i.exec(a) || /href=["']([^"']+\.mp3[^"']*)["']/i.exec(a);
+    return s ? '<p data-audio="' + ieltsHtmlText(s[1]).replace(/"/g, '') + '"></p>' : ' ';
+  }).replace(/<img\b[^>]*>/gi, function (t) { var u = ieltsImgOk_(t); return u ? '<p data-img="' + u.replace(/"/g, '') + '"></p>' : ' '; });
+  var blocks = [], re = /<(h[1-6]|p|li)\b([^>]*)>([\s\S]*?)(?=<(?:h[1-6]|p|li)\b|<\/(?:ul|ol|div|article|section|table|tr)>|$)/gi, mm;
+  while ((mm = re.exec(body))) {
+    var tag = mm[1].toLowerCase(), attrs = mm[2] || '', am = /data-audio="([^"]+)"/.exec(attrs), im = /data-img="([^"]+)"/.exec(attrs);
+    if (am) { blocks.push({ t: 'audio', src: am[1] }); continue; }
+    if (im) { blocks.push({ t: 'img', src: im[1] }); continue; }
+    var text = ieltsPlain_(mm[3]).replace(/\n{3,}/g, '\n\n').trim();
+    if (text) blocks.push({ t: tag, text: text });
+  }
+  return blocks;
+}
+function ieltsSplitOptionLine_(line) {
+  // "A   wrong classes      B   lower expectations" → two lines
+  if (!/^[A-I]\s{2,}\S/.test(line) || !/\s{3,}[A-I]\s{2,}\S/.test(line)) return [line];
+  return line.split(/\s{3,}(?=[A-I]\s{2,}\S)/).map(function (x) { return x.trim(); }).filter(Boolean);
+}
+function ieltsParseDom_(html, title, skill) {
+  var blocks = ieltsBlocks_(html), sections = [], byPart = {}, cur = null, mode = 'content', ansPart = 0, scrPart = 0, answers = {}, scripts = {}, imgCount = 0;
+  var partRe = /^(?:reading\s+passage|passage|section|part)\s*(\d)\b/i, qRe = /^questions?\s+\d+\s*(?:[-–—]|to|and|&)\s*\d+/i;
+  var relatedRe = /^cam(?:bridge)?\s*\d+\s*(?:reading|listening)\s*test/i, partFromUrl = /part\s*0?(\d)/i;
+  function sectionFor(n) {
+    n = Number(n) || (sections.length + 1);
+    if (byPart[n]) return byPart[n];
+    var s = { part: n, lines: [], q: [], images: [], audio: '', inQ: false };
+    byPart[n] = s; sections.push(s); return s;
+  }
+  blocks.forEach(function (b) {
+    var isH = /^h[1-6]$/.test(b.t), text = b.text || '';
+    if (isH) text = text.replace(/https?:\/\/\S+/g, ' ').replace(/\s+/g, ' ').trim();
+    if (b.t === 'audio') {
+      var pm = partFromUrl.exec(b.src), target = pm ? sectionFor(pm[1]) : cur;
+      if (target && !target.audio) target.audio = b.src.replace(/\?_=\d+$/, '');
+      return;
+    }
+    if (b.t === 'img') { if (cur && mode === 'content' && imgCount < 8) { cur.images.push(b.src); imgCount++; } return; }
+    if (isH && /^answers?\b/i.test(text)) { mode = 'answers'; cur = null; return; }
+    if (isH && /^(?:audio\s*script|transcript|tapescript)/i.test(text)) { mode = 'script'; cur = null; return; }
+    if (mode === 'answers') {
+      if (isH && partRe.test(text)) { ansPart = Number(partRe.exec(text)[1]); return; }
+      if (!isH && /^\d+(?:\s*(?:&|and|,)\s*\d+)?\s+\S/.test(text)) { (answers[ansPart] = answers[ansPart] || []).push(text.split('\n')[0]); }
+      return;
+    }
+    if (mode === 'script') {
+      if (isH && partRe.test(text)) { scrPart = Number(partRe.exec(text)[1]); return; }
+      if (!isH) (scripts[scrPart] = scripts[scrPart] || []).push(text);
+      return;
+    }
+    if (isH && relatedRe.test(text)) { cur = null; return; }
+    if (isH && partRe.test(text) && text.length < 60) { cur = sectionFor(partRe.exec(text)[1]); return; }
+    if (!cur) return;
+    if (isH && qRe.test(text)) { cur.inQ = true; if (cur.q.length) cur.q.push(''); cur.q.push(text); return; }
+    if (cur.inQ) {
+      if (relatedRe.test(text)) return;
+      text.split('\n').forEach(function (ln) { ieltsSplitOptionLine_(ln.trim()).forEach(function (x) { if (x) cur.q.push(x); }); });
+      return;
+    }
+    if (skill === 'reading') {
+      if (b.t === 'h1') return;
+      if (!isH && /^you should spend about/i.test(text)) return;
+      cur.lines.push(text);
+    }
+  });
+  var single = sections.length === 1;
+  var out = sections.sort(function (a, b) { return a.part - b.part; }).map(function (s) {
+    var ans = answers[s.part] || (single && Object.keys(answers).length === 1 ? answers[Object.keys(answers)[0]] : null) || [];
+    var scr = scripts[s.part] || (single && scripts[0]) || [];
+    var o = { title: (skill === 'listening' ? 'Part ' : 'Passage ') + s.part, part: String(s.part), text: skill === 'reading' ? s.lines.join('\n\n') : '', script: scr.join('\n\n'),
+      questionsText: s.q.join('\n'), answersText: ans.join('\n') };
+    if (s.audio) o.audio = { url: s.audio };
+    if (s.images.length) o.images = s.images.slice(0, 6);
+    return o;
+  }).filter(function (s) { return s.text.length > 0 || s.questionsText.length > 0; });
+  var haveAnswers = out.some(function (s) { return s.answersText; });
+  var warning = 'Imported from the page structure. Compare every passage, question, option and answer with the original before you finish.' + (haveAnswers ? '' : ' No answer key was found on the page, so type the answers in yourself.');
+  return { sections: out, warning: warning };
+}
+
 function ieltsGuessTaskType_(text, skill) {
   var s=String(text||'').toLowerCase();
   if (/true\s*\/\s*false\s*\/\s*not given|true false not given/.test(s)) return 'true-false-not-given';
