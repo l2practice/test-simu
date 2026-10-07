@@ -178,6 +178,7 @@ function vmfbIeltsGradeAttempt(p) {
     (d.taskTypes || []).forEach(function(t){ taskTypes[t] = true; });
     (d.sections || []).forEach(function(sec,si){
       var copy = JSON.parse(JSON.stringify(sec));
+      copy.script = (((keys[di].sections || [])[si] || {}).script) || copy.script || '';
       (copy.questions || []).forEach(function(q,qi){ q.__accepted = (((keys[di].sections || [])[si] || {}).answers || [])[qi] || []; });
       sections.push(copy);
     });
@@ -190,9 +191,14 @@ function vmfbIeltsGradeAttempt(p) {
   function norm(v) { return String(v == null ? '' : v).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim(); }
   var correct = 0, graded = 0, responses = input.map(function(answer, i){
     var q = questions[i], accepted = Array.isArray(q.__accepted) ? q.__accepted : [];
-    var hit = accepted.length ? accepted.some(function(a){ return norm(a) === norm(answer); }) : null;
+    var opts = Array.isArray(q.options) ? q.options : [];
+    var hit = accepted.length ? accepted.some(function(a){
+      if (norm(a) === norm(answer)) return true;
+      var m = /^[A-Za-z]$/.exec(String(a).trim());
+      return !!(m && opts.length && opts[m[0].toUpperCase().charCodeAt(0) - 65] != null && norm(opts[m[0].toUpperCase().charCodeAt(0) - 65]) === norm(answer));
+    }) : null;
     if (accepted.length) { graded++; if (hit) correct++; }
-    return {questionIndex:i, answer:String(answer == null ? '' : answer).slice(0,1000), correct:hit};
+    return {questionIndex:i, answer:String(answer == null ? '' : answer).slice(0,1000), correct:hit, accepted:accepted.slice(0,10).map(function(v){ return String(v).slice(0,300); })};
   });
   // Permanent attempt snapshot excludes keys; only this trusted function reads answer keys.
   sections.forEach(function(sec){ (sec.questions || []).forEach(function(q){ delete q.answers; delete q.answer; delete q.__accepted; }); });
