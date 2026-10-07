@@ -42,7 +42,7 @@ var VMFB = {
 // ── ROUTER (gọi từ dispatch trong Code.gs cho các action 'fb.*') ──
 function fbRoute(action, p) {
   try {
-    if (!VMFB.PROJECT_ID) return { success: false, error: 'Firebase chưa được cấu hình (VMFB.PROJECT_ID).' };
+    if (!VMFB.PROJECT_ID) return { success: false, error: 'Firebase is not configured (VMFB.PROJECT_ID).' };
     if (action === 'fb.register')        return vmfbRegister(p || {});
     if (action === 'fb.registerTeacher') return vmfbRegisterTeacher(p || {});
     if (action === 'fb.forgotPassword')  return vmfbForgotPassword(p || {});
@@ -138,15 +138,15 @@ function fsCommit(writes) {
 // FIREBASE AUTH (quản trị, bằng tài khoản chủ script)
 // ════════════════════════════════════════════════════════════
 function vmfbIeltsVerifiedUser(idToken) {
-  if (!idToken || !VMFB.API_KEY) return { success:false, error:'Thiếu phiên đăng nhập Firebase.' };
+  if (!idToken || !VMFB.API_KEY) return { success:false, error:'Missing Firebase sign-in.' };
   var check = UrlFetchApp.fetch('https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=' + encodeURIComponent(VMFB.API_KEY), {
     method:'post', contentType:'application/json', muteHttpExceptions:true, payload:JSON.stringify({idToken:idToken})
   });
-  if (check.getResponseCode() !== 200) return { success:false, error:'Phiên đăng nhập đã hết hạn.' };
+  if (check.getResponseCode() !== 200) return { success:false, error:'Your session has expired.' };
   var authData = JSON.parse(check.getContentText()), authUser = authData.users && authData.users[0];
-  if (!authUser || !authUser.localId) return { success:false, error:'Không xác thực được tài khoản.' };
+  if (!authUser || !authUser.localId) return { success:false, error:'Could not verify the account.' };
   var uid = authUser.localId, user = fsGet('users/' + uid);
-  if (!user || user.archived) return { success:false, error:'Tài khoản không hoạt động.' };
+  if (!user || user.archived) return { success:false, error:'This account is not active.' };
   return { success:true, uid:uid, user:user };
 }
 
@@ -155,24 +155,35 @@ function vmfbIeltsGradeAttempt(p) {
   var verified = vmfbIeltsVerifiedUser(p.idToken);
   if (!verified.success) return verified;
   var uid = verified.uid, user = verified.user;
-  if (!user || user.archived || user.role !== 'student') return { success:false, error:'Chỉ sinh viên đang hoạt động mới được nộp bài.' };
-  var ids = Array.isArray(p.contentIds) ? p.contentIds.slice(0,3) : [];
+  if (!user || user.archived || user.role !== 'student') return { success:false, error:'Only active students can submit answers.' };
+  var taskType = String(p.taskType || '');
+  var ids = Array.isArray(p.contentIds) ? p.contentIds.slice(0, taskType ? 12 : 4) : [];
   ids = ids.filter(function(id){ return /^[A-Za-z0-9_-]{1,128}$/.test(String(id)); });
-  if (!ids.length) return { success:false, error:'Thiếu bài luyện tập.' };
+  if (!ids.length) return { success:false, error:'No test selected.' };
   var docs = ids.map(function(id){ return fsGet('ieltsContent/' + id); });
-  if (docs.some(function(d){ return !d; })) return { success:false, error:'Không tìm thấy một trong các bài.' };
+  if (docs.some(function(d){ return !d; })) return { success:false, error:'One of the tests could not be found.' };
   var keys = ids.map(function(id){ return fsGet('ieltsAnswerKeys/' + id); });
-  if (keys.some(function(k){ return !k; })) return { success:false, error:'Bài thiếu answer key; hãy báo giáo viên.' };
-  var privateOnly = docs.length === 1 && docs[0].visibility === 'private';
-  var accessible = docs.every(function(d){
-    if (d.archived) return false;
-    if (privateOnly) return d.ownerUid === uid;
-    return ['published','review'].indexOf(d.status) >= 0 && (d.allowedClassIds || []).indexOf(user.classId) >= 0;
-  });
-  if (!accessible) return { success:false, error:'Bạn chưa được cấp quyền làm bài này.' };
-  var title = docs.length === 1 ? docs[0].title : 'Full Test · ' + docs[0].skill;
+  if (keys.some(function(k){ return !k; })) return { success:false, error:'This test has no answer key yet; please tell your teacher.' };
+  var accessible = docs.every(function(d){ return !d.archived && d.status === 'published' || d.ownerUid === uid; });
+  if (!accessible) return { success:false, error:'You do not have access to this test.' };
+  var assignmentId = String(p.assignmentId || '');
+  if (assignmentId) {
+    if (!/^[A-Za-z0-9_-]{1,64}$/.test(assignmentId)) return { success:false, error:'Invalid in-class session.' };
+    var asg = fsGet('assignments/' + assignmentId);
+    if (!asg || asg.deleted || asg.kind !== 'ielts' || asg.classId !== user.classId) return { success:false, error:'Invalid in-class session.' };
+    var okIds = ids.every(function(id){ return (asg.contentIds || []).indexOf(id) >= 0; });
+    if (!okIds) return { success:false, error:'This test is not part of this in-class session.' };
+    var startMs = new Date(asg.sessionStart).getTime();
+    var baseEnd = asg.sessionEnd ? new Date(asg.sessionEnd).getTime() : startMs + (parseInt(asg.sessionDurationMin, 10) || 0) * 60000;
+    var extAll = asg.extAll ? new Date(asg.extAll).getTime() : 0;
+    var extMe = asg.ext && asg.ext[user.studentId] ? new Date(asg.ext[user.studentId]).getTime() : 0;
+    var endMs = Math.max(baseEnd || 0, extAll || 0, extMe || 0);
+    if (startMs && Date.now() < startMs - 60000) return { success:false, error:'This in-class test has not started yet.' };
+    if (endMs && Date.now() > endMs + 120000) return { success:false, error:'This in-class session has closed.' };
+  }
+  var title = taskType ? ('Task type · ' + taskType.replace(/-/g, ' ')) : (docs.length === 1 ? docs[0].title : 'Full Test · ' + docs[0].skill);
   var skill = docs[0].skill;
-  if (docs.some(function(d){ return d.skill !== skill; })) return { success:false, error:'Một Full Test chỉ được kết hợp cùng một skill.' };
+  if (docs.some(function(d){ return d.skill !== skill; })) return { success:false, error:'A full test can only combine parts of the same skill.' };
   var sections = [], taskTypes = {};
   docs.forEach(function(d,di){
     (d.taskTypes || []).forEach(function(t){ taskTypes[t] = true; });
@@ -180,12 +191,13 @@ function vmfbIeltsGradeAttempt(p) {
       var copy = JSON.parse(JSON.stringify(sec));
       copy.script = (((keys[di].sections || [])[si] || {}).script) || copy.script || '';
       (copy.questions || []).forEach(function(q,qi){ q.__accepted = (((keys[di].sections || [])[si] || {}).answers || [])[qi] || []; });
+      if (taskType) { copy.questions = (copy.questions || []).filter(function(q){ return q.type === taskType; }); if (!copy.questions.length) return; }
       sections.push(copy);
     });
   });
   var questions = [];
   sections.forEach(function(sec){ (sec.questions || []).forEach(function(q){ questions.push(q); }); });
-  if (!questions.length || questions.length > 300) return { success:false, error:'Số câu hỏi không hợp lệ (tối đa 300 câu).' };
+  if (!questions.length || questions.length > 300) return { success:false, error:'Invalid number of questions (maximum 300).' };
   var input = Array.isArray(p.answers) ? p.answers.slice(0, questions.length) : [];
   while (input.length < questions.length) input.push('');
   function norm(v) { return String(v == null ? '' : v).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim(); }
@@ -206,7 +218,7 @@ function vmfbIeltsGradeAttempt(p) {
   var duration = Math.max(0, Math.min(24 * 60 * 60, Math.round((now.getTime() - new Date(startedAt).getTime()) / 1000)));
   if (!isFinite(duration)) duration = 0;
   var id = 'IA_' + Utilities.getUuid().replace(/-/g,'');
-  var doc = { uid:uid, studentId:user.studentId || '', studentName:user.fullName || '', teacherUid:privateOnly ? '' : (user.teacherUid || ''), classId:user.classId || '', contentId:ids.join(','), title:title, skill:skill, taskTypes:Object.keys(taskTypes), version:docs.map(function(d){return d.version || 1;}), snapshot:{title:title,skill:skill,sections:sections}, responses:responses, score:graded ? Math.round(correct * 100 / graded) : null, gradable:graded === questions.length, gradedCount:graded, correct:correct,total:questions.length,startedAt:startedAt,completedAt:completedAt,durationSeconds:duration };
+  var doc = { uid:uid, studentId:user.studentId || '', studentName:user.fullName || '', teacherUid:user.teacherUid || '', assignmentId:assignmentId, classId:user.classId || '', contentId:ids.join(','), title:title, skill:skill, taskTypes:Object.keys(taskTypes), version:docs.map(function(d){return d.version || 1;}), snapshot:{title:title,skill:skill,sections:sections}, responses:responses, score:graded ? Math.round(correct * 100 / graded) : null, gradable:graded === questions.length, gradedCount:graded, correct:correct,total:questions.length,startedAt:startedAt,completedAt:completedAt,durationSeconds:duration };
   fsCommit([wSet('ieltsAttempts/' + id, doc)]);
   return { success:true, data:Object.assign({id:id}, doc) };
 }
@@ -254,46 +266,46 @@ function vmfbRandomPassword() {
 // ════════════════════════════════════════════════════════════
 function vmfbRegister(p) {
   var classId = vmfbStr(p.classId).toUpperCase();
-  if (!classId) return { success: false, error: 'Cần nhập mã lớp — hỏi giảng viên.' };
-  if (!vmfbStr(p.studentId) || !p.password || !vmfbStr(p.fullName)) return { success: false, error: 'Nhập đủ họ tên, mã SV và mật khẩu.' };
+  if (!classId) return { success: false, error: 'Enter the class code. Ask your teacher.' };
+  if (!vmfbStr(p.studentId) || !p.password || !vmfbStr(p.fullName)) return { success: false, error: 'Enter your full name, student ID and password.' };
   var cls = fsGet('classes/' + classId);
-  if (!cls) return { success: false, error: 'Mã lớp "' + classId + '" không tồn tại. Kiểm tra lại với giảng viên.' };
-  if (cls.status === 'Archived') return { success: false, error: 'Lớp "' + (cls.className || classId) + '" hiện không mở đăng ký.' };
+  if (!cls) return { success: false, error: 'Class code "' + classId + '" does not exist. Check with your teacher.' };
+  if (cls.status === 'Archived') return { success: false, error: 'Class "' + (cls.className || classId) + '" is not open for registration.' };
 
   var sid = vmfbStr(p.studentId), email = vmfbLow(p.email), uid = vmfbUidForStudent(sid);
-  if (fsGet('users/' + uid)) return { success: false, error: 'Student ID đã được đăng ký.' };
-  if (email && fsGet('loginIndex/' + vmfbSha256(email))) return { success: false, error: 'Email đã được đăng ký.' };
+  if (fsGet('users/' + uid)) return { success: false, error: 'This Student ID is already registered.' };
+  if (email && fsGet('loginIndex/' + vmfbSha256(email))) return { success: false, error: 'This email is already registered.' };
   try { vmfbAuthCreate(uid, vmfbLoginEmailFor(sid), p.password); }
-  catch (e) { if (/EXISTS|DUPLICATE/.test(e.message)) return { success: false, error: 'Student ID đã được đăng ký.' }; throw e; }
+  catch (e) { if (/EXISTS|DUPLICATE/.test(e.message)) return { success: false, error: 'This Student ID is already registered.' }; throw e; }
   vmfbAuthUpdate(uid, { role: 'student' });
   var writes = [wSet('users/' + uid, { role: 'student', studentId: sid, fullName: vmfbStr(p.fullName), classId: classId,
     teacherUid: cls.teacherUid || '', email: email, phone: vmfbStr(p.phone), birthdate: vmfbStr(p.birthdate),
     archived: false, createdAt: new Date().toISOString() })];
   if (email) writes.push(wSet('loginIndex/' + vmfbSha256(email), { sid: sid }));
   fsCommit(writes);
-  return { success: true, message: 'Chào mừng vào lớp ' + (cls.className || classId) + '! Đăng nhập ngay.' };
+  return { success: true, message: 'Welcome to ' + (cls.className || classId) + '! You can sign in now.' };
 }
 
 // Đăng ký GV tự do (như bản Sheet); khoá tài khoản lạ bằng cách đặt archived = true trong users.
 function vmfbRegisterTeacher(p) {
   var email = vmfbLow(p.email);
-  if (!email || !p.password || !vmfbStr(p.fullName)) return { success: false, error: 'Nhập đủ họ tên, email, mật khẩu.' };
-  if (vmfbAuthLookupEmail(email)) return { success: false, error: 'Email đã tồn tại.' };
+  if (!email || !p.password || !vmfbStr(p.fullName)) return { success: false, error: 'Enter your full name, email and password.' };
+  if (vmfbAuthLookupEmail(email)) return { success: false, error: 'This email already exists.' };
   var uid = vmfbUidForTeacher(email);
   vmfbAuthCreate(uid, email, p.password);
   vmfbAuthUpdate(uid, { role: 'teacher' });
   fsCommit([wSet('users/' + uid, { role: 'teacher', fullName: vmfbStr(p.fullName), email: email, phone: vmfbStr(p.phone),
     birthdate: vmfbStr(p.birthdate), archived: false, createdAt: new Date().toISOString() })]);
-  return { success: true, message: 'Tạo tài khoản GV thành công.' };
+  return { success: true, message: 'Teacher account created.' };
 }
 
 // Mật khẩu Firebase được mã hoá, không đọc lại được → đặt mật khẩu MỚI và gửi qua email.
 function vmfbForgotPassword(p) {
   var email = vmfbLow(p.email);
-  if (!email) return { success: false, error: 'Nhập email đã đăng ký.' };
+  if (!email) return { success: false, error: 'Enter the email you registered with.' };
   var uid = '', name = '', sid = '';
   var idx = fsGet('loginIndex/' + vmfbSha256(email));
-  if (idx && idx.multi) return { success: false, error: 'Email này gắn với nhiều tài khoản. Liên hệ giảng viên để đặt lại mật khẩu.' };
+  if (idx && idx.multi) return { success: false, error: 'This email is linked to several accounts. Ask your teacher to reset your password.' };
   if (idx) {
     sid = idx.sid; uid = vmfbUidForStudent(sid);
     var u = fsGet('users/' + uid); name = u ? u.fullName : '';
@@ -301,16 +313,16 @@ function vmfbForgotPassword(p) {
     var t = vmfbAuthLookupEmail(email);
     if (t) { uid = t.localId; var tu = fsGet('users/' + uid); name = tu ? tu.fullName : ''; }
   }
-  if (!uid) return { success: false, error: 'Không tìm thấy tài khoản với email này.' };
+  if (!uid) return { success: false, error: 'No account was found for this email.' };
   var pw = vmfbRandomPassword();
   vmfbAuthUpdate(uid, { password: pw });
   try {
     MailApp.sendEmail({
-      to: email, name: 'VocabMaster', subject: '[VocabMaster] Mật khẩu mới',
-      body: 'Xin chào ' + (name || '') + ',\n\nMật khẩu mới của bạn: ' + pw + '\n' +
-            (sid ? 'Student ID: ' + sid + '\n' : '') + '\nĐăng nhập tại: ' + VMFB.APP_URL + '\nVui lòng đổi mật khẩu sau khi đăng nhập.\n\n— VocabMaster'
+      to: email, name: 'VocabMaster', subject: '[Test Simulation] Your new password',
+      body: 'Hello ' + (name || '') + ',\n\nYour new password: ' + pw + '\n' +
+            (sid ? 'Student ID: ' + sid + '\n' : '') + '\nSign in at: ' + VMFB.APP_URL + '\nPlease change your password after signing in.\n\n— Test Simulation'
     });
-  } catch (err) { return { success: false, error: 'Không gửi được email: ' + err.message }; }
+  } catch (err) { return { success: false, error: 'Could not send the email: ' + err.message }; }
   return { success: true, newPasswordSent: true };
 }
 
@@ -338,7 +350,7 @@ function vmfbPrefix(title, mode) {
 
 function vmfb_0_TestConnection() {
   var r = [];
-  if (!VMFB.PROJECT_ID) return vmfbLog('Điền VMFB.PROJECT_ID và VMFB.API_KEY ở đầu file trước.');
+  if (!VMFB.PROJECT_ID) return vmfbLog('Set VMFB.PROJECT_ID and VMFB.API_KEY at the top of the file first.');
   try { fsQuery('classes', [], 1); r.push('Firestore (admin)   OK'); } catch (e) { r.push('Firestore (admin)   LỖI: ' + e.message); }
   try { gapi('post', itk('/accounts:lookup'), { email: ['nobody@' + VMFB.STUDENT_DOMAIN] }); r.push('Firebase Auth admin OK'); }
   catch (e) { r.push('Firebase Auth admin LỖI: ' + e.message); }
