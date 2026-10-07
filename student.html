@@ -6,7 +6,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%231B7F5E'/%3E%3Ctext x='12' y='17' text-anchor='middle' font-size='13' font-weight='700' fill='%23fff' font-family='system-ui'%3EV%3C/text%3E%3C/svg%3E">
 <meta name="theme-color" content="#0F6B4F">
 <title>Test Simulation</title>
-<link rel="stylesheet" href="vm-theme.css?v=20261007h">
+<link rel="stylesheet" href="vm-theme.css?v=20261007j">
 <style>
 #app{min-height:100vh}
 
@@ -138,7 +138,7 @@
 
 <div id="app"></div>
 
-<script src="vm-common.js?v=20261007h"></script>
+<script src="vm-common.js?v=20261007j"></script>
 <script src="cefr-dict.js"></script>
 <script src="vm-cefr.js"></script>
 <script>
@@ -164,6 +164,7 @@ VM.renderShell({
   mount:'app', eyebrow:'Test Simulation', title:'Home', user:sess,
   nav:[
     {id:'library', label:'IELTS Practice', icon:'reading', href:'ielts.html#library'},
+    {id:'types', label:'Task Types', icon:'assign', href:'ielts.html#types'},
     {id:'inclass', label:'In-class', icon:'inclass', href:'ielts.html#inclass'},
     {id:'results', label:'History', icon:'results', href:'ielts.html#results'},
     {id:'settings', label:'Settings', icon:'edit'},
@@ -1762,7 +1763,7 @@ function renderSettings(){
         '</label>'+
         '<div style="display:flex;gap:8px">'+
           '<input class="vm-input" id="stGemKey" type="password" placeholder="AIza…" value="'+VM.esc(gemKey)+'" style="flex:1">'+
-          '<button class="vm-btn vm-btn-ghost" id="stGemSave" style="padding:10px 16px;white-space:nowrap">Save</button>'+
+          '<button class="vm-btn vm-btn-primary" id="stGemSave" style="padding:10px 16px;white-space:nowrap">Save key</button>'+
           (gemKey?'<button class="vm-btn vm-btn-ghost" id="stGemClear" style="padding:10px 12px;color:var(--vm-danger)">✕</button>':'')+ 
         '</div>'+
         '<div id="stGemStatus" style="font-size:.75rem;margin-top:5px;min-height:16px">'+
@@ -1778,7 +1779,7 @@ function renderSettings(){
         '</label>'+
         '<div style="display:flex;gap:8px">'+
           '<input class="vm-input" id="stGroqKey" type="password" placeholder="gsk_…" value="'+VM.esc(groqKey)+'" style="flex:1">'+
-          '<button class="vm-btn vm-btn-ghost" id="stGroqSave" style="padding:10px 16px;white-space:nowrap">Save</button>'+
+          '<button class="vm-btn vm-btn-primary" id="stGroqSave" style="padding:10px 16px;white-space:nowrap">Save key</button>'+
           (groqKey?'<button class="vm-btn vm-btn-ghost" id="stGroqClear" style="padding:10px 12px;color:var(--vm-danger)">✕</button>':'')+
         '</div>'+
         '<div id="stGroqStatus" style="font-size:.75rem;margin-top:5px;min-height:16px">'+

@@ -112,3 +112,16 @@ Sau khi tải mã mới, publish lại `firestore.rules` và `storage.rules` tro
 - **Preview as student** trong form tạo đề và màn kiểm tra của giáo viên: xem đề đúng như sinh viên sẽ làm, có nút quay lại chỉnh sửa, không nộp được.
 - **Bố cục theo dạng câu:** Short answer = bảng (câu hỏi trái, ô trả lời phải); True/False/Not given và Yes/No/Not given = dropdown trong bảng không viền; Matching = câu hỏi bên trái với ô điền, danh sách để ghép (List of Headings/People…) bên phải; Gap-fill (summary/notes/table/form) = ô điền nằm ngay trong đoạn văn; Labelling = hình ở trên, các ô đáp án bên dưới; "Choose TWO letters" = một câu hỏi chung với hai ô chọn.
 - Thứ tự cập nhật: dán `gas/FirebaseVM.gs` vào Apps Script rồi Deploy ▸ New version; thay `ielts.html`, `vm-fbdata.js`, `vm-common.js` và các trang đổi số phiên bản trên GitHub. Không cần đổi Firestore Rules.
+
+## Cập nhật: title, nút Save key, ô đáp án, 5 màu highlight, Task Types
+Chỉ cần upload lại các file front-end: `ielts.html`, `student.html`, `teacher.html`, `vm-common.js` (không đổi Apps Script/Rules).
+- Sửa tên bài trong khung từng Passage/Part khi tạo/sửa đề.
+- Key AI (Gemini/Groq) có nút **Save key** ở Settings và ở cửa sổ AI.
+- Ô điền đáp án có nền trắng, viền xanh/cam đậm, dễ thấy.
+- Highlight có 5 màu: vàng, xanh lá, hồng, xanh dương, cam.
+- Menu mới **Task Types**: hiện mọi dạng bài, chọn dạng → chọn Part → luyện chỉ phần câu hỏi thuộc dạng đó.
+
+## Cập nhật: bảng (table), import URL, hộp thoại bo góc
+- Dán đề có **bảng**: các dòng có TAB (copy từ web/Word/Excel) hoặc dùng `|` giữa các ô sẽ hiển thị thành bảng thật, ô điền số câu nằm trong bảng. Import URL cũng giữ bảng.
+- Import URL: thông báo lỗi rõ nguyên nhân hơn. (Apps Script `Code.gs` có thay đổi nhỏ → dán lại + Deploy phiên bản mới.)
+- Thay toàn bộ pop-up của trình duyệt bằng hộp thoại bo góc giữa màn hình (`VM.confirm/VM.prompt`).

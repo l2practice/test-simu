@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi"><head><meta charset="UTF-8"><link rel="icon" type="image/svg+xml" href="favicon.svg?v=20261007c"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#0F6B4F"><title>Test Simulation · IELTS Practice</title><link rel="stylesheet" href="vm-theme.css?v=20261007h">
+<meta name="theme-color" content="#0F6B4F"><title>Test Simulation · IELTS Practice</title><link rel="stylesheet" href="vm-theme.css?v=20261007j">
 <style>
 #app{min-height:100vh}.ielts-wrap{max-width:1180px;margin:auto}.ielts-hero{background:linear-gradient(120deg,var(--vm-sand-2),var(--vm-primary-lt));color:var(--vm-ink);padding:24px;border-radius:var(--vm-r);margin-bottom:18px}.ielts-hero h2{margin:0 0 6px;font-family:var(--vm-font-display)}.ielts-hero p{margin:0;color:var(--vm-ink-2)}.il-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}.il-card,.il-panel{background:var(--vm-surface);border:1px solid var(--vm-border-2);border-radius:var(--vm-r);padding:18px;box-shadow:var(--vm-shadow-sm)}.il-card h3{margin:5px 0;font-family:var(--vm-font-display)}.il-meta{font-size:.78rem;color:var(--vm-ink-3);margin:6px 0 12px}.il-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}.il-practice{display:grid;grid-template-columns:minmax(300px,1fr) minmax(300px,1fr);gap:16px}.il-passage{white-space:pre-wrap;line-height:1.85;max-height:68vh;overflow:auto}.il-q{border-bottom:1px solid var(--vm-border-2);padding:12px 0}.il-q label{display:block;font-weight:650;margin-bottom:7px}.il-q input,.il-q select{width:100%}.il-badge{display:inline-block;border-radius:99px;padding:3px 9px;background:var(--vm-primary-lt);color:var(--vm-primary-dk);font-size:.7rem;font-weight:700}.il-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.il-empty{padding:35px;text-align:center;color:var(--vm-ink-3)}.il-editor{display:grid;grid-template-columns:1fr 1fr;gap:10px}.il-editor textarea{min-height:130px;font-size:.92rem}.il-section-editor{margin:14px 0;padding:14px;border:1px solid var(--vm-border-2);border-radius:16px;background:var(--vm-surface)}.il-section-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.il-section-grid.three{grid-template-columns:1fr 1fr 1fr}.il-section-grid textarea{width:100%;min-height:230px;resize:vertical;white-space:pre-wrap}.il-answer-key{margin-top:20px;padding-top:16px;border-top:3px solid var(--vm-primary-lt)}.il-ai-output{white-space:pre-wrap;line-height:1.7}.il-settings{max-width:720px;margin:18px auto}.il-settings label{display:block;margin:12px 0 5px;font-weight:650}.il-chart{width:100%;height:220px;border:1px solid var(--vm-border-2);border-radius:10px;background:var(--vm-surface);margin-top:10px}.il-note{font-size:.78rem;color:var(--vm-ink-3)}.il-error{color:var(--vm-danger);font-size:.84rem}.il-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 @media(max-width:720px){.il-practice,.il-editor,.il-section-grid,.il-section-grid.three{grid-template-columns:1fr}.il-passage{max-height:40vh}}
@@ -119,7 +119,20 @@ body.skill-reading .il-instr,body.skill-listening .il-instr{background:linear-gr
 .lab-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin:8px 0}.lab-cell{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--vm-border);border-radius:12px;padding:6px 8px}.lab-in{width:100%;padding:6px 8px}
 .il-opts-ro{display:grid;gap:4px;margin:6px 0 10px}.il-opt-ro{display:flex;gap:10px;padding:6px 10px;border:1px solid var(--vm-border);border-radius:10px;background:#fff}.il-opt-ro b{min-width:18px;color:var(--il-a)}.il-multi{display:flex;gap:10px;flex-wrap:wrap}.il-multi-c{display:flex;align-items:center;gap:8px}
 .il-busy{position:fixed;inset:0;z-index:400;background:rgba(10,63,48,.42);display:grid;place-items:center}.il-busy-card{background:#fff;border-radius:20px;padding:26px 34px;text-align:center;box-shadow:0 30px 60px -20px rgba(0,0,0,.5);max-width:340px}.il-busy-card b{display:block;margin-top:12px;color:var(--il-adk)}.il-spinner{width:44px;height:44px;border-radius:50%;border:5px solid var(--il-alt);border-top-color:var(--il-a);margin:0 auto;animation:ilspin .8s linear infinite}@keyframes ilspin{to{transform:rotate(360deg)}}
-</style></head><body><div id="app"></div><script src="vm-common.js?v=20261007h"></script><script>
+
+.il-nt-wrap{overflow-x:auto;margin:8px 0}.il-nt{border-collapse:collapse;width:100%;background:#fff}.il-nt th,.il-nt td{border:1px solid var(--vm-border);padding:8px 10px;vertical-align:top;line-height:1.7;text-align:left;white-space:normal}.il-nt th{background:var(--il-asoft);font-weight:800}
+.il-gaptext .il-nt-wrap{white-space:normal}
+.il-ans,.gap-in,.il-sel,.lab-in,.il-qt select,.gap-sel{background:#fff!important;border:2px solid var(--il-a)!important;box-shadow:0 2px 0 rgba(10,63,48,.12),inset 0 1px 3px rgba(10,63,48,.1)!important;color:var(--vm-ink)}
+.il-ans:focus,.gap-in:focus,.il-sel:focus,.lab-in:focus{outline:none;box-shadow:0 0 0 4px color-mix(in srgb,var(--il-a) 28%,transparent)!important;border-color:var(--il-adk)!important}
+.mt-in{min-width:64px;height:40px;font-size:1.05rem}
+.il-qt tr:nth-child(odd) td{background:rgba(10,63,48,.06)}
+.il-ans.ok,.gap-in.ok,.il-sel.ok{border-color:#1E8A5E!important;background:#E6F6EC!important}.il-ans.bad,.gap-in.bad,.il-sel.bad{border-color:#C23A2E!important;background:#FDECEA!important}
+.ed-title{flex:1;min-width:220px;max-width:520px;font-weight:600}
+/* task type page */
+.ty-sect{margin:18px 0 6px;display:flex;align-items:center;gap:10px}.ty-sect h2{margin:0;font-family:var(--vm-font-display);font-size:1.25rem}
+.ty-card .ty-desc{font-size:.84rem;color:var(--vm-ink-2);line-height:1.5;margin:6px 0 10px;min-height:2.6em}.ty-card.ty-off{opacity:.62}
+.hl-b{background:#9AD7FF}.hl-o{background:#FFC58A}mark.hl-blue{background:#9AD7FF}mark.hl-orange{background:#FFC58A}
+</style></head><body><div id="app"></div><script src="vm-common.js?v=20261007j"></script><script>
 
 
 (function(){
@@ -128,8 +141,8 @@ var sess=VM.session.require(); if(!sess) return;
 var teacher=sess.role==='teacher';
 var state={items:[],attempts:[],classes:[],inclass:[],active:null,run:null,review:null,started:'',assignment:null,libSkill:'all',libMode:'tests',bookFilter:'',view:teacher?'glance':'library',loaded:false,glanceClass:'',glanceStudent:''};
 var navDef=teacher
- ?[['glance','Glance','overview','ielts.html#glance'],['library','Library','reading','ielts.html#library'],['inclass','In-class','inclass','ielts.html#inclass'],['results','Results','results','ielts.html#results'],['classes','Classes','classes','teacher.html#tab=classes'],['settings','Settings','edit','teacher.html#tab=settings']]
- :[['glance','Glance','overview','ielts.html#glance'],['library','IELTS Practice','reading','ielts.html#library'],['inclass','In-class','inclass','ielts.html#inclass'],['settings','Settings','edit','student.html#tab=settings']];
+ ?[['glance','Glance','overview','ielts.html#glance'],['library','Library','reading','ielts.html#library'],['types','Task Types','assign','ielts.html#types'],['inclass','In-class','inclass','ielts.html#inclass'],['results','Results','results','ielts.html#results'],['classes','Classes','classes','teacher.html#tab=classes'],['settings','Settings','edit','teacher.html#tab=settings']]
+ :[['glance','Glance','overview','ielts.html#glance'],['library','IELTS Practice','reading','ielts.html#library'],['types','Task Types','assign','ielts.html#types'],['inclass','In-class','inclass','ielts.html#inclass'],['settings','Settings','edit','student.html#tab=settings']];
 VM.renderShell({mount:'app',eyebrow:'Test Simulation · IELTS',title:'IELTS Practice',user:sess,nav:navDef.map(function(n){return{id:n[0],label:n[1],icon:n[2],href:n[3],active:n[0]===(teacher?'glance':'library')};})});
 function esc(x){return VM.esc(String(x==null?'':x));}
 function root(){return document.getElementById('vmContent');}
@@ -154,7 +167,7 @@ var C_READ='#1E8A5E',C_LIST='#F08A3C';
 function markNav(){qa('.vm-side a.vm-nav').forEach(function(a){a.classList.toggle('active',(a.getAttribute('href')||'')==='ielts.html#'+state.view);});}
 function route(){
  var h=(location.hash||'').replace('#','')||(teacher?'glance':'library');
- var ok=teacher?['glance','library','inclass','results']:['glance','library','inclass'];
+ var ok=teacher?['glance','library','types','inclass','results']:['glance','library','types','inclass'];
  state.view=ok.indexOf(h)>=0?h:(teacher?'glance':'library');
  stopTimer();state.active=null;state.run=null;state.review=null;state.assignment=null;state.previewBack=null;
  markNav();
@@ -180,6 +193,7 @@ function render(){
  markNav();updateBadge();
  if(state.active)return renderPractice();
  setExam(false);
+ if(state.view==='types')return drawTypesPage();
  if(state.view==='inclass')return teacher?drawInclassTeacher():drawInclassStudent();
  if(state.view==='results'&&teacher)return drawResultsPage();
  if(state.view==='glance')return teacher?drawGlanceTeacher():drawGlanceStudent();
@@ -287,7 +301,7 @@ function reviewDialog(x){
  document.getElementById('rvEdit').onclick=function(){editorDialog({existing:x});};
  document.getElementById('rvPrev').onclick=function(){state.active=JSON.parse(JSON.stringify(x));(state.active.sections||[]).forEach(function(sec){(sec.questions||[]).forEach(function(q){q.answers=[];});});state.run=null;state.review=null;state.assignment=null;state.previewBack=function(){state.previewBack=null;state.active=null;state.run=null;setExam(false);reviewDialog(x);};render();window.scrollTo(0,0);};
  document.getElementById('rvOk').onclick=function(){this.disabled=true;call('ielts.content.approve',{id:x.id||x._id}).then(function(){VM.toast('Approved. Students can now practise it.','ok');state.loaded=false;load();}).catch(function(e){say(e.message);});};
- document.getElementById('rvRemove').onclick=function(){if(confirm('Remove this test from the Library?'))call('ielts.content.archive',{id:x.id||x._id}).then(function(){VM.toast('Removed.','ok');state.loaded=false;load();}).catch(function(e){say(e.message);});};
+ document.getElementById('rvRemove').onclick=function(){VM.confirm('Remove this test from the Library?',{danger:true,ok:'Remove'}).then(function(y){if(y)call('ielts.content.archive',{id:x.id||x._id}).then(function(){VM.toast('Removed.','ok');state.loaded=false;load();}).catch(function(e){say(e.message);});});};
  window.scrollTo(0,0);
 }
 function chooseSkill(){
@@ -303,16 +317,16 @@ function drawLibrary(){
  var items=state.items.filter(function(x){return state.libSkill==='all'||x.skill===state.libSkill;});
  root().innerHTML='<div class="ielts-wrap"><div class="il-toolbar">'+
   (teacher?'<select class="vm-select" id="fSkill"><option value="all">Reading &amp; Listening</option><option value="reading">Reading</option><option value="listening">Listening</option></select>':'<button class="vm-btn vm-btn-ghost" id="backSkill">← Change skill</button><span class="il-badge il-badge-'+esc(state.libSkill)+'">'+esc(state.libSkill)+'</span>')+
-  '<div class="il-seg" id="libMode"><button data-m="tests" class="'+(state.libMode==='tests'?'on':'')+'">By test</button><button data-m="types" class="'+(state.libMode==='types'?'on':'')+'">By task type</button></div><span class="il-spacer"></span>'+
+  '<div class="il-seg" id="libMode"><button data-m="tests" class="on">By test</button><button data-m="types">By task type</button></div><span class="il-spacer"></span>'+
   '<button class="vm-btn vm-btn-primary" id="addTest">＋ Add test</button><button class="vm-btn vm-btn-ghost" id="importUrl">Import from URL</button>'+(teacher?'':'<button class="vm-btn vm-btn-ghost" id="aiSettings">AI settings</button>')+'</div><div id="toCheck"></div><div id="libBody"></div><div id="extra"></div></div>';
  if(teacher)document.getElementById('fSkill').value=state.libSkill;
- qa('#libMode button').forEach(function(b){b.onclick=function(){state.libMode=b.getAttribute('data-m');drawLibrary();};});
+ qa('#libMode button').forEach(function(b){b.onclick=function(){if(b.getAttribute('data-m')==='types'){state.typeSkill=state.libSkill;location.hash='#types';}};});
  document.getElementById('addTest').onclick=function(){editorDialog({skill:state.libSkill==='listening'?'listening':'reading'});};
  if(teacher){document.getElementById('fSkill').onchange=function(){state.libSkill=this.value;state.bookFilter='';drawLibrary();};}
  else{document.getElementById('backSkill').onclick=function(){state.libSkill='all';state.bookFilter='';render();};document.getElementById('aiSettings').onclick=aiSettings;}
  document.getElementById('importUrl').onclick=importUrl;
  if(teacher)drawToCheck();
- if(state.libMode==='types')drawTypes(items);else drawTests(items);
+ drawTests(items);
 }
 function drawTests(items){
  var books=Array.from(new Set(items.map(function(x){return x.book;}).filter(Boolean))).sort(function(a,b){return bookNum(b)-bookNum(a);});
@@ -333,17 +347,33 @@ function drawTests(items){
  qa('[data-assign]').forEach(function(b){var g=groupAt(+b.getAttribute('data-assign'));b.onclick=function(){state.pendingAssign=fullIds(g).length?fullIds(g):null;location.hash='#inclass';if(state.view==='inclass')route();};});
  document.getElementById('fBook').onchange=function(){state.bookFilter=this.value;drawTests(items);};
 }
-function drawTypes(items){
- var body=document.getElementById('libBody'),m={};
- items.forEach(function(i){if(i.review==='pending')return;(i.taskTypes||[]).forEach(function(t){var e=m[i.skill+'|'+t]||(m[i.skill+'|'+t]={skill:i.skill,type:t,items:[]});e.items.push(i);});});
- var list=Object.keys(m).map(function(k){return m[k];}).sort(function(a,b){return b.items.length-a.items.length;});
- body.innerHTML=list.length?'<p class="il-note" style="margin:0 0 10px">Practise one task type across many tests. Pick a type, choose the parts to include, and only those questions are shown.</p><div class="il-grid il-grid-lib">'+list.map(function(t,ti){return '<article class="il-card il-lib il-lib-'+esc(g.skill)+'"><div class="il-lib-head"><div><h3>'+esc(typeName(t.type))+'</h3><div class="il-meta">'+t.items.length+' part'+(t.items.length===1?'':'s')+' contain this type</div></div><span class="il-badge il-badge-'+esc(t.skill)+'">'+esc(t.skill)+'</span></div><button class="vm-btn vm-btn-primary vm-btn-sm" data-ty="'+ti+'" style="margin-top:12px">Choose parts</button></article>';}).join('')+'</div><div id="tyPick"></div>':'<div class="il-empty">No task types yet. Add tests to the Library first.</div>';
- qa('[data-ty]').forEach(function(b){b.onclick=function(){var t=list[+b.getAttribute('data-ty')],box=document.getElementById('tyPick');
-  var sorted=t.items.slice().sort(function(a,b){return bookNum(b.book)-bookNum(a.book)||(parseInt(a.test,10)||0)-(parseInt(b.test,10)||0)||(parseInt(a.part,10)||0)-(parseInt(b.part,10)||0);});
-  box.innerHTML='<div class="il-panel il-dialog"><h3>'+esc(typeName(t.type))+' · choose parts</h3><div class="il-note">Select up to 12 parts.</div><div class="il-students">'+sorted.map(function(i,k){return '<label class="il-opt"><input type="checkbox" value="'+esc(i.id)+'"'+(k<3?' checked':'')+'> '+esc(i.title)+'</label>';}).join('')+'</div><div class="il-row" style="margin-top:12px"><button class="vm-btn vm-btn-primary" id="tyGo">Start practice</button><button class="vm-btn vm-btn-ghost" id="tyCancel">Cancel</button></div></div>';
-  box.scrollIntoView({behavior:'smooth'});
-  document.getElementById('tyCancel').onclick=function(){box.innerHTML='';};
-  document.getElementById('tyGo').onclick=function(){var ids=qa('#tyPick input:checked').map(function(i){return i.value;});if(!ids.length)return say('Select at least one part.');if(ids.length>12)return say('Select 12 parts or fewer.');this.disabled=true;openItems(ids,null,{taskType:t.type,skill:t.skill});};};});
+var TYPE_INFO={'multiple-choice':'Choose the correct answer(s) from a list of options.','true-false-not-given':'Decide whether each statement is True, False or Not Given.','yes-no-not-given':'Decide whether each statement agrees with the writer’s views: Yes, No or Not Given.','matching-headings':'Match each paragraph with the best heading from a list.','matching-features':'Match statements with people, places or options from a list.','matching':'Find which paragraph or section contains the given information.','sentence-completion':'Complete sentences with words from the text or the recording.','summary-completion':'Fill the gaps in a summary, with or without a list of words.','short-answer':'Answer questions using words from the passage or recording.','diagram-completion':'Complete the labels on a diagram or a process.','plan-map-diagram-labelling':'Label a plan, map or diagram using what you hear.','form-note-table-flow-chart-summary-completion':'Complete a form, notes, a table or a flow chart as you listen.'};
+var TYPES_BY_SKILL={reading:['multiple-choice','true-false-not-given','yes-no-not-given','matching-headings','matching-features','matching','sentence-completion','summary-completion','short-answer','diagram-completion'],listening:['multiple-choice','matching','plan-map-diagram-labelling','form-note-table-flow-chart-summary-completion','sentence-completion','short-answer']};
+function drawTypesPage(){
+ setTitle('Task Types');
+ var sk=state.typeSkill||(state.libSkill!=='all'?state.libSkill:'all');state.typeSkill=sk;
+ var approved=state.items.filter(function(i){return i.review!=='pending';});
+ root().innerHTML='<div class="ielts-wrap"><div class="ielts-hero"><h2>Practise by task type</h2><p>Pick a question type and practise it across many tests. Only the questions of that type are shown, laid out just like the real exam.</p></div><div class="il-toolbar"><div class="il-seg" id="tySkill"><button data-s="all" class="'+(sk==='all'?'on':'')+'">Reading &amp; Listening</button><button data-s="reading" class="'+(sk==='reading'?'on':'')+'">Reading</button><button data-s="listening" class="'+(sk==='listening'?'on':'')+'">Listening</button></div><span class="il-spacer"></span><button class="vm-btn vm-btn-ghost" id="tyToTests">Browse by test</button></div><div id="tyBody"></div><div id="tyPick"></div></div>';
+ qa('#tySkill button').forEach(function(b){b.onclick=function(){state.typeSkill=b.getAttribute('data-s');drawTypesPage();};});
+ document.getElementById('tyToTests').onclick=function(){location.hash='#library';};
+ var cards=[],body='';
+ (sk==='all'?['reading','listening']:[sk]).forEach(function(skill){
+  var types=TYPES_BY_SKILL[skill].slice();
+  approved.forEach(function(i){if(i.skill===skill)(i.taskTypes||[]).forEach(function(t){if(types.indexOf(t)<0)types.push(t);});});
+  body+='<div class="ty-sect"><h2>'+(skill==='reading'?'Reading':'Listening')+'</h2><span class="il-badge il-badge-'+skill+'">'+types.length+' task types</span></div><div class="il-grid il-grid-lib">'+types.map(function(t){
+   var its=approved.filter(function(i){return i.skill===skill&&(i.taskTypes||[]).indexOf(t)>=0;}),idx=cards.push({skill:skill,type:t,items:its})-1;
+   return '<article class="il-card il-lib il-lib-'+skill+' ty-card'+(its.length?'':' ty-off')+'"><div class="il-lib-head"><h3>'+esc(typeName(t))+'</h3><span class="il-badge il-badge-'+skill+'">'+its.length+' part'+(its.length===1?'':'s')+'</span></div><div class="ty-desc">'+esc(TYPE_INFO[t]||'')+'</div>'+(its.length?'<button class="vm-btn vm-btn-primary vm-btn-sm" data-ty="'+idx+'">Choose parts</button>':'<button class="vm-btn vm-btn-ghost vm-btn-sm" disabled>No tests yet</button>')+'</article>';}).join('')+'</div>';
+ });
+ document.getElementById('tyBody').innerHTML=body;
+ qa('[data-ty]').forEach(function(b){b.onclick=function(){pickParts(cards[+b.getAttribute('data-ty')]);};});
+}
+function pickParts(t){
+ var box=document.getElementById('tyPick');
+ var sorted=t.items.slice().sort(function(a,b){return bookNum(b.book)-bookNum(a.book)||(parseInt(a.test,10)||0)-(parseInt(b.test,10)||0)||(parseInt(a.part,10)||0)-(parseInt(b.part,10)||0);});
+ box.innerHTML='<div class="il-panel il-dialog"><h3>'+esc(typeName(t.type))+' · choose parts</h3><div class="il-note">Select up to 12 parts. Only the '+esc(typeName(t.type))+' questions from them are shown.</div><div class="il-students">'+sorted.map(function(i,k){return '<label class="il-opt"><input type="checkbox" value="'+esc(i.id)+'"'+(k<3?' checked':'')+'> '+esc(i.title)+'</label>';}).join('')+'</div><div class="il-row" style="margin-top:12px"><button class="vm-btn vm-btn-primary" id="tyGo">Start practice</button><button class="vm-btn vm-btn-ghost" id="tyCancel">Cancel</button></div></div>';
+ box.scrollIntoView({behavior:'smooth'});
+ document.getElementById('tyCancel').onclick=function(){box.innerHTML='';};
+ document.getElementById('tyGo').onclick=function(){var ids=qa('#tyPick input:checked').map(function(i){return i.value;});if(!ids.length)return say('Select at least one part.');if(ids.length>12)return say('Select 12 parts or fewer.');this.disabled=true;openItems(ids,null,{taskType:t.type,skill:t.skill});};
 }
 function fetchItems(ids,opts){
  opts=opts||{};
@@ -381,7 +411,7 @@ function drawInclassTeacher(){
    function rowOf(id){return rows.filter(function(r){return r.assignmentId===id;})[0];}
    qa('[data-ext]').forEach(function(b){b.onclick=function(){extendDialog(rowOf(b.getAttribute('data-ext')),loadList);};});
    qa('[data-res]').forEach(function(b){b.onclick=function(){inclassResults(rowOf(b.getAttribute('data-res')));};});
-   qa('[data-del]').forEach(function(b){b.onclick=function(){if(confirm('Delete this in-class test? Submitted results are kept.'))call('ielts.inclass.delete',{assignmentId:b.getAttribute('data-del')}).then(loadList).catch(function(e){say(e.message);});};});
+   qa('[data-del]').forEach(function(b){b.onclick=function(){VM.confirm('Delete this in-class test? Submitted results are kept.',{danger:true,ok:'Delete'}).then(function(y){if(y)call('ielts.inclass.delete',{assignmentId:b.getAttribute('data-del')}).then(loadList).catch(function(e){say(e.message);});});};});
   }).catch(function(e){document.getElementById('icList').innerHTML='<div class="il-empty">'+esc(e.message)+'</div>';});
  }
  loadList();
@@ -445,7 +475,7 @@ function drawInclassStudent(){
   box.innerHTML=rows.length?'<div class="il-grid">'+rows.map(function(r){
    var done=state.attempts.filter(function(a){return a.assignmentId===r.assignmentId;})[0];
    return '<article class="il-card"><span class="il-status il-status-'+esc(done?'done':r.status)+'">'+(done?'Submitted':sessionStatusText(r.status))+'</span><h3>'+esc(r.title)+'</h3><div class="il-meta">'+esc(r.skill)+' · '+r.sessionDurationMin+' min</div><div class="il-meta">Starts: '+fmtDT(r.sessionStart)+'<br>Ends: '+fmtDT(r.endsAt)+'</div>'+(done?'<div class="il-note">Practice score: '+(done.score===null?'—':done.score+'%')+' · '+done.correct+'/'+done.gradedCount+' correct</div>':'<button class="vm-btn vm-btn-primary" data-go="'+esc(r.assignmentId)+'"'+(r.status==='open'?'':' disabled')+'>'+(r.status==='upcoming'?'Not open yet':(r.status==='closed'?'Closed':'Start test'))+'</button>')+'</article>';}).join('')+'</div>':'<div class="il-empty">No in-class tests for your class yet.</div>';
-  qa('[data-go]').forEach(function(b){b.onclick=function(){var r=rows.filter(function(x){return x.assignmentId===b.getAttribute('data-go');})[0];if(!confirm('Start the test now? The countdown runs until '+fmtDT(r.endsAt)+'.'))return;b.disabled=true;openItems(r.contentIds,{id:r.assignmentId,endMs:new Date(r.endsAt).getTime(),title:r.title});};});
+  qa('[data-go]').forEach(function(b){b.onclick=function(){var r=rows.filter(function(x){return x.assignmentId===b.getAttribute('data-go');})[0];VM.confirm('Start the test now? The countdown runs until '+fmtDT(r.endsAt)+'.',{ok:'Start'}).then(function(y){if(!y)return;b.disabled=true;openItems(r.contentIds,{id:r.assignmentId,endMs:new Date(r.endsAt).getTime(),title:r.title});});};});
  }).catch(function(e){document.getElementById('icList').innerHTML='<div class="il-empty">'+esc(e.message)+'</div>';});
 }
 
@@ -616,8 +646,8 @@ function renderPractice(){
  }else{
   root().innerHTML='<div class="exam"><div class="exam-top"><button class="exam-btn" id="exit">'+(state.previewBack?'← Back to editor':'← Exit')+'</button><div class="exam-title">'+esc(titleItem(x))+'</div><div class="exam-clock" id="clock">0:00</div><span class="il-spacer"></span><span class="exam-prog" id="prog"></span>'+(isPrev()?'<span class="exam-tag">Preview</span>':'')+'<button class="exam-btn" id="report">Report issue</button></div>'+(listen?'<div class="exam-audio" id="audioBar"></div>':'')+'<div class="exam-part" id="partBar"></div><div id="splitArea" class="exam-split'+(listen?' single':'')+'"></div><div class="exam-bottom" id="examNav"></div></div><div id="extra"></div>';
  }
- document.getElementById('exit').onclick=function(){var pb=state.previewBack;if(!rv&&!isPrev()&&answeredCount()&&!confirm('Leave the test and discard your answers?'))return;stopTimer();if(pb){pb();return;}state.active=null;state.run=null;state.review=null;state.assignment=null;render();window.scrollTo(0,0);};
- document.getElementById('report').onclick=function(){var n=prompt('Which question number has a problem? (optional)'),message=prompt('Describe the problem for your teacher:');if(!message)return;call('ielts.report.create',{contentId:String(x.id||x._id).split(',')[0],contentTitle:titleItem(x),questionNumber:n,message:message,privateContent:false}).then(function(){VM.toast('Report sent to your teacher.','ok');}).catch(function(e){say(e.message);});};
+ document.getElementById('exit').onclick=function(){var pb=state.previewBack;function out(){stopTimer();if(pb){pb();return;}state.active=null;state.run=null;state.review=null;state.assignment=null;render();window.scrollTo(0,0);}if(!rv&&!isPrev()&&answeredCount())VM.confirm('Leave the test and discard your answers?',{danger:true,ok:'Leave'}).then(function(y){if(y)out();});else out();};
+ document.getElementById('report').onclick=function(){VM.prompt('Which question number has a problem? (optional)',{title:'Report an issue',ok:'Next'}).then(function(n){if(n===null)return;VM.prompt('Describe the problem for your teacher:',{title:'Report an issue',multiline:true,ok:'Send'}).then(function(message){if(!message||!message.trim())return;call('ielts.report.create',{contentId:String(x.id||x._id).split(',')[0],contentTitle:titleItem(x),questionNumber:n,message:message,privateContent:false}).then(function(){VM.toast('Report sent to your teacher.','ok');}).catch(function(e){say(e.message);});});});};
  var split=document.getElementById('splitArea');
  split.addEventListener('input',function(e){var el=e.target,r=state.run;if(rv||!el.hasAttribute('data-q'))return;r.answers[+el.getAttribute('data-q')]=el.value;updateProgress();});
  split.addEventListener('change',function(e){var el=e.target,r=state.run;if(rv||!el.hasAttribute('data-q'))return;var i=+el.getAttribute('data-q'),v=el.value;r.answers[i]=v;
@@ -703,6 +733,29 @@ function gapInline(text,byNum,mk){
  while((m=re.exec(text))){var f=byNum[+m[2]];if(!f)continue;out+=esc(text.slice(last,m.index+m[1].length))+mk(f);used[+m[2]]=1;last=m.index+m[0].length;}
  return{html:out+esc(text.slice(last)),used:used};
 }
+function tableCells(line){
+ var t=line.replace(/\s+$/,'');
+ if(t.indexOf('\t')>=0){var c=t.split(/\t+/).map(function(x){return x.trim();});return c.length>=2?c:null;}
+ if(/^\s*\|.*\|?\s*$/.test(t)){var p=t.trim().replace(/^\|/,'').replace(/\|$/,'').split('|').map(function(x){return x.trim();});return p.length>=2?p:null;}
+ return null;
+}
+/* Renders text where runs of tab- or pipe-separated lines become real tables; cells may hold numbered blanks. */
+function richHtml(text,byNum,mk){
+ var lines=String(text||'').split('\n'),out='',buf=[],used={};
+ function cell(x){if(!mk)return esc(x);var g=gapInline(x,byNum,mk);for(var k in g.used)used[k]=1;return g.html;}
+ function flush(){
+  if(!buf.length)return;
+  var w=buf.reduce(function(a,r){return Math.max(a,r.length);},0),head=buf.length>1&&!/\d{1,2}\s*\)?\s*(?:[\.…_]{3,}|…)/.test(buf[0].join(' '))&&buf[0].every(function(x){return x&&x.length<40;});
+  out+='<div class="il-nt-wrap"><table class="il-nt">'+buf.map(function(r,ri){
+   if(/^[\s:\-|]+$/.test(r.join(''))&&r.join('').indexOf('-')>=0)return '';
+   var tag=head&&ri===0?'th':'td',h='';for(var i=0;i<w;i++)h+='<'+tag+'>'+cell(r[i]||'')+'</'+tag+'>';return '<tr>'+h+'</tr>';}).join('')+'</table></div>';buf=[];
+ }
+ var plain=[];
+ function flushText(){if(!plain.length)return;out+=cell(plain.join('\n'));plain=[];}
+ lines.forEach(function(l){var c=tableCells(l);if(c){flushText();buf.push(c);}else{flush();plain.push(l);}});
+ flush();flushText();
+ return{html:out,used:used};
+}
 function qrowTable(c,g,ctl){
  return '<table class="il-qt">'+g.qs.map(function(f){return '<tr id="q'+f.n+'"><td class="qn"><span class="il-qnum">'+f.num+'</span></td><td class="qt" data-hk="q'+f.n+'">'+esc(f.q.prompt)+'</td><td class="qa">'+ctl(f)+'</td><td class="qm">'+qmark(c,f)+'</td></tr>';}).join('')+'</table>';
 }
@@ -712,7 +765,7 @@ function renderGroup(g,c){
  function instrBlock(){return instr?'<div class="il-instr" data-hk="i'+first.n+'">'+esc(instr)+'</div>':'';}
  // gap-fill: the text itself carries the numbered blanks, so the controls sit inside it
  if(instr&&/(?:[\.…_]{3,}|…)/.test(instr)){
-  var gi=gapInline(instr,byNum,function(f){var o=f.q.options||[];return '<span class="gap-wrap" id="q'+f.n+'"><b class="gap-n">'+f.num+'</b>'+(o.length?selCtl(c,f,o,' gap-sel'):txtCtl(c,f,'gap-in','…'))+qmark(c,f)+'</span>';});
+  var gi=richHtml(instr,byNum,function(f){var o=f.q.options||[];return '<span class="gap-wrap" id="q'+f.n+'"><b class="gap-n">'+f.num+'</b>'+(o.length?selCtl(c,f,o,' gap-sel'):txtCtl(c,f,'gap-in','…'))+qmark(c,f)+'</span>';});
   if(Object.keys(gi.used).length>=Math.max(1,g.qs.length-1)){
    var rest=g.qs.filter(function(f){return !gi.used[f.num];});
    return '<div class="il-group il-gapbox">'+(c.img&&/diagram|labelling/.test(t)?c.img:'')+'<div class="il-gaptext">'+gi.html+'</div>'+(rest.length?qrowTable(c,{qs:rest},function(f){return txtCtl(c,f,'il-ans','Your answer');}):'')+'</div>';
@@ -752,7 +805,7 @@ function drawSplit(){
  var exam=!rv,pc=exam?'exam-pane':'il-panel il-pane';
 
  var imgs=(s.images||[]).filter(function(u){return /^https:\/\//i.test(u);}).map(function(u){return '<img class="il-img" src="'+esc(u)+'" alt="Figure" loading="lazy" referrerpolicy="no-referrer">';}).join('');
- var left='<section class="'+pc+'"><h3 class="pane-h">'+(listen?'Notes':esc(secLabel(x,p)))+'</h3>'+(listen||imgInGroup?'':imgs)+'<div class="il-text" data-hk="p'+p+'">'+(s.text?esc(s.text):'<span class="il-note">'+(listen?'Listen to the audio and answer the questions.':'No passage text.')+'</span>')+'</div></section>';
+ var left='<section class="'+pc+'"><h3 class="pane-h">'+(listen?'Notes':esc(secLabel(x,p)))+'</h3>'+(listen||imgInGroup?'':imgs)+'<div class="il-text" data-hk="p'+p+'">'+(s.text?richHtml(s.text).html:'<span class="il-note">'+(listen?'Listen to the audio and answer the questions.':'No passage text.')+'</span>')+'</div></section>';
  var partQs=flat.filter(function(f){return f.part===p;}),groups=groupQuestions(partQs);
  var imgInGroup=groups.some(function(g){return g.type==='plan-map-diagram-labelling'||g.type==='diagram-completion';});
  var ctx={r:r,rv:rv,resp:resp,dis:rv?' disabled':'',img:imgInGroup?imgs:''},imgGiven=false;
@@ -767,7 +820,7 @@ function drawSplit(){
 function hlBar(){
  var b=document.getElementById('hlBar');if(b)return b;
  b=document.createElement('div');b.id='hlBar';b.className='hl-bar';
- b.innerHTML='<button data-c="yellow" class="hl-y" title="Yellow">A</button><button data-c="green" class="hl-g" title="Green">A</button><button data-c="pink" class="hl-p" title="Pink">A</button><button data-c="clear" class="hl-x" title="Clear highlight">Clear</button>';
+ b.innerHTML='<button data-c="yellow" class="hl-y" title="Yellow">A</button><button data-c="green" class="hl-g" title="Green">A</button><button data-c="pink" class="hl-p" title="Pink">A</button><button data-c="blue" class="hl-b" title="Blue">A</button><button data-c="orange" class="hl-o" title="Orange">A</button><button data-c="clear" class="hl-x" title="Clear highlight">Clear</button>';
  document.body.appendChild(b);
  b.addEventListener('mousedown',function(e){e.preventDefault();});
  b.addEventListener('click',function(e){var btn=e.target.closest('button');if(!btn)return;applyHighlight(btn.getAttribute('data-c'));});
@@ -779,9 +832,9 @@ function onHighlightSelect(e){
  var mk=e&&e.target&&e.target.closest?e.target.closest('mark.hl'):null;
  if(sel&&!sel.isCollapsed&&sel.rangeCount){
   var range=sel.getRangeAt(0),a=range.startContainer.nodeType===1?range.startContainer:range.startContainer.parentNode,c=a&&a.closest?a.closest('[data-hk]'):null;
-  if(c&&c.contains(range.endContainer)){hlCtx={range:range.cloneRange(),box:c};var rc=range.getBoundingClientRect();bar.style.display='flex';bar.style.left=Math.max(8,Math.min(window.innerWidth-220,rc.left+rc.width/2-100))+'px';bar.style.top=Math.max(8,rc.top-48)+'px';return;}
+  if(c&&c.contains(range.endContainer)){hlCtx={range:range.cloneRange(),box:c};var rc=range.getBoundingClientRect();bar.style.display='flex';bar.style.left=Math.max(8,Math.min(window.innerWidth-300,rc.left+rc.width/2-140))+'px';bar.style.top=Math.max(8,rc.top-48)+'px';return;}
  }
- if(mk){var box=mk.closest('[data-hk]'),rg=document.createRange();rg.selectNodeContents(mk);hlCtx={range:rg,box:box,mark:mk};var r2=mk.getBoundingClientRect();bar.style.display='flex';bar.style.left=Math.max(8,Math.min(window.innerWidth-220,r2.left))+'px';bar.style.top=Math.max(8,r2.top-48)+'px';return;}
+ if(mk){var box=mk.closest('[data-hk]'),rg=document.createRange();rg.selectNodeContents(mk);hlCtx={range:rg,box:box,mark:mk};var r2=mk.getBoundingClientRect();bar.style.display='flex';bar.style.left=Math.max(8,Math.min(window.innerWidth-300,r2.left))+'px';bar.style.top=Math.max(8,r2.top-48)+'px';return;}
  bar.style.display='none';hlCtx=null;
 }
 function applyHighlight(c){
@@ -813,7 +866,11 @@ function buildTelemetry(x,r,flat){
 function submitAttempt(force){
  var x=state.active,r=state.run,flat=flatQs(x);if(isPrev())return;syncVisible();
  var blanks=flat.filter(function(f,i){return !filled(r.answers[i]);}).length;
- if(force!==true&&!confirm(blanks?blanks+' question'+(blanks===1?' is':'s are')+' unanswered. Submit anyway?':'Submit your answers?'))return;
+ if(force===true)return submitNow();
+ VM.confirm(blanks?blanks+' question'+(blanks===1?' is':'s are')+' unanswered. Submit anyway?':'Submit your answers?',{title:'Submit your test',ok:'Submit'}).then(function(y){if(y)submitNow();});
+}
+function submitNow(){
+ var x=state.active,r=state.run,flat=flatQs(x);
  flushTiming();
  var answers=flat.map(function(f,i){return r.answers[i]||'';});
  qa('.exam-submit').forEach(function(b){b.disabled=true;});
@@ -858,9 +915,20 @@ function drawReview(){
  document.getElementById('openAiSettings').onclick=aiSettings;
 }
 
-function aiSettings(){var saved=JSON.parse(localStorage.getItem('testsimu_ai_keys')||'{}');document.getElementById('extra').innerHTML='<div class="il-panel il-settings"><h3>AI settings · personal keys</h3><p class="il-note">Keys are saved only in this browser on this device. They are sent directly to the selected AI provider when you request feedback. They are never stored in Firebase.</p><label>Provider</label><select id="aiProvider" class="vm-select"><option value="gemini">Google Gemini</option><option value="groq">Groq</option></select><label>API key</label><input id="aiKey" class="vm-input" type="password" autocomplete="off" placeholder="Enter or replace API key"><p id="aiKeyState" class="il-note"></p><div class="il-row"><button id="aiSave" class="vm-btn vm-btn-primary">Save key on this device</button><button id="aiDelete" class="vm-btn vm-btn-ghost">Delete saved key</button></div></div>';document.getElementById('aiProvider').value=saved.provider||'gemini';document.getElementById('aiKeyState').textContent=saved.key?'A key is saved on this device. The full key is hidden.':'No key saved on this device.';document.getElementById('aiSave').onclick=function(){var provider=document.getElementById('aiProvider').value,key=document.getElementById('aiKey').value.trim();if(!key){document.getElementById('aiKeyState').textContent='Enter a key to save or replace it.';return;}localStorage.setItem('testsimu_ai_keys',JSON.stringify({provider:provider,key:key}));document.getElementById('aiKey').value='';document.getElementById('aiKeyState').textContent='Key saved on this device.';};document.getElementById('aiDelete').onclick=function(){localStorage.removeItem('testsimu_ai_keys');document.getElementById('aiKey').value='';document.getElementById('aiKeyState').textContent='Saved key deleted.';};}
+function aiKeyRow(label,id,val,ph,link){
+ return '<div class="vm-field"><label class="vm-label" style="display:flex;justify-content:space-between"><span>'+label+' API key</span><a href="'+link+'" target="_blank" rel="noopener" style="font-weight:600">Get a free key →</a></label><div class="il-row"><input class="vm-input" type="password" id="k_'+id+'" value="'+esc(val)+'" placeholder="'+ph+'" autocomplete="off" style="flex:1;min-width:200px"><button class="vm-btn vm-btn-primary" data-ksave="'+id+'">Save key</button>'+(val?'<button class="vm-btn vm-btn-ghost" data-kclear="'+id+'">Remove</button>':'')+'</div><div class="il-note" style="margin-top:4px">'+(val?'<b style="color:#1E8A5E">✓ Key saved on this device</b>':'No key saved yet')+'</div></div>';
+}
+function aiSettings(){
+ var g=VM.geminiKey.get(),q=VM.groqKey.get();
+ var ex=document.getElementById('extra');
+ ex.innerHTML='<div class="il-panel il-settings"><h3>AI settings · personal keys</h3><p class="il-note">Keys stay in this browser. They are sent straight to the AI provider when you ask for feedback, never to our servers. They are the same keys as in Settings. Gemini is used first, Groq is the fallback.</p>'+aiKeyRow('Gemini','gem',g,'AIza…','https://aistudio.google.com/apikey')+aiKeyRow('Groq','groq',q,'gsk_…','https://console.groq.com/keys')+'<button class="vm-btn vm-btn-ghost" id="kClose">Close</button></div>';
+ qa('[data-ksave]').forEach(function(b){b.onclick=function(){var id=b.getAttribute('data-ksave'),v=document.getElementById('k_'+id).value.trim();if(!v)return say('Paste a key first, then click Save key.');(id==='gem'?VM.geminiKey:VM.groqKey).set(v);VM.toast((id==='gem'?'Gemini':'Groq')+' key saved.','ok');aiSettings();};});
+ qa('[data-kclear]').forEach(function(b){b.onclick=function(){var id=b.getAttribute('data-kclear');(id==='gem'?VM.geminiKey:VM.groqKey).set('');VM.toast('Key removed.','ok');aiSettings();};});
+ document.getElementById('kClose').onclick=function(){ex.innerHTML='';};
+ ex.scrollIntoView({behavior:'smooth'});
+}
 /* ───────── AI feedback (student's own key; data goes straight to the provider) ───────── */
-function aiKeys(){var k={};try{k=JSON.parse(localStorage.getItem('testsimu_ai_keys')||'{}');}catch(e){}if(k&&k.key)return k;var g=VM.geminiKey&&VM.geminiKey.get();if(g)return{provider:'gemini',key:g};var q=VM.groqKey&&VM.groqKey.get();if(q)return{provider:'groq',key:q};return null;}
+function aiKeys(){var g=VM.geminiKey&&VM.geminiKey.get();if(g)return{provider:'gemini',key:g};var q=VM.groqKey&&VM.groqKey.get();if(q)return{provider:'groq',key:q};var k={};try{k=JSON.parse(localStorage.getItem('testsimu_ai_keys')||'{}');}catch(e){}return k&&k.key?k:null;}
 function callAI(keys,prompt){
  if(keys.provider==='groq')return fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+keys.key},body:JSON.stringify({model:'llama-3.3-70b-versatile',messages:[{role:'user',content:prompt}],temperature:0.3})}).then(function(r){if(!r.ok)throw new Error('AI provider error ('+r.status+'). Check your key in AI settings.');return r.json();}).then(function(d){return d.choices[0].message.content;});
  var models=['gemini-2.5-flash','gemini-3.5-flash','gemini-3.5-flash-lite'],last=null;
@@ -891,14 +959,16 @@ function runAnalysis(){
    Listening row: 1 Questions | 2 Audio (file or link, optional) | 3 Answers | 4 Script (optional)          */
 var BOOKS=[];for(var bi=1;bi<=30;bi++)BOOKS.push('Cam'+bi);
 function importUrl(){
- var url=prompt('Paste an IELTS Training Online lesson URL (HTTPS).');if(!url)return;
+ VM.prompt('Paste an IELTS Training Online lesson URL (HTTPS).',{title:'Import from URL',placeholder:'https://ieltstrainingonline.com/…',ok:'Import'}).then(function(url){if(url&&url.trim())importRun(url.trim());});
+}
+function importRun(url){
  busy('Fetching the page and splitting it into passages, questions and answers…');
  call('ielts.importUrl',{url:url}).then(function(d){unbusy();
   var m=/cam(?:bridge)?-?(\d+)-(reading|listening)-test-?(\d+)/i.exec(url)||[];
   editorDialog({skill:d.skill||(m[2]||'reading').toLowerCase(),book:m[1]?'Cam'+m[1]:'',test:m[3]?String(parseInt(m[3],10)):'',sourceUrl:url,sourceTitle:d.sourceTitle||'',imported:d.sections||[]});
   if(d.warning)say(d.warning);
   VM.toast('Imported. Please check everything against the original before you click Finish.','warn',7000);
- }).catch(function(e){unbusy();say(e.message);});
+ }).catch(function(e){unbusy();say('Import failed: '+((e&&e.message)||'the import service did not respond')+'. Check that the link is a single ieltstrainingonline.com lesson page and try again.');});
 }
 function editorDialog(init){
  init=init||{};var ex=init.existing||null;
@@ -908,7 +978,7 @@ function editorDialog(init){
  function taken(part){return !ex&&book&&test&&state.items.some(function(i){return i.skill===skill&&i.book===book&&String(i.test)===String(test)&&String(i.part)===String(part);});}
  function newRow(part,sec){
   sec=sec||{};
-  var r={part:String(part),text:sec.text||'',script:sec.script||'',images:(sec.images||[]).slice(0,6),pendingAns:sec.answersText?parseAnswers(sec.answersText):null,audio:sec.audio||null,audioMode:(sec.audio&&sec.audio.url)?'link':'file',audioUrl:(sec.audio&&sec.audio.url)||'',file:null,ans:{},types:{},questions:[]};
+  var r={part:String(part),title:(ex&&ex.title)||'',text:sec.text||'',script:sec.script||'',images:(sec.images||[]).slice(0,6),pendingAns:sec.answersText?parseAnswers(sec.answersText):null,audio:sec.audio||null,audioMode:(sec.audio&&sec.audio.url)?'link':'file',audioUrl:(sec.audio&&sec.audio.url)||'',file:null,ans:{},types:{},questions:[]};
   var qs=sec.questions||[];
   qs.forEach(function(q,i){var k=q.number||i+1;r.ans[k]=(q.answers||[]).slice();if(q.type)r.types[k]=q.type;});
   r.qtext=sec.questionsText||serializeQuestions(qs);
@@ -923,7 +993,7 @@ function editorDialog(init){
 
  function rowHtml(i){
   var r=ed.rows[i],listen=skill==='listening';
-  var head='<div class="ed-row-h"><h3>'+partWord(skill)+' '+esc(r.part)+'</h3><span class="il-error" id="rn'+i+'"></span><span class="il-spacer"></span>'+(ed.rows.length>1&&!ex?'<button class="vm-btn vm-btn-ghost vm-btn-sm" data-rm="'+i+'">Remove this '+partWord(skill).toLowerCase()+'</button>':'')+'</div>';
+  var head='<div class="ed-row-h"><h3>'+partWord(skill)+' '+esc(r.part)+'</h3><input class="vm-input ed-title" data-r="'+i+'" data-f="title" placeholder="Title (optional) — default: '+esc((book||'Book')+' · Test '+(test||'?')+' · '+partWord(skill)+' '+r.part)+'" value="'+esc(r.title)+'"><span class="il-error" id="rn'+i+'"></span><span class="il-spacer"></span>'+(ed.rows.length>1&&!ex?'<button class="vm-btn vm-btn-ghost vm-btn-sm" data-rm="'+i+'">Remove this '+partWord(skill).toLowerCase()+'</button>':'')+'</div>';
   var frameText='<section class="il-panel ed-frame"><h4><span class="ed-n">1</span>Passage text</h4><textarea class="vm-input ed-area" data-r="'+i+'" data-f="text" placeholder="Paste the reading passage here">'+esc(r.text)+'</textarea></section>';
   var frameQ='<section class="il-panel ed-frame"><h4><span class="ed-n">'+(listen?1:2)+'</span>Questions</h4><div class="il-note">Paste everything: “Questions 1–5”, the instructions and the options. Task types are detected automatically.</div><textarea class="vm-input ed-area" data-r="'+i+'" data-f="qtext" placeholder="Questions 1–5&#10;Choose the correct letter, A, B, C or D.&#10;1  …">'+esc(r.qtext)+'</textarea><div id="det'+i+'" class="il-detected"></div></section>';
   var frameA='<section class="il-panel ed-frame"><h4><span class="ed-n">3</span>Answers</h4><div class="il-note">Paste the answer list (one per line, e.g. “1 B”) and click Fill, or type each answer. Separate accepted alternatives with “/”.</div><div class="il-row"><textarea class="vm-input" id="ap'+i+'" rows="3" style="flex:1;min-width:140px" placeholder="1 B&#10;2 FALSE&#10;3 heating"></textarea><button class="vm-btn vm-btn-ghost vm-btn-sm" data-fill="'+i+'">Fill</button></div><div id="ans'+i+'" class="il-ans-list"></div></section>';
@@ -956,7 +1026,7 @@ function editorDialog(init){
   if(list)list.innerHTML=r.questions.length?r.questions.map(function(q,k){var key=qNum(q,k);return '<div class="il-arow"><span class="il-qnum">'+key+'</span><div class="il-aprompt">'+esc(q.prompt.slice(0,70))+'<select class="il-typesel" data-t="'+i+'|'+key+'">'+ALL_TYPES.map(function(t){return '<option value="'+t+'"'+(t===q.type?' selected':'')+'>'+esc(typeName(t))+'</option>';}).join('')+'</select></div><input class="vm-input" data-r="'+i+'" data-a="'+key+'" value="'+esc((r.ans[key]||[]).join(' / '))+'" placeholder="Answer"></div>';}).join(''):'<div class="il-note">Answer boxes appear once questions are detected.</div>';
  }
  function bind(){
-  document.getElementById('edBack').onclick=function(){var dirty=ed.rows.some(function(r){return r.text.trim()||r.qtext.trim();});if(!ex&&dirty&&!confirm('Discard what you have entered?'))return;leave();};
+  document.getElementById('edBack').onclick=function(){var dirty=ed.rows.some(function(r){return r.text.trim()||r.qtext.trim();});if(!ex&&dirty)VM.confirm('Discard what you have entered?',{danger:true,ok:'Discard'}).then(function(y){if(y)leave();});else leave();};
   document.getElementById('edSkill').onchange=function(){skill=this.value;ed.rows=[];ed.rows=[newRow(nextPart()||'1')];build();};
   document.getElementById('edBook').onchange=function(){book=this.value;updateHints();};
   document.getElementById('edTest').onchange=function(){test=this.value;updateHints();};
@@ -973,7 +1043,7 @@ function editorDialog(init){
    else if(b.hasAttribute('data-rmimg')){var ra=b.getAttribute('data-rmimg').split('|');ed.rows[+ra[0]].images.splice(+ra[1],1);recompute(+ra[0]);}
    else if(b.hasAttribute('data-rm')){ed.rows.splice(+b.getAttribute('data-rm'),1);build();}});
   var add=document.getElementById('edAdd');if(add)add.onclick=function(){var p=nextPart();if(!p)return;var imp=init.imported&&init.imported.filter(function(s){return String(s.part)===String(p);})[0];ed.rows.push(newRow(p,imp));ed.rows.sort(function(a,b){return +a.part-+b.part;});build();};
-  var ar=document.getElementById('edArchive');if(ar)ar.onclick=function(){if(confirm('Remove this item from the Library? Past attempts are kept.'))call('ielts.content.archive',{id:ex.id||ex._id}).then(function(){VM.toast('Removed from the Library.','ok');state.loaded=false;load();}).catch(function(e){say(e.message);});};
+  var ar=document.getElementById('edArchive');if(ar)ar.onclick=function(){VM.confirm('Remove this item from the Library? Past attempts are kept.',{danger:true,ok:'Remove'}).then(function(y){if(y)call('ielts.content.archive',{id:ex.id||ex._id}).then(function(){VM.toast('Removed from the Library.','ok');state.loaded=false;load();}).catch(function(e){say(e.message);});});};
   document.getElementById('edDone').onclick=done;
   document.getElementById('edPreview').onclick=preview;
  }
@@ -1010,7 +1080,7 @@ function editorDialog(init){
     if(r.audioMode==='link'){var u=r.audioUrl.trim();if(u&&!/^https?:\/\//i.test(u))return problem=L+'the audio link must start with http:// or https://.';audio=u?{url:u}:undefined;}
     else if(!(r.audio&&r.audio.path))audio=undefined;
    }
-   payloads.push({row:r,body:{id:ex?(ex.id||ex._id):undefined,title:book+' · Test '+test+' · '+partWord(skill)+' '+r.part,skill:skill,book:book,test:test,part:r.part,sourceUrl:init.sourceUrl||(ex&&ex.sourceUrl)||'',sourceTitle:init.sourceTitle||(ex&&ex.sourceTitle)||'',attribution:(ex&&ex.attribution)||'',
+   payloads.push({row:r,body:{id:ex?(ex.id||ex._id):undefined,title:(r.title||'').trim()||(book+' · Test '+test+' · '+partWord(skill)+' '+r.part),skill:skill,book:book,test:test,part:r.part,sourceUrl:init.sourceUrl||(ex&&ex.sourceUrl)||'',sourceTitle:init.sourceTitle||(ex&&ex.sourceTitle)||'',attribution:(ex&&ex.attribution)||'',
     sections:[{title:partWord(skill)+' '+r.part,part:r.part,images:(r.images||[]).filter(function(u){return /^https:\/\//i.test(u);}).slice(0,6),text:skill==='reading'?r.text:'',script:skill==='listening'?r.script:'',questionsText:r.qtext,questions:questions,audio:audio}]}});
   });
   if(problem)return err(problem);

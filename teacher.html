@@ -5,7 +5,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%231B7F5E'/%3E%3Ctext x='12' y='17' text-anchor='middle' font-size='13' font-weight='700' fill='%23fff' font-family='system-ui'%3EV%3C/text%3E%3C/svg%3E">
 <meta name="theme-color" content="#0F6B4F">
 <title>Teacher · Test Simulation</title>
-<link rel="stylesheet" href="vm-theme.css?v=20261007h">
+<link rel="stylesheet" href="vm-theme.css?v=20261007j">
 <style>
 #app{min-height:100vh}
 /* Assign form */
@@ -330,7 +330,7 @@
   </div>
 </div>
 
-<script src="vm-common.js?v=20261007h"></script>
+<script src="vm-common.js?v=20261007j"></script>
 <script>
 if (typeof VM === 'undefined') { location.href='login.html'; throw new Error('no VM'); }
 
@@ -402,6 +402,7 @@ var state = {
 function navItems() {
   return [
     { id:'library',  label:'Library',   icon:'reading', href:'ielts.html#library' },
+    { id:'types',    label:'Task Types', icon:'assign', href:'ielts.html#types' },
     { id:'inclass',  label:'In-class',  icon:'inclass', href:'ielts.html#inclass' },
     { id:'results',  label:'Results',   icon:'results', href:'ielts.html#results' },
     { id:'classes',  label:'Classes',   icon:'classes'  },
@@ -556,7 +557,7 @@ function renderClasses() {
     VM.els('[data-archive-cls]').forEach(function(btn){
       btn.onclick = function(){
         var cid = btn.getAttribute('data-archive-cls');
-        if (!confirm('Archive this class? Assignments and results will be kept.')) return;
+        if(!btn._ok){VM.confirm('Archive this class? Assignments and results will be kept.',{danger:true,ok:'Archive'}).then(function(y){if(y){btn._ok=1;try{btn.click();}finally{btn._ok=0;}}});return;}
         VM.api('class.archive',{classId:cid}).then(function(res){
           if(res&&res.success){VM.toast('Class archived.','ok');renderClasses();}
           else VM.toast('Error: '+(res&&res.error),'err');
@@ -616,9 +617,8 @@ function openRoster(classId) {
       btn.onclick = function(){
         var parts = btn.getAttribute('data-editstu').split('|');
         var sid=parts[0], sname=parts[1], scls=parts[2], semail=parts[3];
-        var newName = prompt('Name:', sname); if(newName===null) return;
-        var newClass = prompt('Class ID:', scls); if(newClass===null) return;
-        var newEmail = prompt('Email:', semail); if(newEmail===null) return;
+        if(!btn._v){VM.prompt('Name:',{value:sname,title:'Edit student',ok:'Next'}).then(function(n){if(n===null)return;VM.prompt('Class ID:',{value:scls,title:'Edit student',ok:'Next'}).then(function(c){if(c===null)return;VM.prompt('Email:',{value:semail,title:'Edit student',ok:'Save'}).then(function(m){if(m===null)return;btn._v=[n,c,m];try{btn.click();}finally{btn._v=null;}});});});return;}
+        var newName = btn._v[0], newClass = btn._v[1], newEmail = btn._v[2];
         showOverlay('Updating student…');
         VM.api('student.update',{studentId:sid, name:newName.trim(), class:newClass.trim().toUpperCase(), email:newEmail.trim()}).then(function(r){
           hideOverlay();
@@ -629,7 +629,7 @@ function openRoster(classId) {
     });
     VM.els('[data-rmstu]').forEach(function(btn){
       btn.onclick = function(){
-        if(!confirm('Remove student '+btn.getAttribute('data-rmstu')+' from the system?')) return;
+        if(!btn._ok){VM.confirm('Remove student '+btn.getAttribute('data-rmstu')+' from the system?',{danger:true,ok:'Remove'}).then(function(y){if(y){btn._ok=1;try{btn.click();}finally{btn._ok=0;}}});return;}
         showOverlay('Removing student…');
         VM.api('student.archive',{studentId:btn.getAttribute('data-rmstu')}).then(function(r){
           hideOverlay();
@@ -711,7 +711,7 @@ function renderAssignList() {
   });
   VM.els('[data-del-asgn]').forEach(function(btn){
     btn.onclick = function(){
-      if(!confirm('Delete this assignment?')) return;
+      if(!btn._ok){VM.confirm('Delete this assignment?',{danger:true,ok:'Delete'}).then(function(y){if(y){btn._ok=1;try{btn.click();}finally{btn._ok=0;}}});return;}
       VM.api('assign.delete',{assignmentId:btn.getAttribute('data-del-asgn')}).then(function(r){
         if(r&&r.success){VM.toast('Deleted.','ok');loadAssignments(renderAssignList);}
         else VM.toast('Error.','err');
@@ -1614,11 +1614,9 @@ function renderResults() {
       if(!aid){ VM.toast('Filter bằng 1 bài In-class cụ thể trước.','warn'); return; }
       var a = state.assignments.find(function(x){ return x.assignmentId===aid; });
       if(!a){ VM.toast('Không tìm thấy bài.','err'); return; }
-      if(!confirm(
-        'Đánh vắng cho bài "'+a.title+'" — lớp '+clsName(a.classId)+'?\n\n'+
+      if(!btn._ok){VM.confirm('Đánh vắng cho bài "'+a.title+'" — lớp '+clsName(a.classId)+'?\n\n'+
         'SV nào chưa nộp sẽ bị ghi vắng và nhận toàn bộ từ sai của cả lớp.\n'+
-        'Hành động này không thể hoàn tác.'
-      )) return;
+        'Hành động này không thể hoàn tác.',{danger:true,ok:'Confirm'}).then(function(y){if(y){btn._ok=1;try{btn.click();}finally{btn._ok=0;}}});return;}
       btn.disabled=true; btn.textContent='⏳ Đang xử lý…';
       VM.api('result.absentPenalty',{
         assignmentId: aid, classId: a.classId, title: a.title||'', total:(a.vocab||[]).length
@@ -1798,7 +1796,7 @@ function renderHWBook(){
         // Delete
         VM.els('[data-hwb-del]').forEach(function(btn){
           btn.onclick=function(){
-            if(!confirm('Delete this assignment? This cannot be undone.')) return;
+            if(!btn._ok){VM.confirm('Delete this assignment? This cannot be undone.',{danger:true,ok:'Delete'}).then(function(y){if(y){btn._ok=1;try{btn.click();}finally{btn._ok=0;}}});return;}
             showOverlay('Deleting…');
             VM.api('assign.delete',{assignmentId:btn.getAttribute('data-hwb-del')}).then(function(res){
               hideOverlay();
@@ -2300,7 +2298,7 @@ function renderTeacherSettings(){
         '</label>'+
         '<div style="display:flex;gap:8px">'+
           '<input class="vm-input" id="tsGemKey" type="password" placeholder="AIza…" value="'+VM.esc(gemKey)+'" style="flex:1;font-family:monospace">'+
-          '<button class="vm-btn vm-btn-primary" id="tsGemSave" style="padding:10px 16px;white-space:nowrap">Save</button>'+
+          '<button class="vm-btn vm-btn-primary" id="tsGemSave" style="padding:10px 16px;white-space:nowrap">Save key</button>'+
           (gemKey?'<button class="vm-btn vm-btn-ghost" id="tsGemClear" style="padding:10px 12px;color:var(--vm-danger)">✕</button>':'')+
         '</div>'+
         '<div id="tsGemStatus" style="font-size:.75rem;margin-top:5px">'+
@@ -2317,7 +2315,7 @@ function renderTeacherSettings(){
         '</label>'+
         '<div style="display:flex;gap:8px">'+
           '<input class="vm-input" id="tsGroqKey" type="password" placeholder="gsk_…" value="'+VM.esc(groqKey)+'" style="flex:1;font-family:monospace">'+
-          '<button class="vm-btn vm-btn-primary" id="tsGroqSave" style="padding:10px 16px;white-space:nowrap">Save</button>'+
+          '<button class="vm-btn vm-btn-primary" id="tsGroqSave" style="padding:10px 16px;white-space:nowrap">Save key</button>'+
           (groqKey?'<button class="vm-btn vm-btn-ghost" id="tsGroqClear" style="padding:10px 12px;color:var(--vm-danger)">✕</button>':'')+
         '</div>'+
         '<div id="tsGroqStatus" style="font-size:.75rem;margin-top:5px">'+

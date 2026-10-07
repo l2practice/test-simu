@@ -286,6 +286,33 @@
     _te._t = setTimeout(function () { _te.className = 'vm-toast' + (kind ? ' ' + kind : ''); }, ms || 2600);
   };
 
+  /* ── Dialogs (replace the browser's alert / confirm / prompt) ── */
+  function vmDialog(o){
+    return new Promise(function (resolve) {
+      var back = document.createElement('div'); back.className = 'vm-dlg-back';
+      var esc = function (t) { return String(t == null ? '' : t).replace(/[&<>"]/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); };
+      back.innerHTML = '<div class="vm-dlg" role="dialog" aria-modal="true"><div class="vm-dlg-ic ' + (o.danger ? 'danger' : '') + '">' + (o.icon || (o.danger ? '!' : '?')) + '</div>' +
+        (o.title ? '<h3>' + esc(o.title) + '</h3>' : '') + '<p>' + esc(o.message) + '</p>' +
+        (o.input ? '<' + (o.multiline ? 'textarea rows="4"' : 'input type="text"') + ' class="vm-input vm-dlg-in" placeholder="' + esc(o.placeholder || '') + '"' + (o.multiline ? '>' + esc(o.value || '') + '</textarea>' : ' value="' + esc(o.value || '') + '">') : '') +
+        '<div class="vm-dlg-btns">' + (o.cancel === false ? '' : '<button type="button" class="vm-btn vm-btn-ghost" data-r="0">' + esc(o.cancel || 'Cancel') + '</button>') +
+        '<button type="button" class="vm-btn ' + (o.danger ? 'vm-btn-danger' : 'vm-btn-primary') + '" data-r="1">' + esc(o.ok || 'OK') + '</button></div></div>';
+      document.body.appendChild(back);
+      var inp = back.querySelector('.vm-dlg-in'), prev = document.activeElement;
+      function close(yes) {
+        document.removeEventListener('keydown', key, true); back.remove(); try { prev && prev.focus && prev.focus(); } catch (e) {}
+        resolve(o.input ? (yes ? inp.value : null) : !!yes);
+      }
+      function key(e) { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); close(false); } else if (e.key === 'Enter' && !(o.multiline && e.target === inp)) { e.preventDefault(); close(true); } }
+      document.addEventListener('keydown', key, true);
+      back.addEventListener('mousedown', function (e) { if (e.target === back && o.cancel !== false) close(false); });
+      Array.prototype.forEach.call(back.querySelectorAll('button'), function (b) { b.onclick = function () { close(b.getAttribute('data-r') === '1'); }; });
+      setTimeout(function () { (inp || back.querySelector('[data-r="1"]')).focus(); }, 30);
+    });
+  }
+  VM.confirm = function (message, o) { return vmDialog(Object.assign({ message: message }, o || {})); };
+  VM.prompt = function (message, o) { return vmDialog(Object.assign({ message: message, input: true, icon: '✎' }, o || {})); };
+  VM.alert = function (message, o) { return vmDialog(Object.assign({ message: message, cancel: false, icon: 'i' }, o || {})); };
+
   /* ── Brand ─────────────────────────────────────────────────── */
   VM.logoSVG = '<img src="favicon.svg" alt="">';
   VM.brandLockup = function () {
