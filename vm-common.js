@@ -375,17 +375,17 @@
     var role = s.role === 'teacher' ? 'Teacher' : 'Student';
     var ini  = name.split(/\s+/).map(function(w){return w[0]||'';}).slice(0,2).join('').toUpperCase();
     var nav  = opts.nav.map(function(n){
-      return '<a class="vm-nav'+(n.active?' active':'')+'" '+(n.href?'href="'+n.href+'"':'data-nav="'+n.id+'"')+'>'+
+      return '<a class="vm-nav'+(n.active?' active':'')+'"'+(n.active?' aria-current="page"':'')+' '+(n.href?'href="'+n.href+'"':'data-nav="'+n.id+'"')+'>'+
              (n.icon?VM.icon(n.icon):'')+' <span>'+n.label+'</span></a>';
     }).join('');
     document.getElementById(opts.mount||'app').innerHTML =
-      '<div class="vm-shell">'+
-        '<aside class="vm-side" id="vmSide">'+VM.brandLockup()+nav+
+      '<a class="skip-link" href="#vmContent">Skip to content</a><div class="vm-shell">'+
+        '<aside class="vm-side" id="vmSide" aria-label="Main navigation">'+VM.brandLockup()+nav+
           '<div style="margin-top:auto"><button class="vm-nav" id="vmLogout">'+VM.icon('logout')+'<span>Sign out</span></button></div>'+
         '</aside>'+
         '<div class="vm-main">'+
           '<header class="vm-topbar">'+
-            '<button class="vm-menu-btn" id="vmMenuBtn">'+VM.icon('menu')+'</button>'+
+            '<button class="vm-menu-btn" id="vmMenuBtn" aria-label="Open menu" aria-controls="vmSide">'+VM.icon('menu')+'</button>'+
             '<div><div class="vm-eyebrow">'+(opts.eyebrow||'')+'</div>'+
             '<h1 class="vm-page-title" id="vmPageTitle">'+(opts.title||'')+'</h1></div>'+
             '<div class="vm-topbar-right"><button class="vm-top-logout" id="vmLogout2" title="Sign out" aria-label="Sign out">'+VM.icon('logout')+'</button><div class="vm-user">'+
@@ -393,7 +393,7 @@
               '<div><div class="vm-user-name">'+VM.esc(name)+'</div><div class="vm-user-role">'+role+'</div></div>'+
             '</div></div>'+
           '</header>'+
-          '<main class="vm-content" id="vmContent"></main>'+
+          '<main class="vm-content" id="vmContent" tabindex="-1"></main>'+
         '</div>'+
       '</div>';
     document.getElementById('vmLogout').onclick = function(){ VM.session.logout(); };
