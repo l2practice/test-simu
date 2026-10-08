@@ -132,8 +132,8 @@ async function finishLogin(requireTeacher) {
     await signOut();
     return fail(u && u.archived ? 'This account is locked. Contact your teacher.' : 'Wrong account or password.');
   }
-  if (u.role === 'teacher') return ok({ name: u.fullName || '', email: u.email || '' });
-  return ok({ studentId: u.studentId || '', name: u.fullName || '', class: u.classId || '', email: u.email || '' });
+  if (u.role === 'teacher') return ok({ role: 'teacher', name: u.fullName || '', email: u.email || '' });
+  return ok({ role: 'student', studentId: u.studentId || '', name: u.fullName || '', class: u.classId || '', email: u.email || '' });
 }
 async function studentLogin(p) {
   init();
@@ -1059,6 +1059,7 @@ async function gas(action, payload) {
 }
 
 const ACTIONS = {
+  'auth.whoami': async () => { const u = await me(); return ok({ role: u.role }); },
   'auth.studentLogin': studentLogin, 'auth.teacherLogin': teacherLogin,
   'auth.studentSignup': studentSignup, 'auth.teacherSignup': teacherSignup,
   // Mật khẩu Firebase được mã hoá, không đọc lại được → Apps Script đặt mật khẩu MỚI và gửi qua email
