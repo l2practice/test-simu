@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi"><head><meta charset="UTF-8"><link rel="icon" type="image/svg+xml" href="favicon.svg?v=20261008b"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#0F6B4F"><title>Test Simulation · IELTS Practice</title><link rel="stylesheet" href="vm-theme.css?v=20261008e">
+<meta name="theme-color" content="#0F6B4F"><title>Test Simulation · IELTS Practice</title><link rel="stylesheet" href="vm-theme.css?v=20261008f">
 <style>
 #app{min-height:100vh}.ielts-wrap{max-width:1180px;margin:auto}.ielts-hero{background:linear-gradient(120deg,var(--vm-sand-2),var(--vm-primary-lt));color:var(--vm-ink);padding:24px;border-radius:var(--vm-r);margin-bottom:18px}.ielts-hero h2{margin:0 0 6px;font-family:var(--vm-font-display)}.ielts-hero p{margin:0;color:var(--vm-ink-2)}.il-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}.il-card,.il-panel{background:var(--vm-surface);border:1px solid var(--vm-border-2);border-radius:var(--vm-r);padding:18px;box-shadow:var(--vm-shadow-sm)}.il-card h3{margin:5px 0;font-family:var(--vm-font-display)}.il-meta{font-size:.78rem;color:var(--vm-ink-3);margin:6px 0 12px}.il-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}.il-practice{display:grid;grid-template-columns:minmax(300px,1fr) minmax(300px,1fr);gap:16px}.il-passage{white-space:pre-wrap;line-height:1.85;max-height:68vh;overflow:auto}.il-q{border-bottom:1px solid var(--vm-border-2);padding:12px 0}.il-q label{display:block;font-weight:650;margin-bottom:7px}.il-q input,.il-q select{width:100%}.il-badge{display:inline-block;border-radius:99px;padding:3px 9px;background:var(--vm-primary-lt);color:var(--vm-primary-dk);font-size:.7rem;font-weight:700}.il-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.il-empty{padding:35px;text-align:center;color:var(--vm-ink-3)}.il-editor{display:grid;grid-template-columns:1fr 1fr;gap:10px}.il-editor textarea{min-height:130px;font-size:.92rem}.il-section-editor{margin:14px 0;padding:14px;border:1px solid var(--vm-border-2);border-radius:16px;background:var(--vm-surface)}.il-section-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.il-section-grid.three{grid-template-columns:1fr 1fr 1fr}.il-section-grid textarea{width:100%;min-height:230px;resize:vertical;white-space:pre-wrap}.il-answer-key{margin-top:20px;padding-top:16px;border-top:3px solid var(--vm-primary-lt)}.il-ai-output{white-space:pre-wrap;line-height:1.7}.il-settings{max-width:720px;margin:18px auto}.il-settings label{display:block;margin:12px 0 5px;font-weight:650}.il-chart{width:100%;height:220px;border:1px solid var(--vm-border-2);border-radius:10px;background:var(--vm-surface);margin-top:10px}.il-note{font-size:.78rem;color:var(--vm-ink-3)}.il-error{color:var(--vm-danger);font-size:.84rem}.il-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 @media(max-width:720px){.il-practice,.il-editor,.il-section-grid,.il-section-grid.three{grid-template-columns:1fr}.il-passage{max-height:40vh}}
@@ -23,7 +23,7 @@
 .il-badge-reading{background:var(--il-alt);color:var(--il-adk)}.il-badge-listening{background:var(--il-blt);color:var(--il-bdk)}.il-badge-warn{background:#C23A2E!important;color:#fff!important}
 .il-status{display:inline-block;border-radius:99px;padding:3px 11px;font-size:.72rem;font-weight:800;background:var(--vm-surface-2);color:var(--vm-ink-2)}.il-status-open{background:#DDF3E4;color:#17703A}.il-status-upcoming{background:var(--il-alt);color:var(--il-adk)}.il-status-closed{background:#EEE;color:#666}.il-status-done{background:var(--il-blt);color:var(--il-bdk)}
 .il-meta-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.il-dialog{margin-top:16px}.il-actions{white-space:nowrap}.il-actions .vm-btn{margin-right:4px}.il-students{max-height:200px;overflow:auto;border:1px solid var(--vm-border-2);border-radius:12px;padding:8px}
-.il-instr{white-space:pre-wrap;line-height:1.65;background:linear-gradient(120deg,var(--il-asoft),var(--il-blt));border-left:4px solid var(--il-a);border-radius:12px;padding:10px 14px;margin:14px 0 4px;font-size:.9rem}
+.il-instr{font-weight:700;white-space:pre-wrap;line-height:1.65;background:linear-gradient(120deg,var(--il-asoft),var(--il-blt));border-left:4px solid var(--il-a);border-radius:12px;padding:10px 14px;margin:14px 0 4px;font-size:.9rem}
 .il-detected{margin-top:10px}.il-ans-list{display:grid;gap:4px}.il-aprompt{font-size:.88rem;display:flex;gap:8px;align-items:center;flex-wrap:wrap}.il-typesel{border:1px solid var(--vm-border);border-radius:8px;padding:2px 6px;font-size:.72rem;background:#fff;color:var(--vm-ink-2)}
 .il-choose .em svg{width:44px;height:44px}.il-choose button{border:none!important;color:#fff!important;box-shadow:0 10px 26px rgba(10,63,48,.2)}#pickReading h3,#pickListening h3{color:#fff!important}
 #pickReading{background:linear-gradient(135deg,var(--il-a),var(--il-a2))!important}#pickListening{background:linear-gradient(135deg,var(--il-b),var(--il-b2))!important}.il-choose .il-note{color:rgba(255,255,255,.92)!important}
@@ -146,7 +146,13 @@ body.skill-reading .il-instr,body.skill-listening .il-instr{background:linear-gr
 .ielts-wrap .ielts-hero h2{margin:0 0 4px!important;font-size:clamp(1.25rem,2.4vw,1.65rem);font-weight:800;letter-spacing:-.02em;line-height:1.2}
 .ielts-wrap .ielts-hero p{margin:0!important;font-size:.95rem;line-height:1.5;max-width:68ch;opacity:.94}
 @media(max-width:600px){.ielts-wrap .ielts-hero{padding:18px 20px!important;border-radius:18px!important}}
-</style></head><body><div id="app"></div><script src="vm-common.js?v=20261008e"></script><script>
+
+/* bold instructions and passage / part titles */
+.il-instr,.il-gaptext .gt-instr{font-weight:700}
+.gt-instr{display:block;font-weight:700;color:var(--il-adk);line-height:1.6}
+.gt-title{display:block;font-weight:800;font-size:1.12em;color:var(--vm-ink);margin:6px 0 4px;text-align:center}
+.il-text .pt-title{display:block;font-weight:800;font-size:1.22em;line-height:1.35;margin:0 0 10px;color:var(--il-adk)}
+</style></head><body><div id="app"></div><script src="vm-common.js?v=20261008f"></script><script>
 
 
 (function(){
@@ -296,7 +302,7 @@ function groupLibrary(items){
  items.forEach(function(i){var k=i.skill+'|'+(i.book||'?')+'|'+(i.test||'?');(g[k]=g[k]||{skill:i.skill,book:i.book||'?',test:i.test||'?',parts:{}}).parts[i.part||'0']=i;});
  return Object.keys(g).map(function(k){return g[k];}).sort(function(a,b){return bookNum(b.book)-bookNum(a.book)||(parseInt(a.test,10)||0)-(parseInt(b.test,10)||0)||a.skill.localeCompare(b.skill);});
 }
-function fullIds(g){var ids=[];for(var p=1;p<=partCount(g.skill);p++){var it=g.parts[String(p)];if(it&&it.review!=='pending')ids.push(it.id);}return ids.length===partCount(g.skill)?ids:[];}
+function fullIds(g){var ids=[];for(var p=1;p<=partCount(g.skill);p++){var it=g.parts[String(p)];if(it&&true)ids.push(it.id);}return ids.length===partCount(g.skill)?ids:[];}
 function drawToCheck(){
  var box=document.getElementById('toCheck');if(!box)return;
  var rows=state.items.filter(function(i){return i.review==='pending'&&i.canEdit;});
@@ -391,7 +397,7 @@ function pickParts(t){
 }
 function fetchItems(ids,opts){
  opts=opts||{};
- if(!ids||!ids.length)return Promise.reject(new Error('This test is not ready yet. A teacher still has to check it.'));
+ if(!ids||!ids.length)return Promise.reject(new Error('This test is not ready yet. Please refresh the page and try again.'));
  return Promise.all(ids.map(function(id){return call('ielts.content.get',{id:id});})).then(function(rows){
   rows=rows.filter(Boolean);if(!rows.length)throw new Error('Could not load this test. Please refresh the page and try again.');
   if(opts.taskType){
@@ -758,6 +764,7 @@ function tableCells(line){
 /* Renders text where runs of tab- or pipe-separated lines become real tables; cells may hold numbered blanks. */
 function richHtml(text,byNum,mk){
  var lines=String(text||'').split('\n'),out='',buf=[],used={};
+ var INSTR=/^(questions?\s+\d|complete\b|choose\b|write\b|label\b|match\b|do the following|look at|answer the|which\b|read the|use the|the diagram|the table|the plan|the map|the flow)/i,sawInstr=false,titled=false;
  function cell(x){if(!mk)return esc(x);var g=gapInline(x,byNum,mk);for(var k in g.used)used[k]=1;return g.html;}
  function flush(){
   if(!buf.length)return;
@@ -767,10 +774,19 @@ function richHtml(text,byNum,mk){
    var tag=head&&ri===0?'th':'td',h='';for(var i=0;i<w;i++)h+='<'+tag+'>'+cell(r[i]||'')+'</'+tag+'>';return '<tr>'+h+'</tr>';}).join('')+'</table></div>';buf=[];
  }
  var plain=[];
- function flushText(){if(!plain.length)return;out+=cell(plain.join('\n'));plain=[];}
+ function flushText(){if(!plain.length)return;
+  out+=plain.map(function(ln){var t=ln.trim();
+   if(mk&&t&&INSTR.test(t)&&t.length<220&&!/\d{1,2}\s*\)?\s*(?:[\.…_]{3,}|…)/.test(t)){sawInstr=true;return '<span class="gt-instr">'+cell(ln)+'</span>';}
+   if(mk&&sawInstr&&!titled&&t&&t.length<90&&!/[\.…_:]$/.test(t)&&!/\d{1,2}\s*\)?\s*(?:[\.…_]{3,}|…)/.test(t)&&!/^[•\-\*]/.test(t)){titled=true;return '<span class="gt-title">'+cell(ln)+'</span>';}
+   return cell(ln)+'\n';}).map(function(x,k,arr){return x;}).join('').replace(/\n$/,'');plain=[];}
  lines.forEach(function(l){var c=tableCells(l);if(c){flushText();buf.push(c);}else{flush();plain.push(l);}});
  flush();flushText();
  return{html:out,used:used};
+}
+function passageHtml(text){
+ var t=String(text||''),m=/^\s*([^\n]{3,120})\n/.exec(t);
+ if(m&&!/[\.!?:;,]$/.test(m[1].trim())&&!/^\s*[A-I]\s*$/.test(m[1])){return '<span class="pt-title">'+esc(m[1].trim())+'</span>'+richHtml(t.slice(m[0].length)).html;}
+ return richHtml(t).html;
 }
 function qrowTable(c,g,ctl){
  return '<table class="il-qt">'+g.qs.map(function(f){return '<tr id="q'+f.n+'"><td class="qn"><span class="il-qnum">'+f.num+'</span></td><td class="qt" data-hk="q'+f.n+'">'+esc(f.q.prompt)+'</td><td class="qa">'+ctl(f)+'</td><td class="qm">'+qmark(c,f)+'</td></tr>';}).join('')+'</table>';
@@ -821,7 +837,7 @@ function drawSplit(){
  var exam=!rv,pc=exam?'exam-pane':'il-panel il-pane';
 
  var imgs=(s.images||[]).filter(function(u){return /^https:\/\//i.test(u);}).map(function(u){return '<img class="il-img" src="'+esc(u)+'" alt="Figure" loading="lazy" referrerpolicy="no-referrer">';}).join('');
- var left='<section class="'+pc+'"><h3 class="pane-h">'+(listen?'Notes':esc(secLabel(x,p)))+'</h3>'+(listen||imgInGroup?'':imgs)+'<div class="il-text" data-hk="p'+p+'">'+(s.text?richHtml(s.text).html:'<span class="il-note">'+(listen?'Listen to the audio and answer the questions.':'No passage text.')+'</span>')+'</div></section>';
+ var left='<section class="'+pc+'"><h3 class="pane-h">'+(listen?'Notes':esc(secLabel(x,p)))+'</h3>'+(listen||imgInGroup?'':imgs)+'<div class="il-text" data-hk="p'+p+'">'+(s.text?passageHtml(s.text):'<span class="il-note">'+(listen?'Listen to the audio and answer the questions.':'No passage text.')+'</span>')+'</div></section>';
  var partQs=flat.filter(function(f){return f.part===p;}),groups=groupQuestions(partQs);
  var imgInGroup=groups.some(function(g){return g.type==='plan-map-diagram-labelling'||g.type==='diagram-completion';});
  var ctx={r:r,rv:rv,resp:resp,dis:rv?' disabled':'',img:imgInGroup?imgs:''},imgGiven=false;
@@ -1083,6 +1099,14 @@ function editorDialog(init){
   var active=ed.rows.filter(function(r){return r.text.trim()||r.qtext.trim()||Object.keys(r.ans).length;});
   if(!active.length)return err('Add the content of at least one '+partWord(skill).toLowerCase()+'.');
   var payloads=[],problem='';
+  function normT(t){return String(t||'').toLowerCase().replace(/[·•|:\-–—_,.]+/g,' ').replace(/\s+/g,' ').trim();}
+  function titleOf(r){return (r.title||'').trim()||(book+' · Test '+test+' · '+partWord(skill)+' '+r.part);}
+  var dupRow=null,dupItem=null;
+  active.forEach(function(r){if(dupItem)return;var nt=normT(titleOf(r));var hit=state.items.filter(function(i){return (!ex||(i.id||i._id)!==(ex.id||ex._id))&&(normT(i.title)===nt||(i.skill===skill&&i.book===book&&String(i.test)===String(test)&&String(i.part)===String(r.part)));})[0];if(hit){dupRow=r;dupItem=hit;}});
+  if(dupItem){
+   VM.confirm('“'+dupItem.title+'” is already in the Library, so there is no need to add it again. Open the Library and start practising it now.',{title:'This practice already exists',ok:'Go to Library',cancel:'Stay here',icon:'✓'}).then(function(y){if(y){state.libSkill=skill;state.bookFilter='';leave();}});
+   return;
+  }
   active.forEach(function(r){
    if(problem)return;var L=partWord(skill)+' '+r.part+': ';
    if(taken(r.part))return problem=L+'already exists in the Library for this book and test.';
@@ -1110,7 +1134,7 @@ function editorDialog(init){
    return call('ielts.content.save',pl.body).then(function(res){saved++;
     if(skill==='listening'&&pl.row.audioMode==='file'&&pl.row.file)return call('ielts.audio.upload',{contentId:res.id,file:pl.row.file}).then(function(up){return call('ielts.audio.attach',{contentId:res.id,audioPath:up.path,fileName:up.fileName,contentType:up.contentType,size:up.size});}).catch(function(e){warn=' Audio upload failed ('+e.message+'). Paste an audio link instead.';});});
   });},Promise.resolve()).then(function(){
-   unbusy();VM.toast('Added '+saved+' '+partWord(skill).toLowerCase()+(saved===1?'':'s')+' to the Library.'+(teacher?'':' Your teacher will check it before others can practise it.')+warn,warn?'warn':'ok',warn?7000:2600);
+   unbusy();VM.toast('Added '+saved+' '+partWord(skill).toLowerCase()+(saved===1?'':'s')+' to the Library.'+(teacher?'':' It is open for practice right away.')+warn,warn?'warn':'ok',warn?7000:2600);
    state.libSkill=skill;state.libMode='tests';state.bookFilter='';state.loaded=false;if(init.after==='inclass')location.hash='#inclass';load();
   }).catch(function(e){unbusy();btn.disabled=false;err((saved?saved+' saved. ':'')+e.message);});
  }

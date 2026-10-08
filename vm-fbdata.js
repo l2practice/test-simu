@@ -848,7 +848,7 @@ async function ieltsContentSave(p) {
   const ownerUid = prior.exists ? prior.data().ownerUid : u.uid;
   const teacherUid = prior.exists ? (prior.data().teacherUid || '') : (u.role === 'teacher' ? u.uid : (u.teacherUid || ''));
   const version = prior.exists ? (prior.data().version || 1) + 1 : 1;
-  const approved = u.role === 'teacher';   // teacher-made or teacher-edited items are checked; student items wait for a teacher
+  const approved = u.role === 'teacher';   // no approval step any more: everything saved is open for practice straight away (the stored flag is kept for the Firestore rules)
   // Firestore cannot store an array inside an array, so each question's answers live in a small map: {a:[…]}
   const keySections = data.sections.map(s => ({ script: s.script || '', answers: (s.questions || []).map(q => ({ a: q.answers || [] })) }));
   data.sections.forEach(s => { delete s.script; (s.questions || []).forEach(q => { delete q.answers; delete q.answer; }); });
@@ -875,7 +875,7 @@ async function ieltsContentList(p) {
   return ok(rows.map(d => ({
     id: d._id, title: d.title, skill: d.skill, book: d.book || '', test: d.test || '', part: d.part || '', taskTypes: d.taskTypes || [],
     questionCount: (d.sections || []).reduce((n, s) => n + (s.questions || []).length, 0), hasAudio: !!(d.sections || []).some(s => s.audio && s.audio.path),
-    ownerName: d.ownerName || '', ownerRole: d.ownerRole || '', review: d.review || 'approved', version: d.version || 1, updatedAt: d.updatedAt || '', canEdit: ieltsCanEdit(u, d)
+    ownerName: d.ownerName || '', ownerRole: d.ownerRole || '', review: 'approved', version: d.version || 1, updatedAt: d.updatedAt || '', canEdit: ieltsCanEdit(u, d)
   })));
 }
 async function ieltsContentGet(p) {
@@ -920,7 +920,6 @@ async function ieltsInclassCreate(p) {
   for (const cid of ids) {
     const c = await fs.doc('ieltsContent/' + cid).get();
     if (!c.exists || c.data().archived || c.data().status !== 'published') return fail('One of the tests is no longer in the Library.');
-    if ((c.data().review || 'approved') === 'pending') return fail('Only teacher-approved tests can be assigned. Approve it first.');
     meta.push({ id: cid, title: c.data().title, skill: c.data().skill, book: c.data().book || '', test: c.data().test || '', part: c.data().part || '' });
   }
   if (meta.some(m => m.skill !== meta[0].skill)) return fail('A session can only contain one skill.');
