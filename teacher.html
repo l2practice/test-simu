@@ -5,7 +5,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%231B7F5E'/%3E%3Ctext x='12' y='17' text-anchor='middle' font-size='13' font-weight='700' fill='%23fff' font-family='system-ui'%3EV%3C/text%3E%3C/svg%3E">
 <meta name="theme-color" content="#0F6B4F">
 <title>Teacher · Test Simulation</title>
-<link rel="stylesheet" href="vm-theme.css?v=20261008h">
+<link rel="stylesheet" href="vm-theme.css?v=20261008i">
 <style>
 #app{min-height:100vh}
 /* Assign form */
@@ -14,7 +14,7 @@
 .asgn-section-dark{background:#0D2B1E;border-radius:var(--vm-r);padding:18px 20px;color:#fff;margin-bottom:16px}
 .asgn-section-dark h3{font-size:.88rem;font-weight:700;margin:0 0 6px;display:flex;align-items:center;gap:7px;color:#fff}
 .asgn-section-dark p{font-size:.76rem;color:#7FD0A6;margin:0 0 14px}
-.vm-classes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin-bottom:22px}
+.vm-classes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;margin-bottom:22px}.vm-class-card .vm-class-actions{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap}.vm-class-card .vm-btn-sm{white-space:nowrap}
 .vm-class-card{background:var(--vm-surface);border:1.5px solid var(--vm-border-2);border-radius:var(--vm-r);padding:18px 20px;cursor:pointer;transition:border-color .14s,box-shadow .15s,transform .13s;box-shadow:var(--vm-shadow-sm)}
 .vm-class-card:hover{border-color:var(--vm-primary);box-shadow:var(--vm-shadow-lg);transform:translateY(-2px)}
 .vm-class-card.active{border-color:var(--vm-primary);background:var(--vm-primary-lt)}
@@ -344,7 +344,7 @@
   </div>
 </div>
 
-<script src="vm-common.js?v=20261008h"></script>
+<script src="vm-common.js?v=20261008i"></script>
 <script>
 if (typeof VM === 'undefined') { location.href='login.html'; throw new Error('no VM'); }
 
@@ -555,7 +555,7 @@ function renderClasses() {
             '<div class="vm-class-name">'+VM.esc(c.className)+'</div>' +
             '<div class="vm-class-meta">'+(c.year?c.year:'')+(c.semester?' · '+c.semester:'')+'</div>' +
             '<div class="vm-class-id">'+VM.esc(c.classId)+'</div>' +
-            '<div style="margin-top:10px;display:flex;gap:8px">' +
+            '<div class="vm-class-actions">' +
               '<button class="vm-btn vm-btn-ghost vm-btn-sm" data-roster="'+VM.esc(c.classId)+'">Roster</button>' +
               '<button class="vm-btn vm-btn-ghost vm-btn-sm" data-import="'+VM.esc(c.classId)+'">Import students</button>' +
               '<button class="vm-btn vm-btn-ghost vm-btn-sm" data-archive-cls="'+VM.esc(c.classId)+'">Archive</button>' +

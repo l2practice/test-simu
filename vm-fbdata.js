@@ -230,10 +230,18 @@ async function studentCreateOne(p) {
   const classId = str(p.classId).toUpperCase(), c = await fs.doc('classes/' + classId).get();
   if (!c.exists || c.data().teacherUid !== t.uid) return fail('This is not one of your classes.');
   if (!str(p.studentId) || !str(p.name) || !p.password) return fail('Student ID, name and password are required.');
-  try {
-    const r = await gas('fb.register', { studentId: str(p.studentId), fullName: str(p.name), classId, email: str(p.email), phone: '', birthdate: '', password: p.password });
-    return r && typeof r === 'object' ? r : fail('No response from the server.');
-  } catch (e) { return fail('The server did not respond. Check whether this student was created, then try again.'); }
+  const sid = str(p.studentId);
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const r = await gas('fb.register', { studentId: sid, fullName: str(p.name), classId, email: str(p.email), phone: '', birthdate: '', password: p.password });
+      if (r && typeof r === 'object') return r;
+    } catch (e) { /* the response may have been lost even though the account was created: check below */ }
+    try {
+      if ((await fs.doc('users/' + await uidForStudent(sid)).get()).exists) return ok({ message: 'Created.' });
+    } catch (e) {}
+    await new Promise(res => setTimeout(res, 1500 * (attempt + 1)));
+  }
+  return fail('The server did not respond. Wait a minute, then run the import again: students that already exist are skipped.');
 }
 async function classCreate(p) {
   const t = await teacher();
