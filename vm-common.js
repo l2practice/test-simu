@@ -328,12 +328,7 @@
         '<span class="vm-auth-tag"><i></i>IELTS Reading · Listening</span>' +
         '<h2 class="vm-auth-hero-title">Test - <br>Analyze - <br><em>Improve</em></h2>' +
         '<p class="vm-auth-hero-text">' + blurb + '</p>' +
-        '<div class="vm-auth-word" aria-hidden="true">' +
-          '<div class="vm-auth-word-eyebrow">✦ IELTS PRACTICE</div>' +
-          '<div class="vm-auth-word-main">Reading <span>+ Listening</span></div>' +
-          '<div class="vm-auth-word-vi">Practice with teacher-reviewed lessons</div>' +
-          '<div class="vm-auth-word-chips"><b>Practice</b><b>Feedback</b><b>Progress</b></div>' +
-        '</div>' +
+        '<div class="vm-auth-art"><img src="auth-study.png?v=3" alt="A student practising IELTS on a laptop" width="1010" height="510" loading="eager"></div>' +
       '</div>' +
       '<div class="vm-auth-stats">' +
         '<div><b>R</b><span>Reading</span></div>' +
