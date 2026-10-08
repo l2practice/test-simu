@@ -351,7 +351,7 @@ function drawTests(items){
   var n=partCount(g.skill),have=Object.keys(g.parts).length,full=true,chips='';
   for(var p=1;p<=n;p++){var it=g.parts[String(p)];if(!it){full=false;chips+='<button class="il-chip il-chip-empty" data-add="'+gi+'|'+p+'">'+partWord(g.skill)+' '+p+'<small>missing · add</small></button>';}
    else{var pend=it.review==='pending';chips+='<span class="il-chip-wrap"><button class="il-chip il-chip-'+esc(g.skill)+(pend?' il-chip-pending':'')+'" '+(pend&&!teacher?'disabled title="Waiting for a teacher to check this test"':'data-open="'+esc(it.id)+'"')+'>'+partWord(g.skill)+' '+p+'<small>'+(pend?(teacher?'needs check':'awaiting check'):it.questionCount+' questions')+'</small></button>'+(it.canEdit?'<button class="il-chip-edit" title="Edit" data-edit="'+esc(it.id)+'">✎</button>':'')+'</span>';}}
-  return '<article class="il-card il-lib il-lib-'+esc(g.skill)+'"><div class="il-lib-head"><div><h3>'+esc(g.book)+' · Test '+esc(g.test)+'</h3><div class="il-meta">'+(g.skill==='listening'?'Listening':'Reading')+' · '+have+'/'+n+' '+partWord(g.skill).toLowerCase()+'s</div></div><span class="il-badge il-badge-'+esc(g.skill)+'">'+esc(g.skill)+'</span></div><div class="il-chips">'+chips+'</div><div class="il-row" style="margin-top:12px">'+(full?'<button class="vm-btn vm-btn-primary vm-btn-sm" data-full="'+gi+'">Start full test</button>':'<span class="il-note">All '+n+' parts are needed for a full test</span>')+(teacher?'<button class="vm-btn vm-btn-accent vm-btn-sm" data-assign="'+gi+'">Assign in-class</button>':'')+'</div></article>';
+  return '<article class="il-card il-lib il-lib-'+esc(g.skill)+'"><div class="il-lib-head"><div><h3>'+esc(g.book)+' · Test '+esc(g.test)+'</h3><div class="il-meta">'+(g.skill==='listening'?'Listening':'Reading')+' · '+have+'/'+n+' '+partWord(g.skill).toLowerCase()+'s</div></div><span class="il-badge il-badge-'+esc(g.skill)+'">'+esc(g.skill)+'</span></div><div class="il-chips">'+chips+'</div><div class="il-row" style="margin-top:12px">'+(full&&fullIds(g).length?'<button class="vm-btn vm-btn-primary vm-btn-sm" data-full="'+gi+'">Start full test</button>':(full?'<span class="il-note">Waiting for a teacher to check every part before you can take the full test.</span>':'<span class="il-note">All '+n+' parts are needed for a full test</span>'))+(teacher?'<button class="vm-btn vm-btn-accent vm-btn-sm" data-assign="'+gi+'">Assign in-class</button>':'')+'</div></article>';
  }).join(''):'<div class="il-empty">The Library has no tests here yet. Click “＋ Add test” to contribute the first one.</div>';
  function groupAt(i){return groups[i];}
  qa('[data-open]').forEach(function(b){b.onclick=function(){openItems([b.getAttribute('data-open')]);};});
@@ -391,7 +391,9 @@ function pickParts(t){
 }
 function fetchItems(ids,opts){
  opts=opts||{};
+ if(!ids||!ids.length)return Promise.reject(new Error('This test is not ready yet. A teacher still has to check it.'));
  return Promise.all(ids.map(function(id){return call('ielts.content.get',{id:id});})).then(function(rows){
+  rows=rows.filter(Boolean);if(!rows.length)throw new Error('Could not load this test. Please refresh the page and try again.');
   if(opts.taskType){
    var secs=[],used=[];
    rows.forEach(function(r){var s=(r.sections||[])[0]||{},qs=(s.questions||[]).filter(function(q){return q.type===opts.taskType;});if(!qs.length)return;used.push(r.id||r._id);secs.push(Object.assign({},s,{part:r.part,label:r.title,questions:qs}));});
@@ -1053,7 +1055,7 @@ function editorDialog(init){
    else if(el.hasAttribute('data-am')){var i=+el.getAttribute('data-am');ed.rows[i].audioMode=el.value;document.getElementById('amf'+i).style.display=el.value==='file'?'':'none';document.getElementById('aml'+i).style.display=el.value==='link'?'':'none';}
    else if(el.hasAttribute('data-af')){ed.rows[+el.getAttribute('data-af')].file=el.files&&el.files[0]||null;}});
   rowsEl.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;
-   if(b.hasAttribute('data-fill')){var i=+b.getAttribute('data-fill'),r=ed.rows[i],m=parseAnswers(document.getElementById('ap'+i).value),n=0;r.questions.forEach(function(q,k){var key=qNum(q,k);if(m[key]){r.ans[key]=m[key];n++;}});recompute(i);document.getElementById('edError').textContent=n?'':'None of the pasted answers matched the question numbers.';if(n)VM.toast('Filled '+n+' answers.','ok');}
+   if(b.hasAttribute('data-fill')){var i=+b.getAttribute('data-fill'),r=ed.rows[i],m=parseAnswers(document.getElementById('ap'+i).value),n=0;r.questions.forEach(function(q,k){var key=qNum(q,k);if(m[key]){r.ans[key]=m[key];n++;}});recompute(i);document.getElementById('edError').textContent=n?'':'None of the pasted answers matched the question numbers. Write one answer per line, starting with the question number, e.g. “1 weather”, “2. 10/ten”, “3 B”. For two answers to one item write “21&22 B, D”.';if(n)VM.toast('Filled '+n+' answers.','ok');}
    else if(b.hasAttribute('data-rmimg')){var ra=b.getAttribute('data-rmimg').split('|');ed.rows[+ra[0]].images.splice(+ra[1],1);recompute(+ra[0]);}
    else if(b.hasAttribute('data-rm')){ed.rows.splice(+b.getAttribute('data-rm'),1);build();}});
   var add=document.getElementById('edAdd');if(add)add.onclick=function(){var p=nextPart();if(!p)return;var imp=init.imported&&init.imported.filter(function(s){return String(s.part)===String(p);})[0];ed.rows.push(newRow(p,imp));ed.rows.sort(function(a,b){return +a.part-+b.part;});build();};
@@ -1088,7 +1090,10 @@ function editorDialog(init){
    if(!r.questions.length)return problem=L+'no questions were detected. Paste the full question section.';
    var missing=[];
    var questions=r.questions.map(function(q,k){var key=qNum(q,k),a=(r.ans[key]||[]).filter(Boolean);if(!a.length)missing.push(key);return{number:key,type:q.type,prompt:q.prompt,options:q.options||[],optTitle:q.optTitle||'',instruction:q.instruction||'',answers:a};});
-   if(missing.length)return problem=L+'answers missing for question'+(missing.length>1?'s':'')+' '+missing.join(', ')+'.';
+   if(missing.length){
+    var first=missing[0],fq=r.questions.filter(function(q,k){return qNum(q,k)===first;})[0]||{},snip=String(fq.prompt||'').replace(/_{2,}/g,'…').slice(0,60);
+    return problem=L+'no answer for question'+(missing.length>1?'s ':' ')+missing.join(', ')+'.'+(snip?' (Question '+first+': “'+snip+'”)':'')+' Fix it in the Answers box: write one answer per line, number first, e.g. “'+first+' ten/10”. Use “/” between accepted alternatives. If the answer is a number, add a dot or write it as “'+first+'. 10”, then click Fill.';
+   }
    var audio=r.audio;
    if(skill==='listening'){
     if(r.audioMode==='link'){var u=r.audioUrl.trim();if(u&&!/^https?:\/\//i.test(u))return problem=L+'the audio link must start with http:// or https://.';audio=u?{url:u}:undefined;}
