@@ -5,7 +5,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%231B7F5E'/%3E%3Ctext x='12' y='17' text-anchor='middle' font-size='13' font-weight='700' fill='%23fff' font-family='system-ui'%3EV%3C/text%3E%3C/svg%3E">
 <meta name="theme-color" content="#0F6B4F">
 <title>Teacher · Test Simulation</title>
-<link rel="stylesheet" href="vm-theme.css?v=20261008g">
+<link rel="stylesheet" href="vm-theme.css?v=20261008h">
 <style>
 #app{min-height:100vh}
 /* Assign form */
@@ -246,6 +246,20 @@
   </div>
 </div>
 
+<!-- Import students -->
+<div class="vm-modal-bg" id="impModal">
+  <div class="vm-modal" style="max-width:760px;max-height:92vh;overflow-y:auto">
+    <button class="vm-modal-close" id="impClose" aria-label="Close">✕</button>
+    <div class="vm-modal-title" id="impTitle">Import students</div>
+    <p class="vm-help">One student per line: <b>Student ID, Full name, Email (optional)</b>. You can paste straight from a spreadsheet (tab-separated) or from a CSV file.</p>
+    <div class="vm-field"><label class="vm-label">Initial password for all students</label><input class="vm-input" id="impPw" value="nckh2026" autocomplete="off"></div>
+    <div class="vm-field"><label class="vm-label">Students</label><textarea class="vm-input" id="impText" rows="8" placeholder="1234567, Nguyen Van A, a@example.com&#10;1234568, Tran Thi B"></textarea></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center"><button class="vm-btn vm-btn-ghost" id="impPreview">Preview</button><label class="vm-btn vm-btn-ghost" style="margin:0">Load CSV file<input type="file" id="impFile" accept=".csv,.txt,.tsv" hidden></label></div>
+    <div id="impList" style="margin-top:14px"></div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px"><button class="vm-btn vm-btn-ghost" id="impCancel">Close</button><button class="vm-btn vm-btn-primary" id="impGo" disabled>Create accounts</button></div>
+  </div>
+</div>
+
 <!-- View Roster Modal -->
 <div class="vm-modal-bg" id="rosterModal">
   <div class="vm-modal" style="max-width:600px">
@@ -330,7 +344,7 @@
   </div>
 </div>
 
-<script src="vm-common.js?v=20261008g"></script>
+<script src="vm-common.js?v=20261008h"></script>
 <script>
 if (typeof VM === 'undefined') { location.href='login.html'; throw new Error('no VM'); }
 
@@ -543,6 +557,7 @@ function renderClasses() {
             '<div class="vm-class-id">'+VM.esc(c.classId)+'</div>' +
             '<div style="margin-top:10px;display:flex;gap:8px">' +
               '<button class="vm-btn vm-btn-ghost vm-btn-sm" data-roster="'+VM.esc(c.classId)+'">Roster</button>' +
+              '<button class="vm-btn vm-btn-ghost vm-btn-sm" data-import="'+VM.esc(c.classId)+'">Import students</button>' +
               '<button class="vm-btn vm-btn-ghost vm-btn-sm" data-archive-cls="'+VM.esc(c.classId)+'">Archive</button>' +
             '</div>' +
           '</div>';
@@ -553,6 +568,9 @@ function renderClasses() {
     document.getElementById('newClassBtn').onclick = openClassModal;
     VM.els('[data-roster]').forEach(function(btn){
       btn.onclick = function(){ openRoster(btn.getAttribute('data-roster')); };
+    });
+    VM.els('[data-import]').forEach(function(btn){
+      btn.onclick = function(){ openImport(btn.getAttribute('data-import')); };
     });
     VM.els('[data-archive-cls]').forEach(function(btn){
       btn.onclick = function(){
@@ -591,6 +609,53 @@ document.getElementById('classSaveBtn').onclick = function(){
   });
 };
 
+function openImport(classId){
+  var cls=(state.classes||[]).filter(function(c){return c.classId===classId;})[0]||{};
+  var rows=[];
+  var $=function(id){return document.getElementById(id);};
+  $('impTitle').textContent='Import students · '+(cls.className||classId);
+  $('impText').value='';$('impList').innerHTML='';$('impGo').disabled=true;$('impGo').textContent='Create accounts';
+  $('impModal').classList.add('show');
+  function close(){$('impModal').classList.remove('show');}
+  $('impClose').onclick=close;$('impCancel').onclick=close;
+  function parse(){
+    var seen={};
+    rows=$('impText').value.split(/\r?\n/).map(function(l){return l.trim();}).filter(Boolean).map(function(l){
+      var p=(l.indexOf('\t')>=0?l.split('\t'):l.split(/[;,]/)).map(function(x){return x.trim().replace(/^"|"$/g,'');});
+      var r={id:p[0]||'',name:p[1]||'',email:(p[2]||'').toLowerCase(),state:'ready',msg:''};
+      if(/^(student\s*id|mssv|id|ma sv|mã sv)$/i.test(r.id)){r.state='skip';r.msg='Header row';return r;}
+      if(!r.id||!r.name){r.state='bad';r.msg='Needs a Student ID and a full name';}
+      else if(r.email&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(r.email)){r.state='bad';r.msg='Invalid email';}
+      else if(seen[r.id]){r.state='bad';r.msg='Duplicate ID in this list';}
+      seen[r.id]=1;return r;
+    }).filter(function(r){return r.state!=='skip';});
+    draw();
+  }
+  function draw(){
+    var ok=rows.filter(function(r){return r.state==='ready';}).length;
+    $('impList').innerHTML=rows.length?'<div style="max-height:260px;overflow:auto"><table class="vm-table"><thead><tr><th>#</th><th>Student ID</th><th>Name</th><th>Email</th><th>Status</th></tr></thead><tbody>'+rows.map(function(r,i){
+      var st=r.state==='ready'?'Ready':r.state==='done'?'✓ Created':r.state==='exists'?'Already exists':r.state==='busy'?'Creating…':('✗ '+r.msg);
+      var col=r.state==='done'?'var(--vm-ok)':(r.state==='bad'||r.state==='fail')?'var(--vm-danger)':'inherit';
+      return '<tr><td>'+(i+1)+'</td><td>'+VM.esc(r.id)+'</td><td>'+VM.esc(r.name)+'</td><td>'+VM.esc(r.email)+'</td><td style="color:'+col+';font-weight:600">'+VM.esc(r.state==='fail'?'✗ '+r.msg:st)+'</td></tr>';}).join('')+'</tbody></table></div><p class="vm-help">'+ok+' ready to create'+(rows.length-ok?' · '+(rows.length-ok)+' need attention or are done':'')+'.</p>':'<div class="vm-empty"><p>Nothing to import yet.</p></div>';
+    $('impGo').disabled=!ok;
+  }
+  $('impPreview').onclick=parse;
+  $('impFile').onchange=function(){var f=this.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){$('impText').value=String(rd.result||'');parse();};rd.readAsText(f);this.value='';};
+  $('impGo').onclick=async function(){
+    var pw=$('impPw').value;if(!pw||pw.length<6){VM.toast('The initial password needs at least 6 characters.','err');return;}
+    if(!(await VM.confirm('Create '+rows.filter(function(r){return r.state==='ready';}).length+' student accounts in '+(cls.className||classId)+' with the initial password “'+pw+'”? Tell the students to sign in with their Student ID and this password, then change it in Settings.',{title:'Create accounts',ok:'Create accounts',icon:'+'})))return;
+    $('impGo').disabled=true;$('impPreview').disabled=true;
+    for(var i=0;i<rows.length;i++){var r=rows[i];if(r.state!=='ready')continue;r.state='busy';draw();
+      try{var res=await VM.api('student.createOne',{classId:classId,studentId:r.id,name:r.name,email:r.email,password:pw});
+        if(res&&res.success)r.state='done';else if(res&&/already registered/i.test(res.error||'')){r.state='exists';}else{r.state='fail';r.msg=(res&&res.error)||'Failed';}
+      }catch(e){r.state='fail';r.msg=e.message||'Failed';}
+      draw();}
+    $('impPreview').disabled=false;
+    var n=rows.filter(function(r){return r.state==='done';}).length;
+    VM.toast(n+' student account'+(n===1?'':'s')+' created.','ok',4000);
+    $('impGo').textContent='Done';
+  };
+}
 function openRoster(classId) {
   var rCls = state.classes.find(function(c){return c.classId===classId;});
   document.getElementById('rosterTitle').textContent = 'Roster — ' + (rCls?rCls.className:classId);

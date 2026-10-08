@@ -224,6 +224,17 @@ async function classList() {
     return ok(rows.map(c => ({ classId: c.classId, className: c.className, year: c.academicYear || '', semester: c.semester || '', teacherEmail: c.teacherEmail || '' })));
   });
 }
+// Teacher creates one student account for one of their own classes (uses the same Apps Script registration as the Sign-up page, without signing in as the student)
+async function studentCreateOne(p) {
+  const t = await teacher();
+  const classId = str(p.classId).toUpperCase(), c = await fs.doc('classes/' + classId).get();
+  if (!c.exists || c.data().teacherUid !== t.uid) return fail('This is not one of your classes.');
+  if (!str(p.studentId) || !str(p.name) || !p.password) return fail('Student ID, name and password are required.');
+  try {
+    const r = await gas('fb.register', { studentId: str(p.studentId), fullName: str(p.name), classId, email: str(p.email), phone: '', birthdate: '', password: p.password });
+    return r && typeof r === 'object' ? r : fail('No response from the server.');
+  } catch (e) { return fail('The server did not respond. Check whether this student was created, then try again.'); }
+}
 async function classCreate(p) {
   const t = await teacher();
   if (!str(p.className)) return fail('Missing class name.');
@@ -1059,6 +1070,7 @@ async function gas(action, payload) {
 }
 
 const ACTIONS = {
+  'student.createOne': studentCreateOne,
   'auth.whoami': async () => { const u = await me(); return ok({ role: u.role }); },
   'auth.studentLogin': studentLogin, 'auth.teacherLogin': teacherLogin,
   'auth.studentSignup': studentSignup, 'auth.teacherSignup': teacherSignup,
