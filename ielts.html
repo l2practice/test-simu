@@ -607,7 +607,7 @@ function parseAnswers(text){
   var pair=/^\s*(?:Q(?:uestions?)?\s*)?(\d{1,2})\s*(?:&|and|,)\s*(\d{1,2})\s*[\.\):\-–—=]?\s+(\S.*?)\s*$/i.exec(line);
   if(pair){var al=answerAlts(pair[3]);map[+pair[1]]=al;map[+pair[2]]=al;return;}
   var m=/^\s*(?:Q(?:uestion)?\s*)?(\d{1,2})\s*[\.\):\-–—=]?\s*(\S.*?)\s*$/i.exec(line);
-  if(m&&!/^\d/.test(m[2]))map[+m[1]]=answerAlts(m[2]);
+  if(m&&!/^\d{1,2}\s*[\.\):\-–—=]/.test(m[2]))map[+m[1]]=answerAlts(m[2]);
  });
  var keys=Object.keys(map),inlineNeeded=!keys.length||keys.some(function(k){return map[k].some(function(v){return /\s\d{1,2}\s*[\.\):\-–—=]\s/.test(v);});});
  if(inlineNeeded){
