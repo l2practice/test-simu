@@ -610,6 +610,7 @@ function detectType(instr, hasOptions, hasBlank){
  if(/yes\W+no\W+(or\W+|and\W+)?not given/.test(t)||(/\byes\b[\s\S]*\bno\b[\s\S]*not given/.test(t)&&/agree|statement|views|claims/.test(t)))return 'yes-no-not-given';
  if(/list of headings|choose the correct heading/.test(t))return 'matching-headings';
  if(/label the (map|plan)|label the diagram|labell?ing|map below|plan below/.test(t)&&!/complete the/.test(t))return 'plan-map-diagram-labelling';
+ if(hasOptions&&/from the (box|list)|from the list below|next to questions?|using the list|match each|write the correct letter next/.test(t)&&!/choose (the )?correct letter,?\s*a,?\s*b/.test(t))return 'matching-features';
  if(/choose (the )?(correct )?letter|choose (two|three|2|3)|choose the correct answer|circle the correct/.test(t)&&!/which (paragraph|section)/.test(t))return 'multiple-choice';
  if(/which (paragraph|section)|matching information/.test(t))return 'matching';
  if(/match each|matching features|list of (people|researchers|names|places|options|phrases)|using the list of/.test(t))return 'matching-features';
@@ -666,6 +667,7 @@ function parseQuestions(text){
    var inRange=mi&&(!g.from||(n>=g.from&&n<=g.to)||(c.items.length>0&&n>lastIt.number&&n<=Math.max(g.to,lastIt.number+1)))&&(!lastIt||n>lastIt.number);
    if(inRange&&!(c.items.length===0&&/list of headings/.test(instrText)&&false)){c.items.push({number:n,prompt:mi[2].trim(),opts:[],extra:[]});return;}
    if(/^list of\b/i.test(line.trim())){c.optTitle=line.trim();if(c.items.length)return;}
+   if(!c.items.length&&idx>0&&c.instr.length&&line.trim().length<=30&&!/[.?:\d]/.test(line.trim())&&/^\s*A\s+\S/.test(g.raw[idx+1]||'')){c.optTitle=line.trim();return;}
    var o=optRe.exec(line);
    if(o){var matchy=/match|list of|which (paragraph|section)|label|using the list/.test(instrText);
     if(!c.items.length||matchy){c.opts.push(o[2].trim());return;}
@@ -675,7 +677,9 @@ function parseQuestions(text){
    c.instr.push(line.trim());
   });
   var instrText=c.instr.join('\n').trim();
+  var synth=false;
   if(!c.items.length){
+   synth=true;
    // "Choose TWO letters" style: no numbered items, just a stem and options for questions from..to
    var stem=c.instr.filter(function(l){return /\?\s*$/.test(l);}).pop()||'Choose the correct answer.';
    if(g.from&&c.opts.length){for(var k=g.from;k<=g.to;k++)c.items.push({number:k,prompt:stem,opts:[],extra:[]});}
@@ -684,12 +688,14 @@ function parseQuestions(text){
   if(!c.items.length)return;
   var hasBlank=c.items.some(function(it){return /[…_]{2,}|\.{4,}/.test(it.prompt);});
   var type2=detectType(instrText,c.items.some(function(it){return it.opts.length;})||c.opts.length>0,hasBlank);
+  if(type2==='multiple-choice'&&!synth&&c.opts.length>=4&&c.items.length>=3&&!c.items.some(function(it){return it.opts.length;}))type2='matching-features';   // one shared option box for many items = matching
   c.items.forEach(function(it,i){
    var prompt=(it.prompt+(it.extra.length?' '+it.extra.join(' '):'')).trim();
    var options=it.opts.length?it.opts:(c.opts.length?c.opts.slice():[]);
    var t=type2;
    if(!options.length&&(t==='matching'||t==='matching-features'||t==='plan-map-diagram-labelling'))options=letterRange(instrText);
    if(t==='multiple-choice'&&!options.length)t=hasBlank?'sentence-completion':'short-answer';
+   if(/^matching/.test(t))prompt=prompt.replace(/\s*[\.…_]{3,}\s*$/,'').trim()||prompt;
    out.push({number:num(it.number),type:t,prompt:prompt,options:options,optTitle:c.optTitle||'',instruction:i===0?instrText:''});
   });
  });
@@ -1202,7 +1208,7 @@ function editorDialog(init){
   var ib=document.getElementById('img'+i);
   if(ib)ib.innerHTML=(r.images||[]).length?'<div class="il-note">Images found on the page (kept with this '+partWord(skill).toLowerCase()+'). Remove any that do not belong:</div><div class="ed-thumbs">'+r.images.map(function(u,k){return '<span class="ed-thumb"><img src="'+esc(u)+'" alt="" referrerpolicy="no-referrer"><button type="button" class="ed-x" data-rmimg="'+i+'|'+k+'" title="Remove">×</button></span>';}).join('')+'</div>':'';
   var det=document.getElementById('det'+i);
-  if(det)det.innerHTML=r.questions.length?'<div class="il-note">Detected <b>'+r.questions.length+'</b> question'+(r.questions.length===1?'':'s')+' in '+instr+' group'+(instr===1?'':'s')+': '+Object.keys(counts).map(function(t){return esc(typeName(t))+' × '+counts[t];}).join(' · ')+'</div>':'<div class="il-note">No questions detected yet. Paste the full question section.</div>';
+  if(det)det.innerHTML=r.questions.length?'<div class="il-note">Detected <b>'+r.questions.length+'</b> question'+(r.questions.length===1?'':'s')+' in '+instr+' group'+(instr===1?'':'s')+': '+Object.keys(counts).map(function(t){return esc(typeName(t))+' × '+counts[t];}).join(' · ')+' <button type="button" class="vm-btn vm-btn-ghost vm-btn-sm" data-redetect="'+i+'" title="Forget manually chosen task types and detect them again">↻ Re-detect task types</button></div>':'<div class="il-note">No questions detected yet. Paste the full question section.</div>';
   var list=document.getElementById('ans'+i);
   if(list)list.innerHTML=r.questions.length?r.questions.map(function(q,k){var key=qNum(q,k);return '<div class="il-arow"><span class="il-qnum">'+key+'</span><div class="il-aprompt">'+esc(q.prompt.slice(0,70))+'<select class="il-typesel" data-t="'+i+'|'+key+'">'+ALL_TYPES.map(function(t){return '<option value="'+t+'"'+(t===q.type?' selected':'')+'>'+esc(typeName(t))+'</option>';}).join('')+'</select></div><input class="vm-input" data-r="'+i+'" data-a="'+key+'" value="'+esc((r.ans[key]||[]).join(' / '))+'" placeholder="Answer"></div>';}).join(''):'<div class="il-note">Answer boxes appear once questions are detected.</div>';
  }
@@ -1221,6 +1227,7 @@ function editorDialog(init){
    else if(el.hasAttribute('data-af')){ed.rows[+el.getAttribute('data-af')].file=el.files&&el.files[0]||null;}});
   rowsEl.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;
    if(b.hasAttribute('data-fill')){var i=+b.getAttribute('data-fill'),r=ed.rows[i],m=parseAnswers(document.getElementById('ap'+i).value),n=0;r.questions.forEach(function(q,k){var key=qNum(q,k);if(m[key]){r.ans[key]=m[key];n++;}});recompute(i);document.getElementById('edError').textContent=n?'':'None of the pasted answers matched the question numbers. Write one answer per line, starting with the question number, e.g. “1 weather”, “2. 10/ten”, “3 B”. For two answers to one item write “21&22 B, D”.';if(n)VM.toast('Filled '+n+' answers.','ok');}
+   else if(b.hasAttribute('data-redetect')){var rdi=+b.getAttribute('data-redetect');ed.rows[rdi].types={};recompute(rdi);VM.toast('Task types detected again.','ok',2200);}
    else if(b.hasAttribute('data-rmimg')){var ra=b.getAttribute('data-rmimg').split('|');ed.rows[+ra[0]].images.splice(+ra[1],1);recompute(+ra[0]);}
    else if(b.hasAttribute('data-rm')){ed.rows.splice(+b.getAttribute('data-rm'),1);build();}});
   var add=document.getElementById('edAdd');if(add)add.onclick=function(){var p=nextPart();if(!p)return;var imp=init.imported&&init.imported.filter(function(s){return String(s.part)===String(p);})[0];ed.rows.push(newRow(p,imp));ed.rows.sort(function(a,b){return +a.part-+b.part;});build();};
