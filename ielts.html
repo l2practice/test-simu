@@ -190,6 +190,52 @@ body.skill-reading .il-instr,body.skill-listening .il-instr{background:linear-gr
 .il-multi-marks{display:flex;gap:14px;margin-top:6px;align-items:center}
 .ai-h{margin:14px 0 4px;font-size:1.02rem;font-weight:800;color:var(--il-adk)}
 .ai-l{margin:3px 0;line-height:1.55}.ai-bad{font-weight:700;color:#A5281E}
+
+/* reading comfort: zoom + display modes */
+.exam-tools{display:flex;align-items:center;gap:6px}
+.exam-tools .exam-btn{padding:5px 10px;min-height:36px;font-weight:800}
+.exam-zval{min-width:46px;text-align:center;font-weight:700;font-size:.82rem}
+.exam-pane{zoom:var(--z,1)}
+/* dark */
+body.exam-dark{color-scheme:dark;--vm-ink:#E6EFE9;--vm-ink-2:#C9D9CF;--vm-ink-3:#A5BBAE;--vm-border:#2E4338;--vm-border-2:#26382F;--vm-surface:#15211B;--vm-surface-2:#1B2B23;--il-asoft:#1B2B23;--il-blt:#2B2216;--il-alt:#1F3328}
+body.exam-dark .exam{background:#0E1713!important}
+body.exam-dark .exam-pane,body.exam-dark .exam-pane+.exam-pane{background:#14201A!important;color:#E6EFE9}
+body.exam-dark .exam-part,body.exam-dark .exam-audio,body.exam-dark .exam-bottom{background:#101B16!important;color:#E6EFE9;border-color:#2E4338}
+body.exam-dark .exam-part b,body.exam-dark .pane-h,body.exam-dark .il-qnum+*{color:#9ADBBE}
+body.exam-dark .pane-h{background:#14201A}
+body.exam-dark .il-instr{background:#1F3328!important;color:#B8E8D0}body.exam-dark .gt-instr{color:#B8E8D0}
+body.exam-dark .gt-title,body.exam-dark .pt-title{color:#FFD9B0}
+body.exam-dark .il-gapbox,body.exam-dark .il-group,body.exam-dark .il-qt tr,body.exam-dark .il-nt,body.exam-dark .il-nt th,body.exam-dark .il-nt td{background:#1A2922!important;color:#E6EFE9}
+body.exam-dark .il-qt tr:nth-child(even){background:#17241E!important}
+body.exam-dark .il-opts-check .il-opt,body.exam-dark .il-opt{background:#1A2922!important;color:#E6EFE9}
+body.exam-dark .il-ans,body.exam-dark .gap-in,body.exam-dark .il-sel,body.exam-dark .lab-in,body.exam-dark .il-qt select,body.exam-dark .gap-sel,body.exam-dark .vm-input,body.exam-dark .vm-select{background:#0C1511!important;color:#F2F8F4!important;border-color:var(--il-a2)!important}
+body.exam-dark .en-n{background:#1A2922;color:#E6EFE9;border-color:#3A5446}
+body.exam-dark .en-part.cur{background:#1F3328}
+body.exam-dark .exam-btn{background:rgba(255,255,255,.1)}
+body.exam-dark .en-actions .exam-btn,body.exam-dark .en-label{background:#1A2922;color:#E6EFE9;border-color:#3A5446}
+body.exam-dark mark.hl{color:#101010}
+body.exam-dark .il-note{color:#A5BBAE}
+/* high contrast */
+body.exam-hc{--vm-ink:#000;--vm-ink-2:#000;--vm-ink-3:#1A1A1A;--vm-border:#000;--vm-border-2:#000;--il-asoft:#fff;--il-blt:#fff;--il-alt:#fff}
+body.exam-hc .exam{background:#fff!important}
+body.exam-hc .exam-top{background:#000!important;color:#fff;border-bottom:3px solid #fff}
+body.exam-hc .exam-pane,body.exam-hc .exam-pane+.exam-pane,body.exam-hc .exam-part,body.exam-hc .exam-audio,body.exam-hc .exam-bottom{background:#fff!important;color:#000;border-color:#000!important}
+body.exam-hc .exam-bottom{border-top:4px solid #000}
+body.exam-hc .exam-part b,body.exam-hc .pane-h,body.exam-hc .il-instr,body.exam-hc .gt-instr,body.exam-hc .gt-title,body.exam-hc .pt-title{color:#000}
+body.exam-hc .il-instr{background:#fff!important;border:2px solid #000;border-left-width:8px}
+body.exam-hc .il-gapbox,body.exam-hc .il-group,body.exam-hc .il-nt,body.exam-hc .il-nt th,body.exam-hc .il-nt td{background:#fff!important;color:#000;border-color:#000!important}
+body.exam-hc .il-qt tr:nth-child(even){background:#EDEDED!important}
+body.exam-hc .il-opt,body.exam-hc .il-opts-check .il-opt{background:#fff!important;color:#000;border:2px solid #000!important}
+body.exam-hc .il-ans,body.exam-hc .gap-in,body.exam-hc .il-sel,body.exam-hc .lab-in,body.exam-hc .il-qt select,body.exam-hc .gap-sel,body.exam-hc .vm-input,body.exam-hc .vm-select{background:#fff!important;color:#000!important;border:3px solid #000!important;box-shadow:none!important}
+body.exam-hc .il-qnum,body.exam-hc .gap-n{background:#000!important;color:#fff!important}
+body.exam-hc .en-n{background:#fff;color:#000;border:2px solid #000}
+body.exam-hc .en-n.done{background:#000!important;color:#fff!important;border-color:#000}
+body.exam-hc .exam-btn{background:#000;color:#fff;border:2px solid #fff}
+body.exam-hc .exam-clock{background:#fff!important;color:#000!important;border:2px solid #000}
+body.exam-hc .exam-submit,body.exam-hc .exam-bottom .exam-btn{background:#000!important;color:#fff!important;border:2px solid #000!important}
+body.exam-hc mark.hl{background:#FFEB3B!important;color:#000!important;outline:1px solid #000}
+body.exam-hc .exam :focus-visible{outline:4px solid #0050FF!important;outline-offset:2px}
+@media (max-width:900px){.exam-tools .exam-zval{display:none}}
 </style></head><body><div id="app"></div><script src="vm-common.js?v=20261009f"></script><script>
 
 
@@ -238,7 +284,7 @@ function load(){
  var second=teacher?call('class.list'):call('ielts.attempt.list');
  return Promise.all([call('ielts.content.list'),second]).then(function(v){state.items=v[0]||[];state.loaded=true;if(teacher)state.classes=v[1]||[];else state.attempts=v[1]||[];render();}).catch(function(e){root().innerHTML='<div class="il-empty">'+esc(e.message)+'</div>';});
 }
-function setExam(on){document.body.classList.toggle('exam-mode',!!on);if(!on)document.body.classList.remove('skill-reading','skill-listening');}
+function setExam(on){document.body.classList.toggle('exam-mode',!!on);if(!on)document.body.classList.remove('skill-reading','skill-listening','exam-dark','exam-hc');}
 function setSkillTheme(s){document.body.classList.remove('skill-reading','skill-listening');if(s==='reading'||s==='listening')document.body.classList.add('skill-'+s);}
 function updateBadge(){
  if(!teacher)return;
@@ -707,6 +753,22 @@ function syncVisible(){var r=state.run;if(!r||state.review)return;qa('#splitArea
 function answeredCount(){var r=state.run;return flatQs(state.active).filter(function(f,i){return filled(r.answers[i]);}).length;}
 function updateProgress(){var el=document.getElementById('prog');if(el)el.textContent=answeredCount()+'/'+flatQs(state.active).length+' answered';drawExamNav(true);}
 
+var ZSTEPS=[80,90,100,110,125,150,175,200],THEMES=['light','dark','hc'],THLAB={light:'☀ Light',dark:'☾ Dark',hc:'◐ High contrast'};
+var EP=(function(){try{var o=JSON.parse(localStorage.getItem('ts_exam_pref')||'{}');return{zoom:ZSTEPS.indexOf(+o.zoom)>=0?+o.zoom:100,theme:THEMES.indexOf(o.theme)>=0?o.theme:'light'};}catch(e){return{zoom:100,theme:'light'};}})();
+function applyEP(){
+ var ex=document.querySelector('.exam');if(ex)ex.style.setProperty('--z',EP.zoom/100);
+ document.body.classList.toggle('exam-dark',EP.theme==='dark');document.body.classList.toggle('exam-hc',EP.theme==='hc');
+ var zv=document.getElementById('zVal'),th=document.getElementById('thm'),zi=document.getElementById('zIn'),zo=document.getElementById('zOut');
+ if(zv)zv.textContent=EP.zoom+'%';if(th)th.textContent=THLAB[EP.theme];if(zi)zi.disabled=EP.zoom>=200;if(zo)zo.disabled=EP.zoom<=80;
+ try{localStorage.setItem('ts_exam_pref',JSON.stringify(EP));}catch(e){}
+}
+function bindEP(){
+ var zi=document.getElementById('zIn'),zo=document.getElementById('zOut'),th=document.getElementById('thm');if(!zi)return;
+ zi.onclick=function(){var k=ZSTEPS.indexOf(EP.zoom);if(k<ZSTEPS.length-1){EP.zoom=ZSTEPS[k+1];applyEP();}};
+ zo.onclick=function(){var k=ZSTEPS.indexOf(EP.zoom);if(k>0){EP.zoom=ZSTEPS[k-1];applyEP();}};
+ th.onclick=function(){EP.theme=THEMES[(THEMES.indexOf(EP.theme)+1)%THEMES.length];applyEP();};
+ applyEP();
+}
 function renderPractice(){
  var x=state.active;
  stopTimer();
@@ -716,7 +778,7 @@ function renderPractice(){
  if(rv){
   root().innerHTML='<div class="ielts-wrap wide"><div class="il-toolbar il-sticky"><button class="vm-btn vm-btn-ghost" id="exit">← '+(state.assignment?'In-class':'Back')+'</button><span class="il-badge il-badge-'+esc(x.skill)+'">'+esc(x.skill)+'</span><strong class="il-title">'+esc(titleItem(x))+'</strong><span class="il-spacer"></span><button class="vm-btn vm-btn-ghost" id="report">Report issue</button></div><div id="reviewBanner"></div>'+(listen?'<div class="il-panel il-audio" id="audioBar"></div>':'')+'<div class="il-tabs" id="partTabs"></div><div id="splitArea" class="il-split'+(listen?' two':'')+'"></div><div class="il-row il-nav" id="navRow"></div><div id="insights"></div><div class="il-panel" id="aiBox"><h3>AI feedback</h3><div id="aiFeedback" class="il-ai-output"></div><div class="il-row" style="margin-top:10px"><button class="vm-btn vm-btn-primary" id="mkDoc">Create feedback doc</button><button class="vm-btn vm-btn-ghost" id="aiAgain">Analyse again</button><button class="vm-btn vm-btn-ghost" id="openAiSettings">AI settings</button></div><div id="docBox"></div></div><section class="il-answer-key" id="answerKey"></section><div id="extra"></div></div>';
  }else{
-  root().innerHTML='<div class="exam"><div class="exam-top"><button class="exam-btn" id="exit">'+(state.previewBack?'← Back to editor':'← Exit')+'</button><div class="exam-title">'+esc(titleItem(x))+'</div><div class="exam-clock" id="clock">0:00</div><span class="il-spacer"></span><span class="exam-prog" id="prog"></span>'+(isPrev()?'<span class="exam-tag">Preview</span>':'')+'<button class="exam-btn" id="report">Report issue</button></div>'+(listen?'<div class="exam-audio" id="audioBar"></div>':'')+'<div class="exam-part" id="partBar"></div><div id="splitArea" class="exam-split'+(listen?' single':'')+'"></div><div class="exam-bottom" id="examNav"></div></div><div id="extra"></div>';
+  root().innerHTML='<div class="exam"><div class="exam-top"><button class="exam-btn" id="exit">'+(state.previewBack?'← Back to editor':'← Exit')+'</button><div class="exam-title">'+esc(titleItem(x))+'</div><div class="exam-clock" id="clock">0:00</div><div class="exam-tools" role="group" aria-label="Reading comfort"><button class="exam-btn" id="zOut" aria-label="Zoom out" title="Smaller text">A−</button><span class="exam-zval" id="zVal" aria-live="polite">100%</span><button class="exam-btn" id="zIn" aria-label="Zoom in" title="Larger text">A+</button><button class="exam-btn" id="thm" title="Change display mode: light, dark, high contrast">☀ Light</button></div><span class="il-spacer"></span><span class="exam-prog" id="prog"></span>'+(isPrev()?'<span class="exam-tag">Preview</span>':'')+'<button class="exam-btn" id="report">Report issue</button></div>'+(listen?'<div class="exam-audio" id="audioBar"></div>':'')+'<div class="exam-part" id="partBar"></div><div id="splitArea" class="exam-split'+(listen?' single':'')+'"></div><div class="exam-bottom" id="examNav"></div></div><div id="extra"></div>';
  }
  document.getElementById('exit').onclick=function(){var pb=state.previewBack;function out(){stopTimer();if(pb){pb();return;}state.active=null;state.run=null;state.review=null;state.assignment=null;render();window.scrollTo(0,0);}if(!rv&&!isPrev()&&answeredCount())VM.confirm('Leave the test and discard your answers?',{danger:true,ok:'Leave'}).then(function(y){if(y)out();});else out();};
  document.getElementById('report').onclick=function(){VM.prompt('Which question number has a problem? (optional)',{title:'Report an issue',ok:'Next'}).then(function(n){if(n===null)return;VM.prompt('Describe the problem for your teacher:',{title:'Report an issue',multiline:true,ok:'Send'}).then(function(message){if(!message||!message.trim())return;call('ielts.report.create',{contentId:String(x.id||x._id).split(',')[0],contentTitle:titleItem(x),questionNumber:n,message:message,privateContent:false}).then(function(){VM.toast('Report sent to your teacher.','ok');}).catch(function(e){say(e.message);});});});};
@@ -745,6 +807,7 @@ function renderPractice(){
    if(left<=0&&!state.autoSent&&!isPrev()){state.autoSent=true;stopTimer();VM.toast('Time is up. The test is locked and your answers are being submitted.','warn',6000);qa('#splitArea input,#splitArea select,#splitArea textarea').forEach(function(el){el.disabled=true;});submitAttempt(true);}};
   state.autoSent=false;tick();timerId=setInterval(tick,1000);
  }else drawReview();
+ bindEP();
  drawAudio();drawPartBar();drawTabs();drawSplit();drawNavRow();drawExamNav();drawAnswerKey();
  if(!rv)updateProgress();
 }
