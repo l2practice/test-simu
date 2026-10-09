@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi"><head><meta charset="UTF-8"><link rel="icon" type="image/svg+xml" href="favicon.svg?v=20261008b"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#0F6B4F"><title>Test Simulation · IELTS Practice</title><link rel="stylesheet" href="vm-theme.css?v=20261008i">
+<meta name="theme-color" content="#0F6B4F"><title>Test Simulation · IELTS Practice</title><link rel="stylesheet" href="vm-theme.css?v=20261009a">
 <style>
 #app{min-height:100vh}.ielts-wrap{max-width:1180px;margin:auto}.ielts-hero{background:linear-gradient(120deg,var(--vm-sand-2),var(--vm-primary-lt));color:var(--vm-ink);padding:24px;border-radius:var(--vm-r);margin-bottom:18px}.ielts-hero h2{margin:0 0 6px;font-family:var(--vm-font-display)}.ielts-hero p{margin:0;color:var(--vm-ink-2)}.il-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}.il-card,.il-panel{background:var(--vm-surface);border:1px solid var(--vm-border-2);border-radius:var(--vm-r);padding:18px;box-shadow:var(--vm-shadow-sm)}.il-card h3{margin:5px 0;font-family:var(--vm-font-display)}.il-meta{font-size:.78rem;color:var(--vm-ink-3);margin:6px 0 12px}.il-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}.il-practice{display:grid;grid-template-columns:minmax(300px,1fr) minmax(300px,1fr);gap:16px}.il-passage{white-space:pre-wrap;line-height:1.85;max-height:68vh;overflow:auto}.il-q{border-bottom:1px solid var(--vm-border-2);padding:12px 0}.il-q label{display:block;font-weight:650;margin-bottom:7px}.il-q input,.il-q select{width:100%}.il-badge{display:inline-block;border-radius:99px;padding:3px 9px;background:var(--vm-primary-lt);color:var(--vm-primary-dk);font-size:.7rem;font-weight:700}.il-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.il-empty{padding:35px;text-align:center;color:var(--vm-ink-3)}.il-editor{display:grid;grid-template-columns:1fr 1fr;gap:10px}.il-editor textarea{min-height:130px;font-size:.92rem}.il-section-editor{margin:14px 0;padding:14px;border:1px solid var(--vm-border-2);border-radius:16px;background:var(--vm-surface)}.il-section-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.il-section-grid.three{grid-template-columns:1fr 1fr 1fr}.il-section-grid textarea{width:100%;min-height:230px;resize:vertical;white-space:pre-wrap}.il-answer-key{margin-top:20px;padding-top:16px;border-top:3px solid var(--vm-primary-lt)}.il-ai-output{white-space:pre-wrap;line-height:1.7}.il-settings{max-width:720px;margin:18px auto}.il-settings label{display:block;margin:12px 0 5px;font-weight:650}.il-chart{width:100%;height:220px;border:1px solid var(--vm-border-2);border-radius:10px;background:var(--vm-surface);margin-top:10px}.il-note{font-size:.78rem;color:var(--vm-ink-3)}.il-error{color:var(--vm-danger);font-size:.84rem}.il-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 @media(max-width:720px){.il-practice,.il-editor,.il-section-grid,.il-section-grid.three{grid-template-columns:1fr}.il-passage{max-height:40vh}}
@@ -152,7 +152,30 @@ body.skill-reading .il-instr,body.skill-listening .il-instr{background:linear-gr
 .gt-instr{display:block;font-weight:700;color:var(--il-adk);line-height:1.6}
 .gt-title{display:block;font-weight:800;font-size:1.12em;color:var(--vm-ink);margin:6px 0 4px;text-align:center}
 .il-text .pt-title{display:block;font-weight:800;font-size:1.22em;line-height:1.35;margin:0 0 10px;color:var(--il-adk)}
-</style></head><body><div id="app"></div><script src="vm-common.js?v=20261008i"></script><script>
+
+/* flat, solid controls (no glass) */
+:root{--vm-glass:0 2px 14px rgba(10,63,48,.08)}
+.vm-btn-primary,.exam-submit{background:var(--il-a)!important;color:#fff!important;border:1.5px solid transparent!important;box-shadow:none!important;filter:none}
+.vm-btn-primary:hover:not(:disabled),.exam-submit:hover:not(:disabled){background:var(--il-adk)!important;filter:none;transform:none}
+.vm-btn-accent{background:var(--il-b)!important;color:#fff!important;border:1.5px solid transparent!important;box-shadow:none!important;filter:none}
+.vm-btn-accent:hover:not(:disabled){background:var(--il-bdk)!important;color:#fff!important;filter:none;transform:none}
+.vm-btn-ghost{background:#fff!important;color:var(--il-adk)!important;border:1.5px solid #CBDCD2!important;box-shadow:none!important}
+.vm-btn-ghost:hover:not(:disabled){background:var(--il-asoft)!important;border-color:var(--il-a)!important;box-shadow:none!important}
+.vm-btn-danger{background:var(--vm-danger)!important;color:#fff!important;box-shadow:none!important;border:1.5px solid transparent!important}
+.vm-btn:disabled,.vm-btn[disabled]{opacity:.5;box-shadow:none!important}
+.vm-nav.active{background:var(--il-a)!important;box-shadow:none!important}
+.vm-logo-mark{box-shadow:none!important}
+.vm-user{box-shadow:none;border:1px solid var(--vm-border-2)}
+.vm-input,.vm-select{background:#fff;box-shadow:none}
+
+.il-panel,.il-card,.gl-card{background:#fff!important;border:1px solid var(--vm-border-2)!important;box-shadow:0 2px 14px rgba(10,63,48,.07)!important}
+.il-sticky{background:#fff!important;box-shadow:0 2px 14px rgba(10,63,48,.08)!important}
+.il-chip{background:var(--il-asoft)!important}
+.il-seg button.on{background:var(--il-a)!important;box-shadow:none!important}
+.ty-card h3{font-size:1.2rem;font-weight:800;letter-spacing:-.01em;color:var(--il-adk);line-height:1.25;margin:0}
+.ty-card .ty-desc{margin:8px 0 14px;color:var(--vm-ink-2)}
+.ty-card.ty-off h3{color:var(--vm-ink-3)}
+</style></head><body><div id="app"></div><script src="vm-common.js?v=20261009a"></script><script>
 
 
 (function(){
@@ -358,12 +381,19 @@ function drawTests(items){
   var n=partCount(g.skill),have=Object.keys(g.parts).length,full=true,chips='';
   for(var p=1;p<=n;p++){var it=g.parts[String(p)];if(!it){full=false;chips+='<button class="il-chip il-chip-empty" data-add="'+gi+'|'+p+'">'+partWord(g.skill)+' '+p+'<small>missing · add</small></button>';}
    else{var pend=it.review==='pending';chips+='<span class="il-chip-wrap"><button class="il-chip il-chip-'+esc(g.skill)+(pend?' il-chip-pending':'')+'" '+(pend&&!teacher?'disabled title="Waiting for a teacher to check this test"':'data-open="'+esc(it.id)+'"')+'>'+partWord(g.skill)+' '+p+'<small>'+(pend?(teacher?'needs check':'awaiting check'):it.questionCount+' questions')+'</small></button>'+(it.canEdit?'<button class="il-chip-edit" title="Edit" data-edit="'+esc(it.id)+'">✎</button>':'')+'</span>';}}
-  return '<article class="il-card il-lib il-lib-'+esc(g.skill)+'"><div class="il-lib-head"><div><h3>'+esc(g.book)+' · Test '+esc(g.test)+'</h3><div class="il-meta">'+(g.skill==='listening'?'Listening':'Reading')+' · '+have+'/'+n+' '+partWord(g.skill).toLowerCase()+'s</div></div><span class="il-badge il-badge-'+esc(g.skill)+'">'+esc(g.skill)+'</span></div><div class="il-chips">'+chips+'</div><div class="il-row" style="margin-top:12px">'+(full&&fullIds(g).length?'<button class="vm-btn vm-btn-primary vm-btn-sm" data-full="'+gi+'">Start full test</button>':(full?'<span class="il-note">Waiting for a teacher to check every part before you can take the full test.</span>':'<span class="il-note">All '+n+' parts are needed for a full test</span>'))+(teacher?'<button class="vm-btn vm-btn-accent vm-btn-sm" data-assign="'+gi+'">Assign in-class</button>':'')+'</div></article>';
+  return '<article class="il-card il-lib il-lib-'+esc(g.skill)+'"><div class="il-lib-head"><div><h3>'+esc(g.book)+' · Test '+esc(g.test)+'</h3><div class="il-meta">'+(g.skill==='listening'?'Listening':'Reading')+' · '+have+'/'+n+' '+partWord(g.skill).toLowerCase()+'s</div></div><span class="il-badge il-badge-'+esc(g.skill)+'">'+esc(g.skill)+'</span></div><div class="il-chips">'+chips+'</div><div class="il-row" style="margin-top:12px">'+(full&&fullIds(g).length?'<button class="vm-btn vm-btn-primary vm-btn-sm" data-full="'+gi+'">Start full test</button>':(full?'<span class="il-note">Waiting for a teacher to check every part before you can take the full test.</span>':'<span class="il-note">All '+n+' parts are needed for a full test</span>'))+(teacher?'<button class="vm-btn vm-btn-ghost vm-btn-sm il-del" data-deltest="'+gi+'" title="Delete this test from the Library">Delete</button>':'')+(teacher?'<button class="vm-btn vm-btn-accent vm-btn-sm" data-assign="'+gi+'">Assign in-class</button>':'')+'</div></article>';
  }).join(''):'<div class="il-empty">The Library has no tests here yet. Click “＋ Add test” to contribute the first one.</div>';
  function groupAt(i){return groups[i];}
  qa('[data-open]').forEach(function(b){b.onclick=function(){openItems([b.getAttribute('data-open')]);};});
  qa('[data-edit]').forEach(function(b){b.onclick=function(){call('ielts.content.get',{id:b.getAttribute('data-edit')}).then(function(x){editorDialog({existing:x});}).catch(function(e){say(e.message);});};});
  qa('[data-add]').forEach(function(b){var a=b.getAttribute('data-add').split('|'),g=groupAt(+a[0]);b.onclick=function(){editorDialog({skill:g.skill,book:g.book==='?'?'':g.book,test:g.test==='?'?'':g.test,part:a[1]});};});
+ qa('[data-deltest]').forEach(function(b){b.onclick=function(){
+  var g=groupAt(+b.getAttribute('data-deltest')),parts=Object.keys(g.parts).map(function(k){return g.parts[k];}),mine=parts.filter(function(i){return i.canEdit;});
+  if(!mine.length)return say('You can only delete tests you created or your own students created.');
+  VM.confirm('Delete “'+g.book+' · Test '+g.test+'” ('+mine.length+' '+partWord(g.skill).toLowerCase()+(mine.length===1?'':'s')+') from the Library? Students will no longer see it. Past results are kept.'+(mine.length<parts.length?' ('+(parts.length-mine.length)+' part(s) belong to another teacher and stay.)':''),{danger:true,ok:'Delete',title:'Delete test'}).then(function(y){
+   if(!y)return;busy('Deleting…');
+   mine.reduce(function(p,i){return p.then(function(){return call('ielts.content.archive',{id:i.id||i._id});});},Promise.resolve()).then(function(){unbusy();VM.toast('Deleted '+g.book+' · Test '+g.test+'.','ok');state.loaded=false;load();}).catch(function(e){unbusy();say(e.message);state.loaded=false;load();});
+  });};});
  qa('[data-full]').forEach(function(b){var g=groupAt(+b.getAttribute('data-full'));b.onclick=function(){openItems(fullIds(g));};});
  qa('[data-assign]').forEach(function(b){var g=groupAt(+b.getAttribute('data-assign'));b.onclick=function(){state.pendingAssign=fullIds(g).length?fullIds(g):null;location.hash='#inclass';if(state.view==='inclass')route();};});
  document.getElementById('fBook').onchange=function(){state.bookFilter=this.value;drawTests(items);};
@@ -391,7 +421,7 @@ function drawTypesPage(){
 function pickParts(t){
  var box=document.getElementById('tyPick');
  var sorted=t.items.slice().sort(function(a,b){return bookNum(b.book)-bookNum(a.book)||(parseInt(a.test,10)||0)-(parseInt(b.test,10)||0)||(parseInt(a.part,10)||0)-(parseInt(b.part,10)||0);});
- box.innerHTML='<div class="il-panel il-dialog"><h3>'+esc(typeName(t.type))+' · choose parts</h3><div class="il-note">Select up to 12 parts. Only the '+esc(typeName(t.type))+' questions from them are shown.</div><div class="il-students">'+sorted.map(function(i,k){return '<label class="il-opt"><input type="checkbox" value="'+esc(i.id)+'"'+(k<3?' checked':'')+'> '+esc(i.title)+'</label>';}).join('')+'</div><div class="il-row" style="margin-top:12px"><button class="vm-btn vm-btn-primary" id="tyGo">Start practice</button><button class="vm-btn vm-btn-ghost" id="tyCancel">Cancel</button></div></div>';
+ box.innerHTML='<div class="il-panel il-dialog"><h3>'+esc(typeName(t.type))+' · choose parts</h3><div class="il-note">Select up to 12 parts. Only the <b>'+esc(typeName(t.type))+'</b> questions from them are shown.</div><div class="il-students">'+sorted.map(function(i,k){return '<label class="il-opt"><input type="checkbox" value="'+esc(i.id)+'"'+(k<3?' checked':'')+'> '+esc(i.title)+'</label>';}).join('')+'</div><div class="il-row" style="margin-top:12px"><button class="vm-btn vm-btn-primary" id="tyGo">Start practice</button><button class="vm-btn vm-btn-ghost" id="tyCancel">Cancel</button></div></div>';
  box.scrollIntoView({behavior:'smooth'});
  document.getElementById('tyCancel').onclick=function(){box.innerHTML='';};
  document.getElementById('tyGo').onclick=function(){var ids=qa('#tyPick input:checked').map(function(i){return i.value;});if(!ids.length)return say('Select at least one part.');if(ids.length>12)return say('Select 12 parts or fewer.');this.disabled=true;openItems(ids,null,{taskType:t.type,skill:t.skill});};
@@ -648,7 +678,8 @@ function optText(q,o,i){
  if(q.type==='true-false-not-given'||q.type==='yes-no-not-given'||q.type==='matching-headings'||/^[A-H][.)]\s/.test(o)||/^[A-H]$/.test(o))return o;
  return letterOf(i)+'. '+o;
 }
-function typeName(t){return String(t||'short-answer').replace(/-/g,' ').replace(/^form note table flow chart summary completion$/,'form / note / table / flow-chart completion');}
+var TYPE_LABEL={'multiple-choice':'Multiple Choice','true-false-not-given':'True / False / Not Given','yes-no-not-given':'Yes / No / Not Given','matching-headings':'Matching Headings','matching-features':'Matching Features','matching':'Matching Information','sentence-completion':'Sentence Completion','summary-completion':'Summary Completion','short-answer':'Short Answer','diagram-completion':'Diagram Completion','plan-map-diagram-labelling':'Plan / Map / Diagram Labelling','form-note-table-flow-chart-summary-completion':'Form / Note / Table / Flow-chart Completion'};
+function typeName(t){t=String(t||'short-answer');return TYPE_LABEL[t]||t.replace(/-/g,' ').replace(/\b\w/g,function(c){return c.toUpperCase();});}
 function fmtClock(sec){sec=Math.max(0,Math.round(sec));return Math.floor(sec/60)+':'+('0'+(sec%60)).slice(-2);}
 function filled(v){return String(v==null?'':v).trim()!=='';}
 function newRun(x){return{forItem:x,part:0,answers:[],committed:{},qMs:{},qChanges:{},qFirst:{},partMs:[],partSince:Date.now(),startedMs:Date.now(),focusQ:-1,focusSince:0,hidden:0,hl:{},userAudio:{}};}

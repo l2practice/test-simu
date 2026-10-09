@@ -5,7 +5,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%231B7F5E'/%3E%3Ctext x='12' y='17' text-anchor='middle' font-size='13' font-weight='700' fill='%23fff' font-family='system-ui'%3EV%3C/text%3E%3C/svg%3E">
 <meta name="theme-color" content="#0F6B4F">
 <title>Teacher · Test Simulation</title>
-<link rel="stylesheet" href="vm-theme.css?v=20261008i">
+<link rel="stylesheet" href="vm-theme.css?v=20261009a">
 <style>
 #app{min-height:100vh}
 /* Assign form */
@@ -344,7 +344,7 @@
   </div>
 </div>
 
-<script src="vm-common.js?v=20261008i"></script>
+<script src="vm-common.js?v=20261009a"></script>
 <script>
 if (typeof VM === 'undefined') { location.href='login.html'; throw new Error('no VM'); }
 
@@ -676,7 +676,7 @@ function openRoster(classId) {
                '<td>'+VM.esc(s.email||'—')+'</td>' +
                '<td style="white-space:nowrap">'+
                '<button class="vm-btn vm-btn-ghost vm-btn-sm" style="margin-right:4px" data-editstu="'+VM.esc(s.studentId)+'|'+VM.esc(s.name)+'|'+VM.esc(s.class||'')+'|'+VM.esc(s.email||'')+'">Edit</button>'+
-               '<button class="vm-btn vm-btn-danger vm-btn-sm" data-rmstu="'+VM.esc(s.studentId)+'">Remove</button></td></tr>';
+               '<button class="vm-btn vm-btn-danger vm-btn-sm" data-rmstu="'+VM.esc(s.studentId)+'">Archive</button></td></tr>';
       }).join('') + '</tbody></table></div>';
     VM.els('[data-editstu]').forEach(function(btn){
       btn.onclick = function(){
@@ -694,11 +694,11 @@ function openRoster(classId) {
     });
     VM.els('[data-rmstu]').forEach(function(btn){
       btn.onclick = function(){
-        if(!btn._ok){VM.confirm('Remove student '+btn.getAttribute('data-rmstu')+' from the system?',{danger:true,ok:'Remove'}).then(function(y){if(y){btn._ok=1;try{btn.click();}finally{btn._ok=0;}}});return;}
-        showOverlay('Removing student…');
+        if(!btn._ok){VM.confirm('Archive student '+btn.getAttribute('data-rmstu')+'? They will no longer be able to sign in and will disappear from the roster. Their past results are kept.',{danger:true,ok:'Archive',title:'Archive student'}).then(function(y){if(y){btn._ok=1;try{btn.click();}finally{btn._ok=0;}}});return;}
+        showOverlay('Archiving student…');
         VM.api('student.archive',{studentId:btn.getAttribute('data-rmstu')}).then(function(r){
           hideOverlay();
-          if(r&&r.success){VM.toast('Removed.','ok');openRoster(classId);}
+          if(r&&r.success){VM.toast('Student archived.','ok');openRoster(classId);}
           else VM.toast('Error.','err');
         }).catch(function(){hideOverlay();VM.toast('Connection error.','err');});
       };
