@@ -236,6 +236,15 @@ body.exam-hc .exam-submit,body.exam-hc .exam-bottom .exam-btn{background:#000!im
 body.exam-hc mark.hl{background:#FFEB3B!important;color:#000!important;outline:1px solid #000}
 body.exam-hc .exam :focus-visible{outline:4px solid #0050FF!important;outline-offset:2px}
 @media (max-width:900px){.exam-tools .exam-zval{display:none}}
+
+/* list of words box under summary / notes */
+.il-wordbank{margin:18px 0 6px;padding:14px 16px;border:2px solid var(--il-a);border-radius:16px;background:var(--il-asoft)}
+.wb-title{font-weight:800;color:var(--il-adk);margin-bottom:10px;letter-spacing:.02em}
+.wb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px 12px}
+.wb-item{display:flex;gap:10px;align-items:center;background:#fff;border:1.5px solid var(--vm-border);border-radius:12px;padding:8px 10px;line-height:1.35}
+.wb-item b{flex:0 0 auto;display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--il-a);color:#fff;font-size:.85rem}
+body.exam-dark .wb-item{background:#1A2922!important;color:#E6EFE9}body.exam-dark .il-wordbank{background:#16241D}
+body.exam-hc .il-wordbank{background:#fff;border-color:#000}body.exam-hc .wb-item{border:2px solid #000;background:#fff!important}body.exam-hc .wb-item b{background:#000}
 </style></head><body><div id="app"></div><script src="vm-common.js?v=20261009f"></script><script>
 
 
@@ -629,6 +638,27 @@ function letterRange(instr){
  for(var c=a;c<=b;c++)out.push(String.fromCharCode(c));
  return out;
 }
+/* "List of words A-I" below a gap-fill text: letters may be one per line or several per line */
+function parseWordList(text){
+ var lines=String(text||'').split('\n'),last=-1,opts=[];
+ lines.forEach(function(l,i){if(/(?:[\.…_]{3,}|…)/.test(l))last=i;});
+ for(var i=last+1;i<lines.length;i++){
+  var t=lines[i].trim();if(!t)continue;var guard=0;
+  while(t&&guard++<12){
+   var L=String.fromCharCode(65+opts.length),m=new RegExp('^'+L+'[\\s\\.\\):]+(\\S.*)$').exec(t);
+   if(!m)break;
+   var rest=m[1],N=String.fromCharCode(66+opts.length),cut=new RegExp('\\s+(?='+N+'[\\s\\.\\):]+\\S)').exec(rest);
+   if(cut){opts.push(rest.slice(0,cut.index).trim());t=rest.slice(cut.index).trim();}else{opts.push(rest.trim());t='';}
+   if(opts.length>=9)break;
+  }
+ }
+ return opts.length>=2?opts:[];
+}
+function stripWordList(text){
+ var lines=String(text||'').split('\n'),last=-1;
+ lines.forEach(function(l,i){if(/(?:[\.…_]{3,}|…)/.test(l))last=i;});
+ return lines.filter(function(l,i){return i<=last||!/^\s*[A-I][\s\.\):]+\S/.test(l);}).join('\n').replace(/\s+$/,'');
+}
 var GAP_RE=/(?:^|[^\d])(\d{1,2})\s*\)?\s*[‘'"“]?\s*(?:[\.…_]{3,}|…)/g;
 function parseQuestions(text){
  var lines=String(text||'').replace(/\r/g,'').split('\n'),groups=[],cur=null;
@@ -647,6 +677,7 @@ function parseQuestions(text){
    var firstGap=gtext.search(GAP_RE);var head=gtext.slice(0,firstGap>0?firstGap:200);
    var gopts=[];
    if(/list of|letter|[A-I]\s*[-–—]\s*[A-Il]\b/i.test(head)){g.raw.forEach(function(l){var om=/^\s*([A-I])\s{1,}(\S.*)$/.exec(l);if(om&&gopts.length<9&&String.fromCharCode(65+gopts.length)===om[1])gopts.push(om[2].trim());});}
+   if(/list of|letter|[A-I]\s*[-–—]\s*[A-Il]\b/i.test(head)){var wl0=parseWordList(gtext);if(wl0.length>gopts.length)gopts=wl0;}
    var type=gopts.length>=2?(/summary/i.test(head)?'summary-completion':'sentence-completion'):detectType(head,false,true);
    nums.forEach(function(n,i){
     var ln=g.raw.filter(function(l){var r=new RegExp('(?:^|[^\\d])'+n+'\\s*\\)?\\s*[‘\'"“]?\\s*(?:[\\.…_]{3,}|…)');return r.test(l);})[0]||'';
@@ -926,10 +957,11 @@ function renderGroup(g,c){
  function instrBlock(){return instr?'<div class="il-instr" data-hk="i'+first.n+'">'+esc(instr)+'</div>':'';}
  // gap-fill: the text itself carries the numbered blanks, so the controls sit inside it
  if(instr&&/(?:[\.…_]{3,}|…)/.test(instr)){
-  var gi=richHtml(instr,byNum,function(f){var o=f.q.options||[];return '<span class="gap-wrap" id="q'+f.n+'"><b class="gap-n">'+f.num+'</b>'+(o.length?selCtl(c,f,o,' gap-sel'):txtCtl(c,f,'gap-in','…'))+qmark(c,f)+'</span>';});
+  var wl=(first.q.options&&first.q.options.length>=2)?first.q.options:parseWordList(instr),shown=wl.length>=2?stripWordList(instr):instr;
+  var gi=richHtml(shown,byNum,function(f){var o=f.q.options||[];return '<span class="gap-wrap" id="q'+f.n+'"><b class="gap-n">'+f.num+'</b>'+(o.length?selCtl(c,f,o,' gap-sel'):txtCtl(c,f,'gap-in','…'))+qmark(c,f)+'</span>';});
   if(Object.keys(gi.used).length>=Math.max(1,g.qs.length-1)){
    var rest=g.qs.filter(function(f){return !gi.used[f.num];});
-   return '<div class="il-group il-gapbox">'+(c.img&&/diagram|labelling/.test(t)?c.img:'')+'<div class="il-gaptext">'+gi.html+'</div>'+(rest.length?qrowTable(c,{qs:rest},function(f){return txtCtl(c,f,'il-ans','Your answer');}):'')+'</div>';
+   return '<div class="il-group il-gapbox">'+(c.img&&/diagram|labelling/.test(t)?c.img:'')+'<div class="il-gaptext">'+gi.html+'</div>'+(wl.length>=2?'<div class="il-wordbank"><div class="wb-title">List of words</div><div class="wb-grid">'+wl.map(function(w,oi){return '<div class="wb-item"><b>'+letterOf(oi)+'</b><span>'+esc(w)+'</span></div>';}).join('')+'</div></div>':'')+(rest.length?qrowTable(c,{qs:rest},function(f){return txtCtl(c,f,'il-ans','Your answer');}):'')+'</div>';
   }
  }
  if(t==='true-false-not-given'||t==='yes-no-not-given')
