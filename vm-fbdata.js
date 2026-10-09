@@ -1150,6 +1150,7 @@ const ACTIONS = {
   'readwise.save': readwiseSave, 'readwise.list': readwiseList, 'readwise.get': readwiseGet, 'readwise.delete': readwiseDelete,
   'ielts.inclass.create': ieltsInclassCreate, 'ielts.inclass.list': ieltsInclassList, 'ielts.inclass.forStudent': ieltsInclassForStudent, 'ielts.inclass.delete': ieltsInclassDelete,
   'ielts.content.approve': ieltsContentApprove, 'ielts.content.save': ieltsContentSave, 'ielts.content.list': ieltsContentList, 'ielts.content.get': ieltsContentGet, 'ielts.content.archive': ieltsContentArchive,
+  'ielts.feedbackDoc.create': async p => { await authReady(); const cur = auth.currentUser; if (!cur) return fail('SESSION_EXPIRED'); return gas('ielts.feedbackDoc', { idToken: await cur.getIdToken(), attemptId: str(p.attemptId), aiText: String(p.aiText || '') }); },
   'ielts.attempt.save': ieltsAttemptSave, 'ielts.attempt.list': ieltsAttemptList,
   'ielts.report.create': ieltsReportCreate, 'ielts.report.list': ieltsReportList, 'ielts.report.update': ieltsReportUpdate,
   'ielts.audio.upload': ieltsAudioUpload, 'ielts.audio.attach': ieltsAudioAttach, 'ielts.audio.url': ieltsAudioUrl,
