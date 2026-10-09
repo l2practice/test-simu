@@ -619,6 +619,7 @@ function detectType(instr, hasOptions, hasBlank){
  if(/yes\W+no\W+(or\W+|and\W+)?not given/.test(t)||(/\byes\b[\s\S]*\bno\b[\s\S]*not given/.test(t)&&/agree|statement|views|claims/.test(t)))return 'yes-no-not-given';
  if(/list of headings|choose the correct heading/.test(t))return 'matching-headings';
  if(/label the (map|plan)|label the diagram|labell?ing|map below|plan below/.test(t)&&!/complete the/.test(t))return 'plan-map-diagram-labelling';
+ if(/correct endings?\b|sentence endings|complete each sentence with the correct/.test(t))return 'matching-features';
  if(hasOptions&&/from the (box|list)|from the list below|next to questions?|using the list|match each|write the correct letter next/.test(t)&&!/choose (the )?correct letter,?\s*a,?\s*b/.test(t))return 'matching-features';
  if(/choose (the )?(correct )?letter|choose (two|three|2|3)|choose the correct answer|circle the correct/.test(t)&&!/which (paragraph|section)/.test(t))return 'multiple-choice';
  if(/which (paragraph|section)|matching information/.test(t))return 'matching';
@@ -708,6 +709,9 @@ function parseQuestions(text){
    c.instr.push(line.trim());
   });
   var instrText=c.instr.join('\n').trim();
+  // options listed once AFTER the last item (e.g. sentence endings A-F) belong to every item
+  var withOpts=c.items.filter(function(it){return it.opts.length;});
+  if(c.items.length>=2&&withOpts.length===1&&withOpts[0]===c.items[c.items.length-1]&&withOpts[0].opts.length>=3&&!c.opts.length){c.opts=withOpts[0].opts;withOpts[0].opts=[];}
   var synth=false;
   if(!c.items.length){
    synth=true;
