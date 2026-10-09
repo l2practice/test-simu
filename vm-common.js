@@ -318,6 +318,67 @@
   VM.prompt = function (message, o) { return vmDialog(Object.assign({ message: message, input: true, icon: '✎' }, o || {})); };
   VM.alert = function (message, o) { return vmDialog(Object.assign({ message: message, cancel: false, icon: 'i' }, o || {})); };
 
+  /* ── Table tools: search box + click-to-sort headers on any list of 5+ rows ── */
+  (function () {
+    var MIN_ROWS = 5;
+    function cellVal(td) {
+      if (!td) return { s: '', n: NaN };
+      var ds = td.getAttribute('data-sort'); var t = (ds != null ? ds : td.textContent || '').replace(/\s+/g, ' ').trim();
+      return { s: t, n: NaN, raw: t };
+    }
+    function kind(rows, col) {
+      var dates = 0, nums = 0, n = 0;
+      rows.forEach(function (r) { var t = cellVal(r.cells[col]).s; if (!t || t === '—') return; n++;
+        if (/^\d{4}-\d{2}-\d{2}/.test(t) || /^\d{1,2}\/\d{1,2}\/\d{2,4}/.test(t) || (/[A-Za-z]{3}/.test(t) && /\d{4}/.test(t) && !isNaN(Date.parse(t)))) dates++;
+        else if (/^[^A-Za-z]*[-+]?\d/.test(t) || /^(?:avg|score)\s*\d/i.test(t)) nums++; });
+      if (n && dates >= n * 0.8) return 'date'; if (n && nums >= n * 0.8) return 'num'; return 'text';
+    }
+    function key(td, k) {
+      var t = cellVal(td).s;
+      if (!t || t === '—') return k === 'text' ? '' : -Infinity;
+      if (k === 'date') { var m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})/.exec(t); var d = m ? new Date(+m[3], +m[1] - 1, +m[2]).getTime() : Date.parse(t); return isNaN(d) ? -Infinity : d; }
+      if (k === 'num') { var x = /[-+]?\d+(?:\.\d+)?/.exec(t); return x ? parseFloat(x[0]) : -Infinity; }
+      return t.toLowerCase();
+    }
+    function enhance(table) {
+      if (table.__tt || table.hasAttribute('data-notools')) return;
+      var tb = table.tBodies[0], head = table.tHead && table.tHead.rows[0]; if (!tb || !head) return;
+      var rows = [].slice.call(tb.rows);
+      if (rows.length < MIN_ROWS || rows.some(function (r) { return [].some.call(r.cells, function (c) { return c.colSpan > 1; }); })) return;
+      table.__tt = { q: '', col: -1, dir: 1 };
+      var st = table.__tt, wrap = table.parentNode, host = (wrap.children.length === 1 && wrap !== document.body && !/vm-modal|vm-content/.test(wrap.className)) ? wrap : table;
+      var bar = document.createElement('div'); bar.className = 'vm-tt-bar';
+      bar.innerHTML = '<input type="search" class="vm-input vm-tt-q" placeholder="Search this list…" aria-label="Search this list"><span class="vm-tt-n" aria-live="polite"></span>';
+      host.parentNode.insertBefore(bar, host);
+      var inp = bar.querySelector('input'), cnt = bar.querySelector('.vm-tt-n'), ignore = false;
+      function apply() {
+        ignore = true;
+        var rs = [].slice.call(tb.rows), q = st.q.trim().toLowerCase(), shown = 0;
+        if (st.col >= 0) { var k = st.kind[st.col]; rs.sort(function (a, b) { var x = key(a.cells[st.col], k), y = key(b.cells[st.col], k); return (x < y ? -1 : x > y ? 1 : 0) * st.dir; }); rs.forEach(function (r) { tb.appendChild(r); }); }
+        rs.forEach(function (r) { var hit = !q || (r.textContent || '').toLowerCase().indexOf(q) >= 0; r.style.display = hit ? '' : 'none'; if (hit) shown++; });
+        cnt.textContent = q ? shown + ' of ' + rs.length : rs.length + ' rows';
+        [].forEach.call(head.cells, function (th, i) { th.setAttribute('aria-sort', i === st.col ? (st.dir > 0 ? 'ascending' : 'descending') : 'none'); th.classList.toggle('tt-asc', i === st.col && st.dir > 0); th.classList.toggle('tt-desc', i === st.col && st.dir < 0); });
+        setTimeout(function () { ignore = false; }, 0);
+      }
+      st.kind = [].map.call(head.cells, function (th, i) { return kind(rows, i); });
+      [].forEach.call(head.cells, function (th, i) {
+        if (!th.textContent.trim()) return;
+        th.classList.add('tt-th'); th.tabIndex = 0; th.setAttribute('role', 'button'); th.setAttribute('title', 'Click to sort');
+        function go() { if (st.col === i) st.dir = -st.dir; else { st.col = i; st.dir = st.kind[i] === 'text' ? 1 : -1; } apply(); }
+        th.addEventListener('click', go); th.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
+      });
+      inp.addEventListener('input', function () { st.q = inp.value; apply(); });
+      new MutationObserver(function () { if (ignore) return; st.kind = [].map.call(head.cells, function (th, i) { return kind([].slice.call(tb.rows), i); }); apply(); }).observe(tb, { childList: true });
+      apply();
+    }
+    function scan(root) { [].forEach.call((root || document).querySelectorAll('table.vm-table'), enhance); }
+    var timer = null;
+    function later() { clearTimeout(timer); timer = setTimeout(scan, 60); }
+    function start() { scan(); new MutationObserver(later).observe(document.body, { childList: true, subtree: true }); }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
+    VM.tableTools = scan;
+  })();
+
   /* ── Brand ─────────────────────────────────────────────────── */
   VM.logoSVG = '<img src="favicon.svg" alt="">';
   VM.brandLockup = function () {
