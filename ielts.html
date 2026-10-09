@@ -175,6 +175,21 @@ body.skill-reading .il-instr,body.skill-listening .il-instr{background:linear-gr
 .ty-card h3{font-size:1.2rem;font-weight:800;letter-spacing:-.01em;color:var(--il-adk);line-height:1.25;margin:0}
 .ty-card .ty-desc{margin:8px 0 14px;color:var(--vm-ink-2)}
 .ty-card.ty-off h3{color:var(--vm-ink-3)}
+
+/* countdown colours */
+.exam-clock.w15{background:#E0A800!important;color:#3A2600!important}
+.exam-clock.w10{background:#F08A3C!important;color:#fff!important}
+.exam-clock.w5{background:#C23A2E!important;color:#fff!important;animation:clockPulse 1s ease-in-out infinite}
+@keyframes clockPulse{50%{box-shadow:0 0 0 6px rgba(194,58,46,.35)}}
+@media (prefers-reduced-motion:reduce){.exam-clock.w5{animation:none}}
+/* choose-N tick boxes */
+.il-opts-check .il-opt{display:flex;gap:12px;align-items:flex-start;padding:10px 12px;border:1.5px solid var(--vm-border);border-radius:12px;margin:8px 0;background:#fff}
+.il-opts-check .il-opt:hover{border-color:var(--il-a)}
+.il-opts-check input[type=checkbox]{width:22px;height:22px;margin-top:1px;border-radius:5px}
+.il-opts .il-opt input[type=radio]{width:22px;height:22px}
+.il-multi-marks{display:flex;gap:14px;margin-top:6px;align-items:center}
+.ai-h{margin:14px 0 4px;font-size:1.02rem;font-weight:800;color:var(--il-adk)}
+.ai-l{margin:3px 0;line-height:1.55}.ai-bad{font-weight:700;color:#A5281E}
 </style></head><body><div id="app"></div><script src="vm-common.js?v=20261009f"></script><script>
 
 
@@ -569,9 +584,9 @@ function letterRange(instr){
 var GAP_RE=/(?:^|[^\d])(\d{1,2})\s*\)?\s*[‘'"“]?\s*(?:[\.…_]{3,}|…)/g;
 function parseQuestions(text){
  var lines=String(text||'').replace(/\r/g,'').split('\n'),groups=[],cur=null;
- var headRe=/^\s*questions?\s+(\d{1,2})\s*(?:[-–—]|to|and|&)\s*(\d{1,2})\b/i;
+ var headRe=/^\s*questions?\s+(\d{1,2})(?:\s*(?:[-–—]|to|and|&)\s*(\d{1,2}))?\b/i;
  lines.forEach(function(raw){var line=raw.replace(/\s+$/,''),h=headRe.exec(line);
-  if(h){cur={from:+h[1],to:+h[2],raw:[line.trim()]};groups.push(cur);return;}
+  if(h){cur={from:+h[1],to:+(h[2]||h[1]),raw:[line.trim()]};groups.push(cur);return;}
   if(!cur){cur={from:0,to:0,raw:[]};groups.push(cur);}cur.raw.push(line);});
  var out=[],seq=0,last=0;
  function num(n){if(n<=last)n=last+1;last=n;seq++;return n;}
@@ -710,13 +725,23 @@ function renderPractice(){
   if(filled(v)&&r.qFirst[i]==null)r.qFirst[i]=Date.now()-r.startedMs;
   if(filled(r.committed[i])&&v!==r.committed[i])r.qChanges[i]=(r.qChanges[i]||0)+1;
   r.committed[i]=v;updateProgress();});
+ split.addEventListener('change',function(e){var el=e.target,r=state.run;if(rv||!el.hasAttribute||!el.hasAttribute('data-mc'))return;
+  var idxs=el.getAttribute('data-mc').split(',').map(Number),box=qa('#splitArea input[data-mc="'+el.getAttribute('data-mc')+'"]'),on=box.filter(function(b){return b.checked;});
+  if(on.length>idxs.length){el.checked=false;on=box.filter(function(b){return b.checked;});VM.toast('Choose only '+idxs.length+' answers. Untick one first.','warn',2500);}
+  idxs.forEach(function(qi,k){var v=on[k]?on[k].value:'';r.answers[qi]=v;if(filled(v)&&r.qFirst[qi]==null)r.qFirst[qi]=Date.now()-r.startedMs;if(filled(r.committed[qi])&&v!==r.committed[qi])r.qChanges[qi]=(r.qChanges[qi]||0)+1;r.committed[qi]=v;});updateProgress();});
  split.addEventListener('focusin',function(e){var el=e.target;if(!rv&&el.hasAttribute&&el.hasAttribute('data-q'))focusOn(+el.getAttribute('data-q'));});
  split.addEventListener('focusout',function(){if(!rv)focusOn(-1);});
  split.addEventListener('mouseup',function(e){setTimeout(function(){onHighlightSelect(e);},0);});
  split.addEventListener('touchend',function(e){setTimeout(function(){onHighlightSelect(e);},300);});
  if(!visBound){visBound=true;document.addEventListener('visibilitychange',function(){if(document.hidden&&state.run&&state.active&&!state.review)state.run.hidden++;});}
  if(!rv){
-  var tick=function(){var c=document.getElementById('clock');if(!c)return;if(state.assignment){var left=Math.round((state.assignment.endMs-Date.now())/1000);c.textContent='Time left '+fmtClock(left);c.className='exam-clock'+(left<=300?' warn':'');if(left<=0&&!state.autoSent){state.autoSent=true;VM.toast('Time is up. Your answers are being submitted.','warn');submitAttempt(true);}}else c.textContent=fmtClock((Date.now()-state.run.startedMs)/1000);};
+  state.warned={};
+  var tick=function(){var c=document.getElementById('clock');if(!c)return;
+   var left=Math.round((state.assignment?(state.assignment.endMs-Date.now()):(state.run.startedMs+3600000-Date.now()))/1000);
+   c.textContent='Time left '+fmtClock(left);
+   c.className='exam-clock'+(left<=300?' w5':left<=600?' w10':left<=900?' w15':'');
+   [[900,'15 minutes'],[600,'10 minutes'],[300,'5 minutes']].forEach(function(m){if(left<=m[0]&&left>m[0]-20&&!state.warned[m[0]]){state.warned[m[0]]=1;VM.toast(m[1]+' left.',m[0]===300?'err':'warn',4000);}});
+   if(left<=0&&!state.autoSent&&!isPrev()){state.autoSent=true;stopTimer();VM.toast('Time is up. The test is locked and your answers are being submitted.','warn',6000);qa('#splitArea input,#splitArea select,#splitArea textarea').forEach(function(el){el.disabled=true;});submitAttempt(true);}};
   state.autoSent=false;tick();timerId=setInterval(tick,1000);
  }else drawReview();
  drawAudio();drawPartBar();drawTabs();drawSplit();drawNavRow();drawExamNav();drawAnswerKey();
@@ -852,7 +877,7 @@ function renderGroup(g,c){
   var same=g.qs.length>1&&g.qs.every(function(f){return f.q.prompt===first.q.prompt&&(f.q.options||[]).join('|')===(first.q.options||[]).join('|');});
   if(same){
    var mo=first.q.options||[];
-   return '<div class="il-group">'+instrBlock()+'<div class="il-q"><div class="il-qprompt" data-hk="q'+first.n+'">'+esc(first.q.prompt)+'</div><div class="il-opts il-opts-ro">'+mo.map(function(o,oi){return '<div class="il-opt-ro"><b>'+letterOf(oi)+'</b><span>'+esc(o)+'</span></div>';}).join('')+'</div><div class="il-multi">'+g.qs.map(function(f){return '<label class="il-multi-c" id="q'+f.n+'"><span class="il-qnum">'+f.num+'</span>'+selCtl(c,f,mo)+qmark(c,f)+'</label>';}).join('')+'</div></div></div>';
+   return '<div class="il-group">'+instrBlock()+'<div class="il-q"><div class="il-qprompt" data-hk="q'+first.n+'">'+esc(first.q.prompt)+'</div><div class="il-opts il-opts-check" role="group" aria-label="Choose '+g.qs.length+' answers">'+mo.map(function(o,oi){var v=optValue(first.q,o,oi),chosen=g.qs.some(function(f){return (c.r.answers[f.n-1]||'')===v;});return '<label class="il-opt il-opt-check"><input type="checkbox" data-mc="'+g.qs.map(function(f){return f.n-1;}).join(',')+'" value="'+esc(v)+'"'+(chosen?' checked':'')+c.dis+'> <span>'+esc(optText(first.q,o,oi))+'</span></label>';}).join('')+'</div><div class="il-multi-marks">'+g.qs.map(function(f){return '<span class="il-multi-m" id="q'+f.n+'"><span class="il-qnum">'+f.num+'</span>'+qmark(c,f)+'</span>';}).join('')+'</div></div></div>';
   }
   return '<div class="il-group">'+instrBlock()+g.qs.map(function(f){
    var q=f.q,opts=qOptions(q),i=f.n-1,val=c.r.answers[i]||'',inp;
@@ -1006,6 +1031,12 @@ function callAI(keys,prompt){
    if(!r.ok)throw new Error('AI provider error ('+r.status+').');return r.json();}).then(function(d){return d.candidates[0].content.parts.map(function(p){return p.text||'';}).join('');}).catch(function(e){if(e.fatal)throw e;last=e;return next(i+1);});}
  return next(0);
 }
+function renderAI(t){
+ return String(t||'').split(/\r?\n/).map(function(l){var x=l.replace(/\*\*|__/g,'').trim();if(!x)return '';
+  if(/^[^\w\s]{1,3}\uFE0F?\s*[A-Z][A-Z0-9 \-&'’\/()]{2,}$/u.test(x))return '<div class="ai-h">'+esc(x)+'</div>';
+  if(/^❌/.test(x))return '<div class="ai-l ai-bad">'+esc(x)+'</div>';
+  return '<div class="ai-l">'+esc(x)+'</div>';}).join('');
+}
 function docUrlOk(u){return /^https:\/\/docs\.google\.com\//.test(String(u||''));}
 function showDocBox(url){
  var box=document.getElementById('docBox');if(!box||!docUrlOk(url))return;
@@ -1033,9 +1064,9 @@ function runAnalysis(){
  var qs=flat.filter(function(f){return focus[f.num];}).slice(0,25).map(function(f){var rr=resp[f.n-1]||{},t=tel.per[f.n-1]||{};return{n:f.num,part:f.part+1,type:f.q.type,prompt:f.q.prompt,options:f.q.options||[],studentAnswer:rr.answer||'(blank)',correctAnswers:rr.accepted||[],correct:rr.correct,seconds:t.sec,answerChanges:t.changes};});
  var parts={};qs.forEach(function(q){if(!parts[q.part]){var s=snapSecs[q.part-1]||(x.sections||[])[q.part-1]||{};parts[q.part]={passage:String(s.text||'').slice(0,3500),script:String(s.script||'').slice(0,3500)};}});
  var data={skill:x.skill,score:{correct:a.correct,graded:a.gradedCount,percent:a.score},totalSeconds:tel.totalSec,secondsPerPart:tel.partSec,leftTabCount:tel.hidden,blankQuestions:ins.blank,answerChanged:{becameCorrect:ins.changedRight,stillWrong:ins.changedWrong},accuracyByType:ins.byType,questionsToReview:qs,contextByPart:parts};
- var prompt='You are an IELTS Reading and Listening teacher helping Vietnamese EFL university students. Using the JSON data about the attempt (score, time per question, answer changes, blank questions, times the student left the tab), write feedback in clear, simple English as plain text without markdown, with these parts: 1) Overall comment; 2) Strengths; 3) Test-taking habits worth noting (based on timing, answer changes, blanks); 4) For each item in questionsToReview: briefly explain why the correct answer is in correctAnswers, using contextByPart, and what mistake the student may have made; 5) A three-step practice plan for next week. Use only the information in the data and do not invent facts. If context is missing, say so. End with a note that this is AI-generated study guidance, not marking by a teacher.\nDATA: '+JSON.stringify(data);
+ var prompt='You are an IELTS Reading and Listening teacher helping Vietnamese EFL university students. Using the JSON data about the attempt (score, time per question, answer changes, blank questions, times the student left the tab), write feedback in clear, simple English as plain text without markdown. Use these parts, each heading on its own line in CAPITAL LETTERS starting with one emoji: "🎯 OVERALL", "✅ STRENGTHS", "⏱️ TEST-TAKING HABITS" (based on timing, answer changes, blanks), "🔍 QUESTIONS TO REVIEW" (for each item in questionsToReview write one line starting with "❌ Q<number>" and explain why the correct answer is in correctAnswers, using contextByPart, and what mistake the student may have made), "📅 PRACTICE PLAN" (three short steps for next week) and "💡 TIP" (one memorable tip). Start good habits with ✔ and risks with ⚠️. Use • for bullet lines and keep emoji light elsewhere. Use only the information in the data and do not invent facts. If context is missing, say so. End with a note that this is AI-generated study guidance, not marking by a teacher.\nDATA: '+JSON.stringify(data);
  box.textContent='Generating feedback…';
- return callAI(keys,prompt).then(function(t){box.textContent=t;rv.aiText=t;return t;}).catch(function(e){box.textContent=e.message;});
+ return callAI(keys,prompt).then(function(t){box.innerHTML=renderAI(t);rv.aiText=t;return t;}).catch(function(e){box.textContent=e.message;});
 }
 
 
