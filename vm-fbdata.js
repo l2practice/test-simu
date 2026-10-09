@@ -909,7 +909,9 @@ async function ieltsContentSave(p) {
   }));
   batch.set(fs.doc('ieltsAnswerKeys/' + id), { ownerUid, teacherUid, visibility: 'library', sections: keySections, version, updatedAt: nowIso() });
   const metaRef = fs.doc('ieltsIndex/_meta');
-  if ((await metaRef.get()).exists) {            // keep the index in step (skipped until a teacher's first Library visit has built it)
+  let idxReady = false;
+  try { idxReady = (await metaRef.get()).exists; } catch (e) { idxReady = false; }   // rules not published yet → just skip the index
+  if (idxReady) {            // keep the index in step (skipped until a teacher's first Library visit has built it)
     batch.set(fs.doc('ieltsIndex/' + idxShard(data.book)), { book: data.book, items: { [id]: idxSummary(id, Object.assign({}, data, { ownerUid, ownerName: prior.exists ? (prior.data().ownerName || '') : (u.fullName || ''), ownerRole: prior.exists ? (prior.data().ownerRole || '') : u.role, teacherUid, version, updatedAt: nowIso() })) } }, { merge: true });
     batch.set(metaRef, { rev: nowIso() }, { merge: true });
   }
