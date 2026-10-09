@@ -380,7 +380,7 @@
   })();
 
   /* ── Brand ─────────────────────────────────────────────────── */
-  VM.logoSVG = '<img src="favicon.svg" alt="">';
+  VM.logoSVG = '<img src="icon-main.svg?v=1" alt="">';
   VM.brandLockup = function () {
     return '<a class="vm-logo" href="#"><span class="vm-logo-mark">' + VM.logoSVG + '</span><span class="vm-logo-name">Test Simulation</span></a>';
   };
