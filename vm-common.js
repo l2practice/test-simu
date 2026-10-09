@@ -58,7 +58,7 @@
     if (!_fbLoad) {
       _fbLoad = loadScript(FB_SDK + 'firebase-app-compat.js')
         .then(function () { return Promise.all([loadScript(FB_SDK + 'firebase-auth-compat.js'), loadScript(FB_SDK + 'firebase-firestore-compat.js'), loadScript(FB_SDK + 'firebase-storage-compat.js')]); })
-        .then(function () { return loadScript('vm-fbdata.js?v=13'); })
+        .then(function () { return loadScript('vm-fbdata.js?v=14'); })
         .then(function () { return global.FB; });
       _fbLoad.catch(function () { _fbLoad = null; });   // cho phép thử lại sau lỗi mạng
     }

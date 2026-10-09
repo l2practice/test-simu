@@ -855,6 +855,36 @@ function publicIelts(d) {
 // Library item = ONE part (Passage / Part) of one book + test. Everyone signed in can read published items.
 function ieltsCanEdit(u, d) { return d.ownerUid === u.uid || (u.role === 'teacher' && d.teacherUid === u.uid); }
 function ieltsLibraryId(skill, book, test, part) { return ('L_' + skill + '_' + book + '_T' + test + '_P' + part).replace(/[^A-Za-z0-9_]/g, ''); }
+// ── Library index: one small summary per part, grouped in one document per book, so opening the Library
+//    reads a handful of tiny documents (or none, thanks to the on-device cache) instead of every full test.
+const IDX_KEY = 'ielts_index_v1';
+const idxShard = book => 'b_' + String(book || 'x').replace(/[^A-Za-z0-9_-]/g, '_');
+function idxSummary(id, d) {
+  return {
+    id, title: d.title || '', skill: d.skill || '', book: d.book || '', test: d.test || '', part: d.part || '', taskTypes: d.taskTypes || [],
+    questionCount: (d.sections || []).reduce((n, s) => n + (s.questions || []).length, 0),
+    hasAudio: !!(d.sections || []).some(s => s.audio && (s.audio.path || s.audio.url)),
+    ownerName: d.ownerName || '', ownerRole: d.ownerRole || '', ownerUid: d.ownerUid || '', teacherUid: d.teacherUid || '',
+    version: d.version || 1, updatedAt: d.updatedAt || ''
+  };
+}
+async function idxLoad() {
+  const meta = await fs.doc('ieltsIndex/_meta').get();
+  if (!meta.exists) return null;                       // index not built yet
+  const rev = meta.data().rev || '';
+  try { const c = JSON.parse(localStorage.getItem(IDX_KEY) || 'null'); if (c && c.rev === rev && Array.isArray(c.rows)) return c.rows; } catch (e) {}
+  const snap = await fs.collection('ieltsIndex').get(), rows = [];
+  snap.forEach(s => { if (s.id === '_meta') return; const it = (s.data() || {}).items || {}; Object.keys(it).forEach(k => rows.push(it[k])); });
+  try { localStorage.setItem(IDX_KEY, JSON.stringify({ rev, rows })); } catch (e) {}
+  return rows;
+}
+async function idxRebuild(allDocs) {
+  const shards = {};
+  allDocs.forEach(d => { const k = idxShard(d.book); (shards[k] = shards[k] || { book: d.book || '', items: {} }).items[d._id || d.id] = idxSummary(d._id || d.id, d); });
+  const keys = Object.keys(shards);
+  for (let i = 0; i < keys.length; i += 400) { const b = fs.batch(); keys.slice(i, i + 400).forEach(k => b.set(fs.doc('ieltsIndex/' + k), shards[k])); await b.commit(); }
+  await fs.doc('ieltsIndex/_meta').set({ rev: nowIso(), built: nowIso() });
+}
 async function ieltsContentSave(p) {
   const u = await me(), data = JSON.parse(JSON.stringify(cleanIeltsContent(p)));   // JSON round-trip drops undefined values, which Firestore rejects
   if (!data.book || !data.test || !data.part) return fail('Select Book, Test and Part.');
@@ -863,7 +893,6 @@ async function ieltsContentSave(p) {
   const id = str(p.id) || ieltsLibraryId(data.skill, data.book, data.test, data.part);
   const ref = fs.doc('ieltsContent/' + id), prior = await ref.get();
   if (prior.exists && !ieltsCanEdit(u, prior.data())) return fail('This part is already in the Library: ' + (prior.data().title || id) + '. Only its creator or the creator’s teacher can edit it.');
-  if (prior.exists && prior.data().archived && !p.id) return fail('This part was in the Library before and is archived. Contact your teacher.');
   const ownerUid = prior.exists ? prior.data().ownerUid : u.uid;
   const teacherUid = prior.exists ? (prior.data().teacherUid || '') : (u.role === 'teacher' ? u.uid : (u.teacherUid || ''));
   const version = prior.exists ? (prior.data().version || 1) + 1 : 1;
@@ -879,22 +908,33 @@ async function ieltsContentSave(p) {
     createdAt: prior.exists ? prior.data().createdAt : nowIso(), updatedAt: nowIso()
   }));
   batch.set(fs.doc('ieltsAnswerKeys/' + id), { ownerUid, teacherUid, visibility: 'library', sections: keySections, version, updatedAt: nowIso() });
+  const metaRef = fs.doc('ieltsIndex/_meta');
+  if ((await metaRef.get()).exists) {            // keep the index in step (skipped until a teacher's first Library visit has built it)
+    batch.set(fs.doc('ieltsIndex/' + idxShard(data.book)), { book: data.book, items: { [id]: idxSummary(id, Object.assign({}, data, { ownerUid, ownerName: prior.exists ? (prior.data().ownerName || '') : (u.fullName || ''), ownerRole: prior.exists ? (prior.data().ownerRole || '') : u.role, teacherUid, version, updatedAt: nowIso() })) } }, { merge: true });
+    batch.set(metaRef, { rev: nowIso() }, { merge: true });
+  }
   await batch.commit();
   return ok({ id, version });
 }
 async function ieltsContentList(p) {
   const u = await me();
-  const [pub, own] = await Promise.all([
-    fs.collection('ieltsContent').where('status', '==', 'published').where('archived', '==', false).get(),
-    fs.collection('ieltsContent').where('ownerUid', '==', u.uid).get()
-  ]);
-  const map = {};
-  docs(pub).concat(docs(own)).forEach(d => { map[d._id] = d; });
-  const rows = Object.keys(map).map(k => map[k]).filter(d => !d.archived && d.status === 'published' && (p.skill ? d.skill === p.skill : true));
-  return ok(rows.map(d => ({
-    id: d._id, title: d.title, skill: d.skill, book: d.book || '', test: d.test || '', part: d.part || '', taskTypes: d.taskTypes || [],
-    questionCount: (d.sections || []).reduce((n, s) => n + (s.questions || []).length, 0), hasAudio: !!(d.sections || []).some(s => s.audio && s.audio.path),
-    ownerName: d.ownerName || '', ownerRole: d.ownerRole || '', review: 'approved', version: d.version || 1, updatedAt: d.updatedAt || '', canEdit: ieltsCanEdit(u, d)
+  let rows = null;
+  try { rows = await idxLoad(); } catch (e) { rows = null; }
+  if (!rows) {                                          // no index yet: read everything once the old way; a teacher also builds the index
+    const [pub, own] = await Promise.all([
+      fs.collection('ieltsContent').where('status', '==', 'published').where('archived', '==', false).get(),
+      fs.collection('ieltsContent').where('ownerUid', '==', u.uid).get()
+    ]);
+    const map = {};
+    docs(pub).concat(docs(own)).forEach(d => { map[d._id] = d; });
+    const all = Object.keys(map).map(k => map[k]).filter(d => !d.archived && d.status === 'published');
+    rows = all.map(d => idxSummary(d._id, d));
+    if (u.role === 'teacher') { try { await idxRebuild(all); } catch (e) {} }
+  }
+  return ok(rows.filter(d => p.skill ? d.skill === p.skill : true).map(d => ({
+    id: d.id, title: d.title, skill: d.skill, book: d.book || '', test: d.test || '', part: d.part || '', taskTypes: d.taskTypes || [],
+    questionCount: d.questionCount || 0, hasAudio: !!d.hasAudio, ownerName: d.ownerName || '', ownerRole: d.ownerRole || '',
+    review: 'approved', version: d.version || 1, updatedAt: d.updatedAt || '', canEdit: ieltsCanEdit(u, d)
   })));
 }
 async function ieltsContentGet(p) {
@@ -917,7 +957,13 @@ async function ieltsContentApprove(p) {
 async function ieltsContentArchive(p) {
   const u = await me(), ref = fs.doc('ieltsContent/' + str(p.id)), s = await ref.get();
   if (!s.exists || !ieltsCanEdit(u, s.data())) return fail('You cannot remove this item.');
-  await ref.update({ archived: true, status: 'archived', updatedAt: nowIso() }); return ok();
+  const d = s.data();
+  await ref.update({ archived: true, status: 'archived', updatedAt: nowIso() });
+  try {
+    const metaRef = fs.doc('ieltsIndex/_meta');
+    if ((await metaRef.get()).exists) { const b = fs.batch(); b.set(fs.doc('ieltsIndex/' + idxShard(d.book)), { items: { [s.id]: FV.delete() } }, { merge: true }); b.set(metaRef, { rev: nowIso() }, { merge: true }); await b.commit(); }
+  } catch (e) {}
+  return ok();
 }
 
 // ── IELTS In-class sessions (assignments with kind:'ielts'; time windows + extensions reuse assign.extend) ──
@@ -1001,7 +1047,10 @@ async function ieltsAttemptList(p) {
     q = q.where('classId','==',str(p.classId));
     if (p.studentId) q = q.where('studentId','==',str(p.studentId));
   } else q = fs.collection('ieltsAttempts').where('uid','==',u.uid);
-  const rows = docs(await q.get()).filter(d => (!p.skill || d.skill === p.skill) && (!p.since || d.completedAt >= p.since)).sort((a,b) => str(a.completedAt).localeCompare(str(b.completedAt)));
+  let snap;
+  try { snap = await (p.since ? q.where('completedAt', '>=', p.since) : q).get(); }
+  catch (e) { if (p.since) snap = await q.get(); else throw e; }   // falls back to a full read until the Firestore index exists
+  const rows = docs(snap).filter(d => (!p.skill || d.skill === p.skill) && (!p.since || d.completedAt >= p.since)).sort((a,b) => str(a.completedAt).localeCompare(str(b.completedAt)));
   return ok(rows);
 }
 async function ieltsReportCreate(p) {
