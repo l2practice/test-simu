@@ -935,7 +935,7 @@ async function ieltsContentList(p) {
   }
   return ok(rows.filter(d => p.skill ? d.skill === p.skill : true).map(d => ({
     id: d.id, title: d.title, skill: d.skill, book: d.book || '', test: d.test || '', part: d.part || '', taskTypes: d.taskTypes || [],
-    questionCount: d.questionCount || 0, hasAudio: !!d.hasAudio, ownerName: d.ownerName || '', ownerRole: d.ownerRole || '',
+    mine: d.ownerUid === u.uid, questionCount: d.questionCount || 0, hasAudio: !!d.hasAudio, ownerName: d.ownerName || '', ownerRole: d.ownerRole || '',
     review: 'approved', version: d.version || 1, updatedAt: d.updatedAt || '', canEdit: ieltsCanEdit(u, d)
   })));
 }
