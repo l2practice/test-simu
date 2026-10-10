@@ -252,6 +252,8 @@ body.exam-hc .il-wordbank{background:#fff;border-color:#000}body.exam-hc .wb-ite
 .exam-pane{padding:18px 22px 40px}
 .il-fig{margin:12px 0;text-align:center}.il-fig .il-img{max-width:100%;height:auto;border-radius:10px;border:1px solid var(--vm-border)}
 @media(max-width:900px){.exam-split{grid-template-columns:1fr}}
+
+.gap-letter{min-width:78px;font-weight:800;text-align:center}
 </style></head><body><div id="app"></div><script src="vm-common.js?v=20261009f"></script><script>
 
 
@@ -391,9 +393,9 @@ function drawGlanceTeacher(){
   var added=state.items.filter(function(i){return i.updatedAt&&Date.now()-new Date(i.updatedAt).getTime()<14*86400000;}).sort(function(a,b){return String(b.updatedAt).localeCompare(String(a.updatedAt));}).slice(0,8).map(function(i){return{t:i.updatedAt,html:'<span class="il-feed-ic new">＋</span><div><b>'+esc(i.ownerName||'Someone')+'</b> added <b>'+esc(i.title)+'</b> <span class="il-note">to the Library · '+i.questionCount+' questions'+(i.review==='pending'?' · <b style="color:var(--il-bdk)">needs check</b>':'')+'</span>'+(i.review==='pending'&&i.canEdit?' <button class="vm-btn vm-btn-accent vm-btn-sm" data-rv="'+esc(i.id)+'">Check</button>':'')+'</div>'};});
   var docsFeed=att.filter(function(a){return docUrlOk(a.feedbackDocUrl);}).sort(function(a,b){return String(b.feedbackDocAt||b.completedAt).localeCompare(String(a.feedbackDocAt||a.completedAt));}).slice(0,8).map(function(a){return{t:a.feedbackDocAt||a.completedAt,html:'<span class="il-feed-ic new">📄</span><div><b>'+esc(a.studentName||a.studentId)+'</b> created a feedback doc for <b>'+esc(a.title)+'</b> <a href="'+esc(a.feedbackDocUrl)+'" target="_blank" rel="noopener">Open doc</a></div>'};});
   var feed=recent.concat(added).concat(docsFeed).sort(function(a,b){return String(b.t).localeCompare(String(a.t));}).slice(0,14);
-  var ids=Object.keys(by).sort(function(a,b){return String(names[a]||a).localeCompare(String(names[b]||b));});
+  var ids=Object.keys(by).sort(function(a,b){return String(a).localeCompare(String(b),undefined,{numeric:true});});
   function skillCell(rows,skill){var r=rows.filter(function(a){return a.skill===skill&&typeof a.score==='number';});if(!r.length)return '<span class="il-note">—</span>';var avg=Math.round(r.reduce(function(s,a){return s+a.score;},0)/r.length);return '<b>'+r[r.length-1].score+'%</b> <span class="il-note">avg '+avg+'% · '+r.length+'</span>';}
-  body.innerHTML='<div class="il-glance-grid"><div class="il-panel"><h3 style="margin-top:0">New Practice</h3><div class="il-feed">'+(feed.length?feed.map(function(f){return '<div class="il-feed-row">'+f.html+'<span class="il-note il-feed-t">'+esc(fmtAgo(f.t))+'</span></div>';}).join(''):'<div class="il-note">No recent activity.</div>')+'</div></div><div class="il-panel" style="overflow:auto"><h3 style="margin-top:0">Student scores</h3><table class="vm-table"><thead><tr><th>Student</th><th>Practices</th><th><i class="il-dot" style="background:'+C_READ+'"></i>Reading</th><th><i class="il-dot" style="background:'+C_LIST+'"></i>Listening</th><th>Last practice</th><th></th></tr></thead><tbody>'+(ids.length?ids.map(function(id){var rows=by[id].slice().sort(function(a,b){return String(a.completedAt).localeCompare(String(b.completedAt));}),last=rows[rows.length-1];return '<tr><td><b>'+esc(names[id]||id)+'</b> <span class="il-note">'+esc(id)+'</span></td><td>'+rows.length+'</td><td>'+skillCell(rows,'reading')+'</td><td>'+skillCell(rows,'listening')+'</td><td data-sort="'+(last?esc(last.completedAt):'')+'">'+(last?esc(fmtAgo(last.completedAt)):'<span class="il-note">never</span>')+'</td><td><button class="vm-btn vm-btn-ghost vm-btn-sm" data-st="'+esc(id)+'">View</button></td></tr>';}).join(''):'<tr><td colspan="6">This class has no students yet.</td></tr>')+'</tbody></table></div></div><div id="stView"></div>';
+  body.innerHTML='<div class="il-glance-grid"><div class="il-panel"><h3 style="margin-top:0">New Practice</h3><div class="il-feed">'+(feed.length?feed.map(function(f){return '<div class="il-feed-row">'+f.html+'<span class="il-note il-feed-t">'+esc(fmtAgo(f.t))+'</span></div>';}).join(''):'<div class="il-note">No recent activity.</div>')+'</div></div><div class="il-panel" style="overflow:auto"><h3 style="margin-top:0">Student scores</h3><table class="vm-table"><thead><tr><th>Student ID</th><th>Student</th><th>Practices</th><th><i class="il-dot" style="background:'+C_READ+'"></i>Reading</th><th><i class="il-dot" style="background:'+C_LIST+'"></i>Listening</th><th>Last practice</th><th></th></tr></thead><tbody>'+(ids.length?ids.map(function(id){var rows=by[id].slice().sort(function(a,b){return String(a.completedAt).localeCompare(String(b.completedAt));}),last=rows[rows.length-1];return '<tr><td data-sort="'+esc(id)+'"><b>'+esc(id)+'</b></td><td>'+esc(names[id]||id)+'</td><td>'+rows.length+'</td><td>'+skillCell(rows,'reading')+'</td><td>'+skillCell(rows,'listening')+'</td><td data-sort="'+(last?esc(last.completedAt):'')+'">'+(last?esc(fmtAgo(last.completedAt)):'<span class="il-note">never</span>')+'</td><td><button class="vm-btn vm-btn-ghost vm-btn-sm" data-st="'+esc(id)+'">View</button></td></tr>';}).join(''):'<tr><td colspan="6">This class has no students yet.</td></tr>')+'</tbody></table></div></div><div id="stView"></div>';
   qa('[data-rv]').forEach(function(b){b.onclick=function(){openReview(b.getAttribute('data-rv'));};});
   qa('[data-st]').forEach(function(b){b.onclick=function(){var id=b.getAttribute('data-st'),box=document.getElementById('stView');box.innerHTML='<h3 class="il-sect-h">'+esc(names[id]||id)+'</h3><div id="stBox"></div>';glanceView(document.getElementById('stBox'),by[id]||[],{empty:'This student has not completed a practice yet.'});box.scrollIntoView({behavior:'smooth'});};});
  }
@@ -676,6 +678,22 @@ function parseWordPairs(text){
  }
  return out.length>=2?out:[];
 }
+/* The word list may sit before the text (flow-chart) or after it (summary): lift it out and leave a marker where it was */
+function extractWordBank(text){
+ var after=parseWordPairs(text);
+ if(after.length>=2)return{pairs:after,text:stripWordList(text)+'\n[[WORDBANK]]'};
+ var lines=String(text||'').split('\n'),first=-1;
+ lines.forEach(function(l,i){if(first<0&&/(?:[\.…_]{3,}|…)/.test(l))first=i;});
+ var lim=first<0?lines.length:first,best=null,run=[];
+ for(var i=0;i<=lim;i++){
+  var m=i<lim?/^\s*([A-Z])[\s\.\):]+(\S.{0,100})$/.exec(lines[i]):null;
+  if(m&&!/^questions?\b/i.test(lines[i].trim())&&!run.some(function(r){return r.l===m[1];}))run.push({i:i,l:m[1],t:m[2].trim()});
+  else{if(run.length>=3&&(!best||run.length>best.length))best=run.slice();run=[];}
+ }
+ if(!best)return{pairs:[],text:text};
+ var out=[];lines.forEach(function(l,i){if(i===best[0].i)out.push('[[WORDBANK]]');if(!best.some(function(b){return b.i===i;}))out.push(l);});
+ return{pairs:best.map(function(b){return{l:b.l,t:b.t};}),text:out.join('\n')};
+}
 function stripWordList(text){
  var lines=String(text||'').split('\n'),last=-1;
  lines.forEach(function(l,i){if(/(?:[\.…_]{3,}|…)/.test(l))last=i;});
@@ -938,6 +956,11 @@ function selCtl(c,f,opts,extra){
  var q=f.q,i=f.n-1,val=c.r.answers[i]||'';
  return '<select class="vm-select il-sel'+qcls(c,f)+(extra||'')+'" data-q="'+i+'"'+c.dis+'><option value="">Select…</option>'+opts.map(function(o,oi){var v=optValue(q,o,oi);return '<option value="'+esc(v)+'"'+(val===v?' selected':'')+'>'+esc(optText(q,o,oi))+'</option>';}).join('')+'</select>';
 }
+var BANK_HTML='';
+function letterSel(c,f,pairs,opts){
+ var q=f.q,i=f.n-1,val=c.r.answers[i]||'';
+ return '<select class="vm-select il-sel gap-sel gap-letter'+qcls(c,f)+'" data-q="'+i+'" aria-label="Answer for question '+f.num+'"'+c.dis+'><option value="">–</option>'+pairs.map(function(p,k){var v=opts.length?optValue(q,opts[k],k):p.l;return '<option value="'+esc(v)+'"'+(val===v?' selected':'')+'>'+esc(p.l)+'</option>';}).join('')+'</select>';
+}
 function txtCtl(c,f,cls,ph){var i=f.n-1;return '<input class="vm-input '+(cls||'il-ans')+qcls(c,f)+'" type="text" data-q="'+i+'" value="'+esc(c.r.answers[i]||'')+'" placeholder="'+esc(ph||'')+'" autocomplete="off"'+c.dis+'>';}
 function gapInline(text,byNum,mk){
  var re=/(^|[^\d])(\d{1,2})(\s*\)?\s*[‘'"“]?\s*)(?:[\.…_]{3,}|…)([’'"”]?)/g,out='',last=0,m,used={};
@@ -966,7 +989,7 @@ function richHtml(text,byNum,mk){
  }
  var plain=[];
  function flushText(){if(!plain.length)return;
-  out+=plain.map(function(ln){var t=ln.trim();var im=/^\[image\s+(\d+)\]$/i.exec(t);if(im)return imgBlock(im[1]);
+  out+=plain.map(function(ln){var t=ln.trim();var im=/^\[image\s+(\d+)\]$/i.exec(t);if(im)return imgBlock(im[1]);if(t==='[[WORDBANK]]')return BANK_HTML;
    if(mk&&t&&INSTR.test(t)&&t.length<220&&!/\d{1,2}\s*\)?\s*(?:[\.…_]{3,}|…)/.test(t)){sawInstr=true;return '<span class="gt-instr">'+cell(ln)+'</span>';}
    if(mk&&sawInstr&&!titled&&t&&t.length<90&&!/[\.…_:]$/.test(t)&&!/\d{1,2}\s*\)?\s*(?:[\.…_]{3,}|…)/.test(t)&&!/^[•\-\*]/.test(t)){titled=true;return '<span class="gt-title">'+cell(ln)+'</span>';}
    return cell(ln)+'\n';}).map(function(x,k,arr){return x;}).join('').replace(/\n$/,'');plain=[];}
@@ -991,11 +1014,16 @@ function renderGroup(g,c){
  function instrBlock(){if(!instr)return '';var sp=splitImgMarks(instr);return (sp.text.trim()?'<div class="il-instr" data-hk="i'+first.n+'">'+esc(sp.text)+'</div>':'')+sp.marks.map(imgBlock).join('');}
  // gap-fill: the text itself carries the numbered blanks, so the controls sit inside it
  if(instr&&/(?:[\.…_]{3,}|…)/.test(instr)){
-  var wl=(first.q.options&&first.q.options.length>=2)?first.q.options.map(function(t,i){return{l:letterOf(i),t:t};}):parseWordPairs(instr),shown=wl.length>=2?stripWordList(instr):instr;
-  var gi=richHtml(shown,byNum,function(f){var o=f.q.options||[];return '<span class="gap-wrap" id="q'+f.n+'"><b class="gap-n">'+f.num+'</b>'+(o.length?selCtl(c,f,o,' gap-sel'):txtCtl(c,f,'gap-in','…'))+qmark(c,f)+'</span>';});
+  var ex=extractWordBank(instr),wl=(first.q.options&&first.q.options.length>=2)?first.q.options.map(function(t,i){return{l:letterOf(i),t:t};}):ex.pairs,shown=instr;
+  if(wl.length>=2){shown=ex.pairs.length>=2?ex.text:instr+'\n[[WORDBANK]]';
+   BANK_HTML='<div class="il-wordbank"><div class="wb-title">List of words</div><div class="wb-grid">'+wl.map(function(w){return '<div class="wb-item"><b>'+esc(w.l)+'</b><span>'+esc(w.t)+'</span></div>';}).join('')+'</div></div>';}
+  else BANK_HTML='';
+  var gi=richHtml(shown,byNum,function(f){var o=f.q.options||[];
+   var ctl=wl.length>=2?letterSel(c,f,wl,o):(o.length?selCtl(c,f,o,' gap-sel'):txtCtl(c,f,'gap-in','…'));
+   return '<span class="gap-wrap" id="q'+f.n+'"><b class="gap-n">'+f.num+'</b>'+ctl+qmark(c,f)+'</span>';});
   if(Object.keys(gi.used).length>=Math.max(1,g.qs.length-1)){
    var rest=g.qs.filter(function(f){return !gi.used[f.num];});
-   return '<div class="il-group il-gapbox">'+(c.img&&/diagram|labelling/.test(t)?c.img:'')+'<div class="il-gaptext">'+gi.html+'</div>'+(wl.length>=2?'<div class="il-wordbank"><div class="wb-title">List of words</div><div class="wb-grid">'+wl.map(function(w){return '<div class="wb-item"><b>'+esc(w.l)+'</b><span>'+esc(w.t)+'</span></div>';}).join('')+'</div></div>':'')+(rest.length?qrowTable(c,{qs:rest},function(f){return txtCtl(c,f,'il-ans','Your answer');}):'')+'</div>';
+   return '<div class="il-group il-gapbox">'+(c.img&&/diagram|labelling/.test(t)?c.img:'')+'<div class="il-gaptext">'+gi.html+'</div>'+(rest.length?qrowTable(c,{qs:rest},function(f){return txtCtl(c,f,'il-ans','Your answer');}):'')+'</div>';
   }
  }
  if(t==='true-false-not-given'||t==='yes-no-not-given')
