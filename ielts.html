@@ -259,6 +259,15 @@ body.exam-hc .il-wordbank{background:#fff;border-color:#000}body.exam-hc .wb-ite
 .flow-line{text-align:center;margin:8px 0;line-height:2.3;white-space:normal}
 .flow-arrow{text-align:center;font-size:2rem;line-height:1;margin:0;color:var(--il-a);font-weight:300}
 .flow-line .gap-wrap{justify-content:center}
+
+/* compact list of words, like the printed paper */
+.il-wordbank{margin:14px 0 8px;padding:12px 18px;border:1.5px solid var(--vm-border);border-radius:10px;background:#fff}
+.wb-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px 24px}
+.wb-item{display:flex;gap:10px;align-items:baseline;background:none!important;border:none!important;padding:2px 0;border-radius:0;line-height:1.4;font-size:.98rem}
+.wb-item b{display:inline;flex:0 0 1.2em;width:auto;height:auto;border-radius:0;background:none!important;color:inherit!important;font-size:1rem;font-weight:800}
+@media(min-width:760px){.wb-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+body.exam-dark .il-wordbank{background:#16241D!important;border-color:#2E4338}
+body.exam-hc .il-wordbank{border:2px solid #000}
 </style></head><body><div id="app"></div><script src="vm-common.js?v=20261009f"></script><script>
 
 
@@ -670,7 +679,22 @@ function parseWordList(text){
  return opts.length>=2?opts:[];
 }
 /* letters may be any capitals (e.g. C, I, B) and sit one per line after the last blank */
+function wordLetters(text){
+ var m=/\b([A-I])\s*[-–—]\s*([A-J])\b/.exec(String(text||'')),a=m?m[1].charCodeAt(0):65,b=m?m[2].charCodeAt(0):73,set={};
+ for(var c=a;c<=Math.min(b,90);c++)set[String.fromCharCode(c)]=1;return set;
+}
 function parseWordPairs(text){
+ var lines=String(text||'').split('\n'),lastGap=-1,allowed=wordLetters(text),seenL={},pairs=[],multi=false;
+ lines.forEach(function(l,i){if(/(?:[\.…_]{3,}|…)/.test(l))lastGap=i;});
+ for(var i=lastGap+1;i<lines.length;i++){
+  var t=lines[i].trim();if(!t||/^\[/.test(t))continue;
+  var re=/(^|\s)([A-Z])[\s\.\):]+(?=\S)/g,marks=[],m;
+  while((m=re.exec(t))){var L=m[2];if(allowed[L]&&!seenL[L]&&!marks.some(function(x){return x.l===L;}))marks.push({l:L,at:m.index+m[1].length,end:re.lastIndex});}
+  if(!marks.length||marks[0].at!==0){if(pairs.length)break;else continue;}
+  if(marks.length>1)multi=true;
+  marks.forEach(function(mk,k){var txt=t.slice(mk.end,k+1<marks.length?marks[k+1].at:t.length).trim();if(txt){pairs.push({l:mk.l,t:txt});seenL[mk.l]=1;}});
+ }
+ if(pairs.length>=2){if(multi)pairs.sort(function(a,b){return a.l<b.l?-1:1;});return pairs;}
  var seq=parseWordList(text);
  if(seq.length>=2)return seq.map(function(t,i){return{l:String.fromCharCode(65+i),t:t};});
  var lines=String(text||'').split('\n'),last=-1,out=[],seen={};
@@ -725,7 +749,7 @@ function parseQuestions(text){
    var firstGap=gtext.search(GAP_RE);var head=gtext.slice(0,firstGap>0?firstGap:200);
    var gopts=[];
    if(/list of|letter|[A-I]\s*[-–—]\s*[A-Il]\b/i.test(head)){g.raw.forEach(function(l){var om=/^\s*([A-I])\s{1,}(\S.*)$/.exec(l);if(om&&gopts.length<9&&String.fromCharCode(65+gopts.length)===om[1])gopts.push(om[2].trim());});}
-   if(/list of|letter|[A-I]\s*[-–—]\s*[A-Il]\b/i.test(head)){var wl0=parseWordList(gtext);if(wl0.length>gopts.length)gopts=wl0;}
+   if(/list of|letter|[A-I]\s*[-–—]\s*[A-Il]\b/i.test(head)){var wp0=parseWordPairs(gtext);if(wp0.length>=2&&wp0.every(function(p,i){return p.l===String.fromCharCode(65+i);}))gopts=wp0.map(function(p){return p.t;});}
    var type=gopts.length>=2?(/summary/i.test(head)?'summary-completion':'sentence-completion'):detectType(head,false,true);
    nums.forEach(function(n,i){
     var ln=g.raw.filter(function(l){var r=new RegExp('(?:^|[^\\d])'+n+'\\s*\\)?\\s*[‘\'"“]?\\s*(?:[\\.…_]{3,}|…)');return r.test(l);})[0]||'';
@@ -1023,7 +1047,7 @@ function renderGroup(g,c){
   FLOW_MODE=/flow-?\s?chart/i.test(instr);
   var ex=extractWordBank(instr),wl=(first.q.options&&first.q.options.length>=2)?first.q.options.map(function(t,i){return{l:letterOf(i),t:t};}):ex.pairs,shown=instr;
   if(wl.length>=2){shown=ex.pairs.length>=2?ex.text:instr+'\n[[WORDBANK]]';
-   BANK_HTML='<div class="il-wordbank"><div class="wb-title">List of words</div><div class="wb-grid">'+wl.map(function(w){return '<div class="wb-item"><b>'+esc(w.l)+'</b><span>'+esc(w.t)+'</span></div>';}).join('')+'</div></div>';}
+   BANK_HTML='<div class="il-wordbank" role="group" aria-label="List of words"><div class="wb-grid">'+wl.map(function(w){return '<div class="wb-item"><b>'+esc(w.l)+'</b><span>'+esc(w.t)+'</span></div>';}).join('')+'</div></div>';}
   else BANK_HTML='';
   var gi=richHtml(shown,byNum,function(f){var o=f.q.options||[];
    var ctl=wl.length>=2?letterSel(c,f,wl,o):(o.length?selCtl(c,f,o,' gap-sel'):txtCtl(c,f,'gap-in','…'));
