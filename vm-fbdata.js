@@ -893,6 +893,15 @@ async function ieltsContentSave(p) {
   const id = str(p.id) || ieltsLibraryId(data.skill, data.book, data.test, data.part);
   const ref = fs.doc('ieltsContent/' + id), prior = await ref.get();
   if (prior.exists && !ieltsCanEdit(u, prior.data())) return fail('This part is already in the Library: ' + (prior.data().title || id) + '. Only its creator or the creator’s teacher can edit it.');
+  if (!prior.exists) {   // at most 16 NEW tests per account per rolling hour (a test = skill + Book + Test; extra parts of a test already started do not count)
+    const mineSnap = docs(await fs.collection('ieltsContent').where('ownerUid', '==', u.uid).get()), key = d => d.skill + '|' + d.book + '|' + d.test;
+    if (!mineSnap.some(d => key(d) === key(data))) {
+      const since = Date.now() - 3600000, firstSeen = {};
+      mineSnap.forEach(d => { const t = Date.parse(d.createdAt || '') || 0; if (!(key(d) in firstSeen) || t < firstSeen[key(d)]) firstSeen[key(d)] = t; });
+      const recent = Object.keys(firstSeen).map(k => firstSeen[k]).filter(t => t > since).sort((x, y) => x - y);
+      if (recent.length >= 16) { const mins = Math.max(1, Math.ceil((recent[0] + 3600000 - Date.now()) / 60000)); return fail('You can add up to 16 new tests per hour and have reached that limit. Please try again in about ' + mins + ' minute' + (mins === 1 ? '' : 's') + '.'); }
+    }
+  }
   const ownerUid = prior.exists ? prior.data().ownerUid : u.uid;
   const teacherUid = prior.exists ? (prior.data().teacherUid || '') : (u.role === 'teacher' ? u.uid : (u.teacherUid || ''));
   const version = prior.exists ? (prior.data().version || 1) + 1 : 1;
