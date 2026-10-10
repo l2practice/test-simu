@@ -245,6 +245,13 @@ body.exam-hc .exam :focus-visible{outline:4px solid #0050FF!important;outline-of
 .wb-item b{flex:0 0 auto;display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--il-a);color:#fff;font-size:.85rem}
 body.exam-dark .wb-item{background:#1A2922!important;color:#E6EFE9}body.exam-dark .il-wordbank{background:#16241D}
 body.exam-hc .il-wordbank{background:#fff;border-color:#000}body.exam-hc .wb-item{border:2px solid #000;background:#fff!important}body.exam-hc .wb-item b{background:#000}
+
+/* roomier exam panes */
+.exam-split{grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr)}
+.exam-split.single{grid-template-columns:minmax(0,1280px)}
+.exam-pane{padding:18px 22px 40px}
+.il-fig{margin:12px 0;text-align:center}.il-fig .il-img{max-width:100%;height:auto;border-radius:10px;border:1px solid var(--vm-border)}
+@media(max-width:900px){.exam-split{grid-template-columns:1fr}}
 </style></head><body><div id="app"></div><script src="vm-common.js?v=20261009f"></script><script>
 
 
@@ -655,16 +662,33 @@ function parseWordList(text){
  }
  return opts.length>=2?opts:[];
 }
+/* letters may be any capitals (e.g. C, I, B) and sit one per line after the last blank */
+function parseWordPairs(text){
+ var seq=parseWordList(text);
+ if(seq.length>=2)return seq.map(function(t,i){return{l:String.fromCharCode(65+i),t:t};});
+ var lines=String(text||'').split('\n'),last=-1,out=[],seen={};
+ lines.forEach(function(l,i){if(/(?:[\.…_]{3,}|…)/.test(l))last=i;});
+ for(var i=last+1;i<lines.length;i++){
+  var t=lines[i].trim();if(!t)continue;
+  var m=/^([A-Z])[\s\.\):]+(\S.{0,80})$/.exec(t);
+  if(!m||seen[m[1]]||/^\[image/i.test(t))break;
+  seen[m[1]]=1;out.push({l:m[1],t:m[2].trim()});
+ }
+ return out.length>=2?out:[];
+}
 function stripWordList(text){
  var lines=String(text||'').split('\n'),last=-1;
  lines.forEach(function(l,i){if(/(?:[\.…_]{3,}|…)/.test(l))last=i;});
- return lines.filter(function(l,i){return i<=last||!/^\s*[A-I][\s\.\):]+\S/.test(l);}).join('\n').replace(/\s+$/,'');
+ var pairs=parseWordPairs(text),letters={};pairs.forEach(function(p){letters[p.l]=1;});
+ return lines.filter(function(l,i){var m=/^\s*([A-Z])[\s\.\):]+\S/.exec(l);return i<=last||!(m&&letters[m[1]]);}).join('\n').replace(/\s+$/,'');
 }
 var GAP_RE=/(?:^|[^\d])(\d{1,2})\s*\)?\s*[‘'"“]?\s*(?:[\.…_]{3,}|…)/g;
+var JUNK_RE=/^(?:cam(?:bridge)?\s*\d+\s*)?(?:listening|reading)\s+test\s*\d+$/i;
+function cleanJunk(t){return String(t||'').split('\n').filter(function(l){return !JUNK_RE.test(l.trim());}).join('\n');}
 function parseQuestions(text){
  var lines=String(text||'').replace(/\r/g,'').split('\n'),groups=[],cur=null;
  var headRe=/^\s*questions?\s+(\d{1,2})(?:\s*(?:[-–—]|to|and|&)\s*(\d{1,2}))?\b/i;
- lines.forEach(function(raw){var line=raw.replace(/\s+$/,''),h=headRe.exec(line);
+ lines.forEach(function(raw){var line=raw.replace(/\s+$/,''),h=headRe.exec(line);if(JUNK_RE.test(line.trim()))return;
   if(h){cur={from:+h[1],to:+(h[2]||h[1]),raw:[line.trim()]};groups.push(cur);return;}
   if(!cur){cur={from:0,to:0,raw:[]};groups.push(cur);}cur.raw.push(line);});
  var out=[],seq=0,last=0;
@@ -695,6 +719,7 @@ function parseQuestions(text){
   g.raw.forEach(function(line,idx){
    if(!line.trim()){if(!c.items.length&&c.instr.length)c.instr.push('');return;}
    if(idx===0&&headRe.test(line)){c.instr.push(line.trim());return;}
+   if(c.items.length&&/^\[image\s+\d+\]$/i.test(line.trim())){(c.tail=c.tail||[]).push(line.trim());return;}
    var instrText=c.instr.join(' ').toLowerCase(),mi=itemRe.exec(line),n=mi?+mi[1]:0,lastIt=c.items[c.items.length-1];
    var inRange=mi&&(!g.from||(n>=g.from&&n<=g.to)||(c.items.length>0&&n>lastIt.number&&n<=Math.max(g.to,lastIt.number+1)))&&(!lastIt||n>lastIt.number);
    if(inRange&&!(c.items.length===0&&/list of headings/.test(instrText)&&false)){c.items.push({number:n,prompt:mi[2].trim(),opts:[],extra:[]});return;}
@@ -708,7 +733,7 @@ function parseQuestions(text){
    if(lastIt){lastIt.extra.push(line.trim());return;}
    c.instr.push(line.trim());
   });
-  var instrText=c.instr.join('\n').trim();
+  var instrText=(c.instr.join('\n')+(c.tail?'\n'+c.tail.join('\n'):'')).trim();
   // options listed once AFTER the last item (e.g. sentence endings A-F) belong to every item
   var withOpts=c.items.filter(function(it){return it.opts.length;});
   if(c.items.length>=2&&withOpts.length===1&&withOpts[0]===c.items[c.items.length-1]&&withOpts[0].opts.length>=3&&!c.opts.length){c.opts=withOpts[0].opts;withOpts[0].opts=[];}
@@ -921,7 +946,7 @@ function gapInline(text,byNum,mk){
 }
 function tableCells(line){
  var t=line.replace(/\s+$/,'');
- if(t.indexOf('\t')>=0){var c=t.split(/\t+/).map(function(x){return x.trim();});return c.length>=2?c:null;}
+ if(t.indexOf('\t')>=0){var c=t.split('\t').map(function(x){return x.replace(/\u200B/g,'').trim();});while(c.length&&c[c.length-1]==='')c.pop();return c.length>=2?c:null;}
  if(/^\s*\|.*\|?\s*$/.test(t)){var p=t.trim().replace(/^\|/,'').replace(/\|$/,'').split('|').map(function(x){return x.trim();});return p.length>=2?p:null;}
  return null;
 }
@@ -932,14 +957,16 @@ function richHtml(text,byNum,mk){
  function cell(x){if(!mk)return esc(x);var g=gapInline(x,byNum,mk);for(var k in g.used)used[k]=1;return g.html;}
  function flush(){
   if(!buf.length)return;
-  var w=buf.reduce(function(a,r){return Math.max(a,r.length);},0),head=buf.length>1&&!/\d{1,2}\s*\)?\s*(?:[\.…_]{3,}|…)/.test(buf[0].join(' '))&&buf[0].every(function(x){return x&&x.length<40;});
+  var w=buf.reduce(function(a,r){return Math.max(a,r.length);},0);
+  if(buf.length>1&&buf[0].length===w-1&&buf.slice(1).every(function(r){return r.length===w;}))buf[0]=[''].concat(buf[0]);   // header row missing its blank first cell
+  var head=buf.length>1&&!/\d{1,2}\s*\)?\s*(?:[\.…_]{3,}|…)/.test(buf[0].join(' '))&&buf[0].every(function(x,i){return (i===0&&!x)||(x&&x.length<40);});
   out+='<div class="il-nt-wrap"><table class="il-nt">'+buf.map(function(r,ri){
    if(/^[\s:\-|]+$/.test(r.join(''))&&r.join('').indexOf('-')>=0)return '';
    var tag=head&&ri===0?'th':'td',h='';for(var i=0;i<w;i++)h+='<'+tag+'>'+cell(r[i]||'')+'</'+tag+'>';return '<tr>'+h+'</tr>';}).join('')+'</table></div>';buf=[];
  }
  var plain=[];
  function flushText(){if(!plain.length)return;
-  out+=plain.map(function(ln){var t=ln.trim();
+  out+=plain.map(function(ln){var t=ln.trim();var im=/^\[image\s+(\d+)\]$/i.exec(t);if(im)return imgBlock(im[1]);
    if(mk&&t&&INSTR.test(t)&&t.length<220&&!/\d{1,2}\s*\)?\s*(?:[\.…_]{3,}|…)/.test(t)){sawInstr=true;return '<span class="gt-instr">'+cell(ln)+'</span>';}
    if(mk&&sawInstr&&!titled&&t&&t.length<90&&!/[\.…_:]$/.test(t)&&!/\d{1,2}\s*\)?\s*(?:[\.…_]{3,}|…)/.test(t)&&!/^[•\-\*]/.test(t)){titled=true;return '<span class="gt-title">'+cell(ln)+'</span>';}
    return cell(ln)+'\n';}).map(function(x,k,arr){return x;}).join('').replace(/\n$/,'');plain=[];}
@@ -952,20 +979,23 @@ function passageHtml(text){
  if(m&&!/[\.!?:;,]$/.test(m[1].trim())&&!/^\s*[A-I]\s*$/.test(m[1])){return '<span class="pt-title">'+esc(m[1].trim())+'</span>'+richHtml(t.slice(m[0].length)).html;}
  return richHtml(t).html;
 }
+var IMG_AT=function(){return '';};
+function imgBlock(k){return '<div class="il-fig">'+IMG_AT(+k)+'</div>';}
+function splitImgMarks(text){var marks=[],keep=[];String(text||'').split('\n').forEach(function(l){var m=/^\s*\[image\s+(\d+)\]\s*$/i.exec(l);if(m)marks.push(+m[1]);else keep.push(l);});return{text:keep.join('\n'),marks:marks};}
 function qrowTable(c,g,ctl){
  return '<table class="il-qt">'+g.qs.map(function(f){return '<tr id="q'+f.n+'"><td class="qn"><span class="il-qnum">'+f.num+'</span></td><td class="qt" data-hk="q'+f.n+'">'+esc(f.q.prompt)+'</td><td class="qa">'+ctl(f)+'</td><td class="qm">'+qmark(c,f)+'</td></tr>';}).join('')+'</table>';
 }
 function renderGroup(g,c){
- var t=g.type,first=g.qs[0],instr=g.instruction,out='',byNum={};
+ var t=g.type,first=g.qs[0],instr=cleanJunk(g.instruction),out='',byNum={};
  g.qs.forEach(function(f){byNum[f.num]=f;});
- function instrBlock(){return instr?'<div class="il-instr" data-hk="i'+first.n+'">'+esc(instr)+'</div>':'';}
+ function instrBlock(){if(!instr)return '';var sp=splitImgMarks(instr);return (sp.text.trim()?'<div class="il-instr" data-hk="i'+first.n+'">'+esc(sp.text)+'</div>':'')+sp.marks.map(imgBlock).join('');}
  // gap-fill: the text itself carries the numbered blanks, so the controls sit inside it
  if(instr&&/(?:[\.…_]{3,}|…)/.test(instr)){
-  var wl=(first.q.options&&first.q.options.length>=2)?first.q.options:parseWordList(instr),shown=wl.length>=2?stripWordList(instr):instr;
+  var wl=(first.q.options&&first.q.options.length>=2)?first.q.options.map(function(t,i){return{l:letterOf(i),t:t};}):parseWordPairs(instr),shown=wl.length>=2?stripWordList(instr):instr;
   var gi=richHtml(shown,byNum,function(f){var o=f.q.options||[];return '<span class="gap-wrap" id="q'+f.n+'"><b class="gap-n">'+f.num+'</b>'+(o.length?selCtl(c,f,o,' gap-sel'):txtCtl(c,f,'gap-in','…'))+qmark(c,f)+'</span>';});
   if(Object.keys(gi.used).length>=Math.max(1,g.qs.length-1)){
    var rest=g.qs.filter(function(f){return !gi.used[f.num];});
-   return '<div class="il-group il-gapbox">'+(c.img&&/diagram|labelling/.test(t)?c.img:'')+'<div class="il-gaptext">'+gi.html+'</div>'+(wl.length>=2?'<div class="il-wordbank"><div class="wb-title">List of words</div><div class="wb-grid">'+wl.map(function(w,oi){return '<div class="wb-item"><b>'+letterOf(oi)+'</b><span>'+esc(w)+'</span></div>';}).join('')+'</div></div>':'')+(rest.length?qrowTable(c,{qs:rest},function(f){return txtCtl(c,f,'il-ans','Your answer');}):'')+'</div>';
+   return '<div class="il-group il-gapbox">'+(c.img&&/diagram|labelling/.test(t)?c.img:'')+'<div class="il-gaptext">'+gi.html+'</div>'+(wl.length>=2?'<div class="il-wordbank"><div class="wb-title">List of words</div><div class="wb-grid">'+wl.map(function(w){return '<div class="wb-item"><b>'+esc(w.l)+'</b><span>'+esc(w.t)+'</span></div>';}).join('')+'</div></div>':'')+(rest.length?qrowTable(c,{qs:rest},function(f){return txtCtl(c,f,'il-ans','Your answer');}):'')+'</div>';
   }
  }
  if(t==='true-false-not-given'||t==='yes-no-not-given')
@@ -1001,7 +1031,10 @@ function drawSplit(){
  var snap=rv&&rv.attempt.snapshot&&rv.attempt.snapshot.sections?rv.attempt.snapshot.sections[p]:null,scriptTxt=(snap&&snap.script)||s.script||'';
  var exam=!rv,pc=exam?'exam-pane':'il-panel il-pane';
 
- var imgs=(s.images||[]).filter(function(u){return /^https:\/\//i.test(u);}).map(function(u){return '<img class="il-img" src="'+esc(u)+'" alt="Figure" loading="lazy" referrerpolicy="no-referrer">';}).join('');
+ var allImgs=(s.images||[]).filter(function(u){return /^https:\/\//i.test(u);}),usedMarks={};
+ flat.filter(function(f){return f.part===p;}).forEach(function(f){String(f.q.instruction||'').replace(/\[image\s+(\d+)\]/gi,function(m,k){usedMarks[+k]=1;return m;});});
+ IMG_AT=function(k){var u=(s.images||[])[k-1];return u&&/^https:\/\//i.test(u)?'<img class="il-img" src="'+esc(u)+'" alt="Figure '+k+'" loading="lazy" referrerpolicy="no-referrer">':'';};
+ var imgs=allImgs.filter(function(u,i){return !usedMarks[i+1];}).map(function(u){return '<img class="il-img" src="'+esc(u)+'" alt="Figure" loading="lazy" referrerpolicy="no-referrer">';}).join('');
  var left='<section class="'+pc+'"><h3 class="pane-h">'+(listen?'Notes':esc(secLabel(x,p)))+'</h3>'+(listen||imgInGroup?'':imgs)+'<div class="il-text" data-hk="p'+p+'">'+(s.text?passageHtml(s.text):'<span class="il-note">'+(listen?'Listen to the audio and answer the questions.':'No passage text.')+'</span>')+'</div></section>';
  var partQs=flat.filter(function(f){return f.part===p;}),groups=groupQuestions(partQs);
  var imgInGroup=groups.some(function(g){return g.type==='plan-map-diagram-labelling'||g.type==='diagram-completion';});
