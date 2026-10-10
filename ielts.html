@@ -254,6 +254,11 @@ body.exam-hc .il-wordbank{background:#fff;border-color:#000}body.exam-hc .wb-ite
 @media(max-width:900px){.exam-split{grid-template-columns:1fr}}
 
 .gap-letter{min-width:78px;font-weight:800;text-align:center}
+
+/* flow-chart: steps centred, arrows between them */
+.flow-line{text-align:center;margin:8px 0;line-height:2.3;white-space:normal}
+.flow-arrow{text-align:center;font-size:2rem;line-height:1;margin:0;color:var(--il-a);font-weight:300}
+.flow-line .gap-wrap{justify-content:center}
 </style></head><body><div id="app"></div><script src="vm-common.js?v=20261009f"></script><script>
 
 
@@ -956,7 +961,7 @@ function selCtl(c,f,opts,extra){
  var q=f.q,i=f.n-1,val=c.r.answers[i]||'';
  return '<select class="vm-select il-sel'+qcls(c,f)+(extra||'')+'" data-q="'+i+'"'+c.dis+'><option value="">Select…</option>'+opts.map(function(o,oi){var v=optValue(q,o,oi);return '<option value="'+esc(v)+'"'+(val===v?' selected':'')+'>'+esc(optText(q,o,oi))+'</option>';}).join('')+'</select>';
 }
-var BANK_HTML='';
+var BANK_HTML='',FLOW_MODE=false;
 function letterSel(c,f,pairs,opts){
  var q=f.q,i=f.n-1,val=c.r.answers[i]||'';
  return '<select class="vm-select il-sel gap-sel gap-letter'+qcls(c,f)+'" data-q="'+i+'" aria-label="Answer for question '+f.num+'"'+c.dis+'><option value="">–</option>'+pairs.map(function(p,k){var v=opts.length?optValue(q,opts[k],k):p.l;return '<option value="'+esc(v)+'"'+(val===v?' selected':'')+'>'+esc(p.l)+'</option>';}).join('')+'</select>';
@@ -992,6 +997,7 @@ function richHtml(text,byNum,mk){
   out+=plain.map(function(ln){var t=ln.trim();var im=/^\[image\s+(\d+)\]$/i.exec(t);if(im)return imgBlock(im[1]);if(t==='[[WORDBANK]]')return BANK_HTML;
    if(mk&&t&&INSTR.test(t)&&t.length<220&&!/\d{1,2}\s*\)?\s*(?:[\.…_]{3,}|…)/.test(t)){sawInstr=true;return '<span class="gt-instr">'+cell(ln)+'</span>';}
    if(mk&&sawInstr&&!titled&&t&&t.length<90&&!/[\.…_:]$/.test(t)&&!/\d{1,2}\s*\)?\s*(?:[\.…_]{3,}|…)/.test(t)&&!/^[•\-\*]/.test(t)){titled=true;return '<span class="gt-title">'+cell(ln)+'</span>';}
+   if(mk&&FLOW_MODE&&sawInstr&&t){if(/^[↓↑⇓⇩⬇↡]\uFE0F?$/.test(t))return '<div class="flow-arrow" aria-hidden="true">↓</div>';return '<div class="flow-line">'+cell(ln)+'</div>';}
    return cell(ln)+'\n';}).map(function(x,k,arr){return x;}).join('').replace(/\n$/,'');plain=[];}
  lines.forEach(function(l){var c=tableCells(l);if(c){flushText();buf.push(c);}else{flush();plain.push(l);}});
  flush();flushText();
@@ -1014,6 +1020,7 @@ function renderGroup(g,c){
  function instrBlock(){if(!instr)return '';var sp=splitImgMarks(instr);return (sp.text.trim()?'<div class="il-instr" data-hk="i'+first.n+'">'+esc(sp.text)+'</div>':'')+sp.marks.map(imgBlock).join('');}
  // gap-fill: the text itself carries the numbered blanks, so the controls sit inside it
  if(instr&&/(?:[\.…_]{3,}|…)/.test(instr)){
+  FLOW_MODE=/flow-?\s?chart/i.test(instr);
   var ex=extractWordBank(instr),wl=(first.q.options&&first.q.options.length>=2)?first.q.options.map(function(t,i){return{l:letterOf(i),t:t};}):ex.pairs,shown=instr;
   if(wl.length>=2){shown=ex.pairs.length>=2?ex.text:instr+'\n[[WORDBANK]]';
    BANK_HTML='<div class="il-wordbank"><div class="wb-title">List of words</div><div class="wb-grid">'+wl.map(function(w){return '<div class="wb-item"><b>'+esc(w.l)+'</b><span>'+esc(w.t)+'</span></div>';}).join('')+'</div></div>';}
