@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi"><head><meta charset="UTF-8"><link rel="icon" type="image/svg+xml" href="favicon.svg?v=20261009c"><link rel="apple-touch-icon" href="apple-touch-icon.png?v=20261009c"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#0F6B4F"><title>Test Simulation · IELTS Practice</title><link rel="stylesheet" href="vm-theme.css?v=20261011i">
+<meta name="theme-color" content="#0F6B4F"><title>Test Simulation · IELTS Practice</title><link rel="stylesheet" href="vm-theme.css?v=20261011k">
 <style>
 #app{min-height:100vh}.ielts-wrap{max-width:1180px;margin:auto}.ielts-hero{background:linear-gradient(120deg,var(--vm-sand-2),var(--vm-primary-lt));color:var(--vm-ink);padding:24px;border-radius:var(--vm-r);margin-bottom:18px}.ielts-hero h2{margin:0 0 6px;font-family:var(--vm-font-display)}.ielts-hero p{margin:0;color:var(--vm-ink-2)}.il-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}.il-card,.il-panel{background:var(--vm-surface);border:1px solid var(--vm-border-2);border-radius:var(--vm-r);padding:18px;box-shadow:var(--vm-shadow-sm)}.il-card h3{margin:5px 0;font-family:var(--vm-font-display)}.il-meta{font-size:.78rem;color:var(--vm-ink-3);margin:6px 0 12px}.il-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}.il-practice{display:grid;grid-template-columns:minmax(300px,1fr) minmax(300px,1fr);gap:16px}.il-passage{white-space:pre-wrap;line-height:1.85;max-height:68vh;overflow:auto}.il-q{border-bottom:1px solid var(--vm-border-2);padding:12px 0}.il-q label{display:block;font-weight:650;margin-bottom:7px}.il-q input,.il-q select{width:100%}.il-badge{display:inline-block;border-radius:99px;padding:3px 9px;background:var(--vm-primary-lt);color:var(--vm-primary-dk);font-size:.7rem;font-weight:700}.il-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.il-empty{padding:35px;text-align:center;color:var(--vm-ink-3)}.il-editor{display:grid;grid-template-columns:1fr 1fr;gap:10px}.il-editor textarea{min-height:130px;font-size:.92rem}.il-section-editor{margin:14px 0;padding:14px;border:1px solid var(--vm-border-2);border-radius:16px;background:var(--vm-surface)}.il-section-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.il-section-grid.three{grid-template-columns:1fr 1fr 1fr}.il-section-grid textarea{width:100%;min-height:230px;resize:vertical;white-space:pre-wrap}.il-answer-key{margin-top:20px;padding-top:16px;border-top:3px solid var(--vm-primary-lt)}.il-ai-output{white-space:pre-wrap;line-height:1.7}.il-settings{max-width:720px;margin:18px auto}.il-settings label{display:block;margin:12px 0 5px;font-weight:650}.il-chart{width:100%;height:220px;border:1px solid var(--vm-border-2);border-radius:10px;background:var(--vm-surface);margin-top:10px}.il-note{font-size:.78rem;color:var(--vm-ink-3)}.il-error{color:var(--vm-danger);font-size:.84rem}.il-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 @media(max-width:720px){.il-practice,.il-editor,.il-section-grid,.il-section-grid.three{grid-template-columns:1fr}.il-passage{max-height:40vh}}
@@ -150,6 +150,8 @@ body.skill-reading .il-instr,body.skill-listening .il-instr{background:linear-gr
 /* bold instructions and passage / part titles */
 .il-instr,.il-gaptext .gt-instr{font-weight:700}
 .gt-instr{display:block;font-weight:700;color:var(--il-adk);line-height:1.6}
+.bl{display:flex;gap:.55em;margin:.14em 0;align-items:flex-start}.bl .bm{flex:none;width:.9em;text-align:center}.cl{margin:.14em 0}.lv1{margin-left:1.5em}.lv2{margin-left:3em}.lv3{margin-left:4.5em}.lv4{margin-left:6em}
+.ed-fmt{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:6px 0}.ed-fmt .vm-btn{min-width:38px}
 .gt-title{display:block;font-weight:800;font-size:1.12em;color:var(--vm-ink);margin:6px 0 4px;text-align:center}
 .il-text .pt-title{display:block;font-weight:800;font-size:1.22em;line-height:1.35;margin:0 0 10px;color:var(--il-adk)}
 
@@ -268,7 +270,7 @@ body.exam-hc .il-wordbank{background:#fff;border-color:#000}body.exam-hc .wb-ite
 @media(min-width:760px){.wb-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 body.exam-dark .il-wordbank{background:#16241D!important;border-color:#2E4338}
 body.exam-hc .il-wordbank{border:2px solid #000}
-</style></head><body><div id="app"></div><script src="vm-common.js?v=20261011i"></script><script>
+</style></head><body><div id="app"></div><script src="vm-common.js?v=20261011k"></script><script>
 
 
 (function(){
@@ -904,7 +906,7 @@ function bindEP(){
 function exitFS(){try{state.fsOff=false;if(document.fullscreenElement){state.fsLeaving=true;document.exitFullscreen();}}catch(e){}}
 document.addEventListener('fullscreenchange',function(){var f=document.getElementById('fsb');if(f)f.textContent=document.fullscreenElement?'⛶ Exit full screen':'⛶ Full screen';if(!document.fullscreenElement&&document.querySelector('.exam')&&!state.fsLeaving)state.fsOff=true;if(!document.fullscreenElement)state.fsLeaving=false;});
 document.addEventListener('pointerdown',function(){   // browsers only allow full screen after a click, so the first click inside a test switches it on
- if(EP.fs&&!state.fsOff&&document.querySelector('.exam')&&!document.fullscreenElement&&document.documentElement.requestFullscreen)document.documentElement.requestFullscreen().catch(function(){});
+ if(EP.fs&&!state.fsOff&&!isPrev()&&document.querySelector('.exam')&&!document.fullscreenElement&&document.documentElement.requestFullscreen)document.documentElement.requestFullscreen().catch(function(){});
 },true);
 function renderPractice(){
  var x=state.active;
@@ -1022,7 +1024,8 @@ function gapInline(text,byNum,mk){
 }
 function tableCells(line){
  var t=line.replace(/\s+$/,'');
- if(t.indexOf('\t')>=0){var c=t.split('\t').map(function(x){return x.replace(/\u200B/g,'').trim();});while(c.length&&c[c.length-1]==='')c.pop();return c.length>=2?c:null;}
+ if(t.indexOf('\t')>=0){var c=t.split('\t').map(function(x){return x.replace(/\u200B/g,'').trim();});if(/^\t+\S/.test(t)&&c.filter(Boolean).length<=1)return null;   // a line indented with Tab is text, not a table row
+  while(c.length&&c[c.length-1]==='')c.pop();return c.length>=2?c:null;}
  if(/^\s*\|.*\|?\s*$/.test(t)){var p=t.trim().replace(/^\|/,'').replace(/\|$/,'').split('|').map(function(x){return x.trim();});return p.length>=2?p:null;}
  return null;
 }
@@ -1030,7 +1033,19 @@ function tableCells(line){
 function richHtml(text,byNum,mk){
  var lines=String(text||'').split('\n'),out='',buf=[],used={};
  var INSTR=/^(questions?\s+\d|complete\b|choose\b|write\b|label\b|match\b|do the following|look at|answer the|which\b|read the|use the|the diagram|the table|the plan|the map|the flow)/i,sawInstr=false,titled=false;
- function cell(x){if(!mk)return esc(x);var g=gapInline(x,byNum,mk);for(var k in g.used)used[k]=1;return g.html;}
+ function fmtB(s){return s.replace(/\*\*([^*\n]+?)\*\*/g,'<b>$1</b>');}
+ function cell1(x){if(!mk)return fmtB(esc(x));var g=gapInline(x,byNum,mk);for(var k in g.used)used[k]=1;return fmtB(g.html);}
+ function lvOf(lead){var t=(lead.match(/\t/g)||[]).length,s=lead.replace(/\t/g,'').length;return Math.min(4,t+Math.floor(s/3));}
+ function blk(p,inCell){   // one visual line: bullet with a hanging indent, indented text, or plain text
+  var m=/^([\t ]*)([•●▪◦‣·]|[-–—])\s+(\S[\s\S]*)$/.exec(p);
+  if(m){var dash=/[-–—]/.test(m[2]),lv=Math.min(4,lvOf(m[1])+(dash&&inCell?1:0));return '<div class="bl lv'+lv+'"><span class="bm">'+(dash?'–':'•')+'</span><span>'+cell1(m[3])+'</span></div>';}
+  var lead=/^[\t ]*/.exec(p)[0],lv=lvOf(lead);
+  if(lv>0&&p.trim())return '<div class="cl lv'+lv+'">'+cell1(p.slice(lead.length))+'</div>';
+  return null;
+ }
+ function cell(x){x=String(x==null?'':x);var parts=x.split('\u2028');
+  if(parts.length===1){var b=blk(x,true);return b===null?cell1(x):b;}
+  return parts.filter(function(p){return p.trim();}).map(function(p){var b=blk(p,true);return b===null?'<div class="cl">'+cell1(p)+'</div>':b;}).join('');}
  function flush(){
   if(!buf.length)return;
   var w=buf.reduce(function(a,r){return Math.max(a,r.length);},0);
@@ -1044,9 +1059,10 @@ function richHtml(text,byNum,mk){
  function flushText(){if(!plain.length)return;
   out+=plain.map(function(ln){var t=ln.trim();var im=/^\[image\s+(\d+)\]$/i.exec(t);if(im)return imgBlock(im[1]);if(t==='[[WORDBANK]]')return BANK_HTML;
    if(mk&&t&&INSTR.test(t)&&t.length<220&&!/\d{1,2}\s*\)?\s*(?:[\.…_]{3,}|…)/.test(t)){sawInstr=true;return '<span class="gt-instr">'+cell(ln)+'</span>';}
-   if(mk&&sawInstr&&!titled&&t&&t.length<90&&!/[\.…_:]$/.test(t)&&!/\d{1,2}\s*\)?\s*(?:[\.…_]{3,}|…)/.test(t)&&!/^[•\-\*]/.test(t)){titled=true;return '<span class="gt-title">'+cell(ln)+'</span>';}
+   if(mk&&sawInstr&&!titled&&t&&t.length<90&&!/[\.…_:]$/.test(t)&&!/\d{1,2}\s*\)?\s*(?:[\.…_]{3,}|…)/.test(t)&&!/^[•●▪◦‣·\-–—\*]/.test(t)&&!/^[\t ]{2,}|^\t/.test(ln)){titled=true;return '<span class="gt-title">'+cell(ln)+'</span>';}
    if(mk&&FLOW_MODE&&sawInstr&&t){if(/^[↓↑⇓⇩⬇↡]\uFE0F?$/.test(t))return '<div class="flow-arrow" aria-hidden="true">↓</div>';return '<div class="flow-line">'+cell(ln)+'</div>';}
-   return cell(ln)+'\n';}).map(function(x,k,arr){return x;}).join('').replace(/\n$/,'');plain=[];}
+   var bb=blk(ln,false);if(bb!==null)return bb;
+   return cell1(ln)+'\n';}).map(function(x,k,arr){return x;}).join('').replace(/\n$/,'');plain=[];}
  lines.forEach(function(l){var c=tableCells(l);if(c){flushText();buf.push(c);}else{flush();plain.push(l);}});
  flush();flushText();
  return{html:out,used:used};
@@ -1328,6 +1344,7 @@ function editorDialog(init){
  if(ex)ed.rows=[newRow(ex.part,(ex.sections||[])[0])];
  else if(init.imported&&init.imported.length)ed.rows=init.imported.slice(0,maxParts()).map(function(s,i){return newRow(s.part||i+1,s);});
  else ed.rows=[newRow(init.part||nextPart()||'1')];
+ function fmtBar(){return '<div class="ed-fmt" role="toolbar" aria-label="Formatting"><button type="button" class="vm-btn vm-btn-ghost vm-btn-sm" data-fmt="b" title="Bold: wraps the selected text in ** **"><b>B</b></button><button type="button" class="vm-btn vm-btn-ghost vm-btn-sm" data-fmt="in" title="Indent the selected lines (Tab)">⇥ Indent</button><button type="button" class="vm-btn vm-btn-ghost vm-btn-sm" data-fmt="out" title="Outdent the selected lines (Shift+Tab)">⇤ Outdent</button><span class="il-note">Tab indents. Press Esc, then Tab, to leave the box.</span></div>';}
  function uniq(a){var s={};return a.filter(function(v){v=String(v);if(!v||s[v])return false;s[v]=1;return true;});}
  function bookList(){var extra=state.items.map(function(i){return i.book;}).filter(function(b){return b&&BOOKS.indexOf(b)<0;}).sort(function(a,b){return String(a).localeCompare(String(b));});return uniq(BOOKS.concat(extra,[book]));}
  function testList(){var base=['1','2','3','4','5','6','7','8','9','10','11','12'],extra=state.items.map(function(i){return i.test==null?'':String(i.test);}).filter(function(t){return t&&base.indexOf(t)<0;}).sort(function(a,b){return String(a).localeCompare(String(b),undefined,{numeric:true});});return uniq(base.concat(extra,[test]));}
@@ -1338,8 +1355,8 @@ function editorDialog(init){
  function rowHtml(i){
   var r=ed.rows[i],listen=skill==='listening';
   var head='<div class="ed-row-h"><h3>'+partWord(skill)+' '+esc(r.part)+'</h3><input class="vm-input ed-title" data-r="'+i+'" data-f="title" placeholder="Title (optional) — default: '+esc((book||'Book')+' · Test '+(test||'?')+' · '+partWord(skill)+' '+r.part)+'" value="'+esc(r.title)+'"><span class="il-error" id="rn'+i+'"></span><span class="il-spacer"></span>'+(ed.rows.length>1&&!ex?'<button class="vm-btn vm-btn-ghost vm-btn-sm" data-rm="'+i+'">Remove this '+partWord(skill).toLowerCase()+'</button>':'')+'</div>';
-  var frameText='<section class="il-panel ed-frame"><h4><span class="ed-n">1</span>Passage text</h4><textarea class="vm-input ed-area" data-r="'+i+'" data-f="text" placeholder="Paste the reading passage here">'+esc(r.text)+'</textarea></section>';
-  var frameQ='<section class="il-panel ed-frame"><h4><span class="ed-n">'+(listen?1:2)+'</span>Questions</h4><div class="il-note">Paste everything: “Questions 1–5”, the instructions and the options. Task types are detected automatically.</div><textarea class="vm-input ed-area" data-r="'+i+'" data-f="qtext" placeholder="Questions 1–5&#10;Choose the correct letter, A, B, C or D.&#10;1  …">'+esc(r.qtext)+'</textarea><div id="det'+i+'" class="il-detected"></div></section>';
+  var frameText='<section class="il-panel ed-frame"><h4><span class="ed-n">1</span>Passage text</h4>'+fmtBar()+'<textarea class="vm-input ed-area" data-r="'+i+'" data-f="text" placeholder="Paste the reading passage here">'+esc(r.text)+'</textarea></section>';
+  var frameQ='<section class="il-panel ed-frame"><h4><span class="ed-n">'+(listen?1:2)+'</span>Questions</h4><div class="il-note">Paste everything: “Questions 1–5”, the instructions and the options. Task types are detected automatically.</div>'+fmtBar()+'<textarea class="vm-input ed-area" data-r="'+i+'" data-f="qtext" placeholder="Questions 1–5&#10;Choose the correct letter, A, B, C or D.&#10;1  …">'+esc(r.qtext)+'</textarea><div id="det'+i+'" class="il-detected"></div></section>';
   var frameA='<section class="il-panel ed-frame"><h4><span class="ed-n">3</span>Answers</h4><div class="il-note">Paste the answer list (one per line, e.g. “1 B”) and click Fill, or type each answer. Separate accepted alternatives with “/”.</div><div class="il-row"><textarea class="vm-input" id="ap'+i+'" rows="3" style="flex:1;min-width:140px" placeholder="1 B&#10;2 FALSE&#10;3 heating"></textarea><button class="vm-btn vm-btn-ghost vm-btn-sm" data-fill="'+i+'">Fill</button></div><div id="ans'+i+'" class="il-ans-list"></div></section>';
   var frameAudio='<section class="il-panel ed-frame"><h4><span class="ed-n">2</span>Audio <span class="il-note">optional</span></h4><div class="il-note">Add a file or a link. If you skip this, students add the audio themselves when they take the test.</div><div class="il-opts" style="margin:8px 0"><label class="il-opt"><input type="radio" name="am'+i+'" data-am="'+i+'" value="file"'+(r.audioMode==='file'?' checked':'')+'> <span>Upload a file</span></label><label class="il-opt"><input type="radio" name="am'+i+'" data-am="'+i+'" value="link"'+(r.audioMode==='link'?' checked':'')+'> <span>Paste a link</span></label></div><div id="amf'+i+'"'+(r.audioMode==='file'?'':' style="display:none"')+'><input class="vm-input" type="file" data-af="'+i+'" accept="audio/mpeg,audio/mp4,audio/wav,audio/x-wav,audio/webm,audio/ogg,audio/aac,audio/flac"><div class="il-note">MP3, MP4, WAV, WebM, OGG, AAC or FLAC · max 25 MB'+(r.audio&&r.audio.path?' · current: '+esc(r.audio.fileName||'uploaded file'):'')+'</div></div><div id="aml'+i+'"'+(r.audioMode==='link'?'':' style="display:none"')+'><input class="vm-input" data-r="'+i+'" data-f="audioUrl" placeholder="https://… direct link to an .mp3 file" value="'+esc(r.audioUrl)+'"><div class="il-note">Use a direct audio URL. Only use audio you have permission to share.</div></div></section>';
   var frameScript='<section class="il-panel ed-frame"><h4><span class="ed-n">4</span>Script <span class="il-note">optional</span></h4><div class="il-note">Students see the script only after they submit. You can leave it empty and add it later.</div><textarea class="vm-input ed-area" data-r="'+i+'" data-f="script" placeholder="Paste the listening script (optional)">'+esc(r.script)+'</textarea></section>';
@@ -1382,7 +1399,30 @@ function editorDialog(init){
    if(el.hasAttribute('data-t')){var a=el.getAttribute('data-t').split('|');ed.rows[+a[0]].types[a[1]]=el.value;recompute(+a[0]);}
    else if(el.hasAttribute('data-am')){var i=+el.getAttribute('data-am');ed.rows[i].audioMode=el.value;document.getElementById('amf'+i).style.display=el.value==='file'?'':'none';document.getElementById('aml'+i).style.display=el.value==='link'?'':'none';}
    else if(el.hasAttribute('data-af')){ed.rows[+el.getAttribute('data-af')].file=el.files&&el.files[0]||null;}});
-  rowsEl.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;
+  function fmtApply(ta,kind){
+   var v=ta.value,s=ta.selectionStart,e2=ta.selectionEnd;
+   if(kind==='b'){if(s===e2){ta.setRangeText('****',s,e2,'end');ta.selectionStart=ta.selectionEnd=s+2;}else{ta.setRangeText('**'+v.slice(s,e2)+'**',s,e2,'select');}}
+   else{
+    var a=v.lastIndexOf('\n',s-1)+1,z=e2>s&&v.charAt(e2-1)==='\n'?e2-1:e2,nz=v.indexOf('\n',z);if(nz<0)nz=v.length;
+    var blockTxt=v.slice(a,nz),lines=blockTxt.split('\n');
+    if(kind==='in'&&s===e2){ta.setRangeText('\t',s,e2,'end');}
+    else{
+     var out=lines.map(function(l){return kind==='in'?'\t'+l:l.replace(/^(\t| {1,3})/,'');}).join('\n');
+     ta.setRangeText(out,a,nz,'select');
+    }
+   }
+   ta.focus();ta.dispatchEvent(new Event('input',{bubbles:true}));
+  }
+  rowsEl.addEventListener('keydown',function(e){var ta=e.target;
+   if(ta.tagName!=='TEXTAREA'||!ta.hasAttribute('data-f'))return;
+   if(e.key==='Escape'){ta._free=true;return;}
+   if(e.key!=='Tab')return;
+   if(ta._free){ta._free=false;return;}
+   var outdent=e.shiftKey;
+   if(outdent){var v=ta.value,a=v.lastIndexOf('\n',ta.selectionStart-1)+1;if(!/^(\t| )/.test(v.slice(a)))return;}
+   e.preventDefault();fmtApply(ta,outdent?'out':'in');});
+  rowsEl.addEventListener('click',function(e){var fb=e.target.closest('[data-fmt]');if(fb){e.preventDefault();var fr=fb.closest('.ed-frame'),ta=fr&&fr.querySelector('textarea[data-f]');if(ta)fmtApply(ta,fb.getAttribute('data-fmt'));return;}
+   var b=e.target.closest('button');if(!b)return;
    if(b.hasAttribute('data-fill')){var i=+b.getAttribute('data-fill'),r=ed.rows[i],m=parseAnswers(document.getElementById('ap'+i).value),n=0;r.questions.forEach(function(q,k){var key=qNum(q,k);if(m[key]){r.ans[key]=m[key];n++;}});recompute(i);document.getElementById('edError').textContent=n?'':'None of the pasted answers matched the question numbers. Write one answer per line, starting with the question number, e.g. “1 weather”, “2. 10/ten”, “3 B”. For two answers to one item write “21&22 B, D”.';if(n)VM.toast('Filled '+n+' answers.','ok');}
    else if(b.hasAttribute('data-redetect')){var rdi=+b.getAttribute('data-redetect');ed.rows[rdi].types={};recompute(rdi);VM.toast('Task types detected again.','ok',2200);}
    else if(b.hasAttribute('data-rmimg')){var ra=b.getAttribute('data-rmimg').split('|');ed.rows[+ra[0]].images.splice(+ra[1],1);recompute(+ra[0]);}
