@@ -1125,16 +1125,28 @@ async function ieltsImportUrl(p) {
 // APPS SCRIPT (admin): accounts + passwords
 // ════════════════════════════════════════════
 async function gas(action, payload) {
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), 90000);
-  try {
-    const r = await fetch(window.VM.GAS, {
-      method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ action, payload }), redirect: 'follow', signal: ctrl.signal
-    });
-    if (!r.ok) throw new Error('Network error ' + r.status);
-    return await r.json();
-  } finally { clearTimeout(timer); }
+  // Apps Script now and then answers a POST with a 404 or with an empty action (seen in private windows); nothing was run in that case, so try again once or twice
+  let lastErr = null;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 90000);
+    try {
+      const r = await fetch(window.VM.GAS, {
+        method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action, payload }), redirect: 'follow', signal: ctrl.signal
+      });
+      if (!r.ok) { lastErr = new Error('Network error ' + r.status); if (r.status === 404 || r.status >= 500) { await new Promise(res => setTimeout(res, 800 * (attempt + 1))); continue; } throw lastErr; }
+      const out = await r.json();
+      if (out && out.success === false && /^Unknown action: ?$/.test(String(out.error || '')) && attempt < 2) { await new Promise(res => setTimeout(res, 800 * (attempt + 1))); continue; }
+      return out;
+    } catch (e) {
+      lastErr = e;
+      if (e && e.name === 'AbortError') throw e;
+      if (attempt === 2 || !/Failed to fetch|NetworkError|Network error 404|Load failed/i.test(String(e && e.message))) throw e;
+      await new Promise(res => setTimeout(res, 800 * (attempt + 1)));
+    } finally { clearTimeout(timer); }
+  }
+  throw lastErr || new Error('Network error');
 }
 
 const ACTIONS = {
