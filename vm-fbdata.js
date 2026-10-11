@@ -1115,6 +1115,11 @@ async function ieltsAudioUrl(p) {
   if (!path.startsWith('ieltsAudio/')) return fail('Invalid audio path.');
   return ok(await storage.ref(path).getDownloadURL());
 }
+async function ieltsImportScript(p) {
+  await me(); const current = auth.currentUser;
+  if (!current) return fail('SESSION_EXPIRED');
+  return gas('ielts.importScript', { url:str(p.url), idToken:await current.getIdToken() });
+}
 async function ieltsImportUrl(p) {
   await me(); const current = auth.currentUser;
   if (!current) return fail('SESSION_EXPIRED');
@@ -1175,7 +1180,7 @@ const ACTIONS = {
   'ielts.attempt.save': ieltsAttemptSave, 'ielts.attempt.list': ieltsAttemptList,
   'ielts.report.create': ieltsReportCreate, 'ielts.report.list': ieltsReportList, 'ielts.report.update': ieltsReportUpdate,
   'ielts.audio.upload': ieltsAudioUpload, 'ielts.audio.attach': ieltsAudioAttach, 'ielts.audio.url': ieltsAudioUrl,
-  'ielts.importUrl': ieltsImportUrl,
+  'ielts.importUrl': ieltsImportUrl, 'ielts.importScript': ieltsImportScript,
   'vocab.today': vocabToday,
   'ping': async () => ok('pong')
 };
