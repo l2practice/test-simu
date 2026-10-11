@@ -1005,7 +1005,7 @@ async function ieltsInclassCreate(p) {
   const id = str(p.assignmentId) || genId(10, 'IC-');
   const ref = fs.doc('assignments/' + id);
   if ((await ref.get()).exists) return ok({ assignmentId: id });
-  const title = str(p.title) || (meta.length === 1 ? meta[0].title : (meta[0].book + ' · Test ' + meta[0].test + ' · Full ' + meta[0].skill));
+  const title = str(p.title) || (meta.length === 1 ? meta[0].title : ((meta[0].skill === 'listening' ? 'Full Lis: ' : 'Full Read: ') + meta[0].book + '-' + meta[0].test));
   await ref.set({
     assignmentId: id, kind: 'ielts', teacherUid: t.uid, classId: str(p.classId), mode: 'inclass', title, skill: meta[0].skill,
     contentIds: ids, contentMeta: meta, sessionStart: str(p.sessionStart), sessionDurationMin: dur, sessionEnd: '',
