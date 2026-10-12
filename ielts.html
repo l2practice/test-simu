@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi"><head><meta charset="UTF-8"><link rel="icon" type="image/svg+xml" href="favicon.svg?v=20261009c"><link rel="apple-touch-icon" href="apple-touch-icon.png?v=20261009c"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#0F6B4F"><title>Test Simulation · IELTS Practice</title><link rel="stylesheet" href="vm-theme.css?v=20261012i">
+<meta name="theme-color" content="#0F6B4F"><title>Test Simulation · IELTS Practice</title><link rel="stylesheet" href="vm-theme.css?v=20261012k">
 <style>
 #app{min-height:100vh}.ielts-wrap{max-width:1180px;margin:auto}.ielts-hero{background:linear-gradient(120deg,var(--vm-sand-2),var(--vm-primary-lt));color:var(--vm-ink);padding:24px;border-radius:var(--vm-r);margin-bottom:18px}.ielts-hero h2{margin:0 0 6px;font-family:var(--vm-font-display)}.ielts-hero p{margin:0;color:var(--vm-ink-2)}.il-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}.il-card,.il-panel{background:var(--vm-surface);border:1px solid var(--vm-border-2);border-radius:var(--vm-r);padding:18px;box-shadow:var(--vm-shadow-sm)}.il-card h3{margin:5px 0;font-family:var(--vm-font-display)}.il-meta{font-size:.78rem;color:var(--vm-ink-3);margin:6px 0 12px}.il-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}.il-practice{display:grid;grid-template-columns:minmax(300px,1fr) minmax(300px,1fr);gap:16px}.il-passage{white-space:pre-wrap;line-height:1.85;max-height:68vh;overflow:auto}.il-q{border-bottom:1px solid var(--vm-border-2);padding:12px 0}.il-q label{display:block;font-weight:650;margin-bottom:7px}.il-q input,.il-q select{width:100%}.il-badge{display:inline-block;border-radius:99px;padding:3px 9px;background:var(--vm-primary-lt);color:var(--vm-primary-dk);font-size:.7rem;font-weight:700}.il-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.il-empty{padding:35px;text-align:center;color:var(--vm-ink-3)}.il-editor{display:grid;grid-template-columns:1fr 1fr;gap:10px}.il-editor textarea{min-height:130px;font-size:.92rem}.il-section-editor{margin:14px 0;padding:14px;border:1px solid var(--vm-border-2);border-radius:16px;background:var(--vm-surface)}.il-section-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.il-section-grid.three{grid-template-columns:1fr 1fr 1fr}.il-section-grid textarea{width:100%;min-height:230px;resize:vertical;white-space:pre-wrap}.il-answer-key{margin-top:20px;padding-top:16px;border-top:3px solid var(--vm-primary-lt)}.il-ai-output{white-space:pre-wrap;line-height:1.7}.il-settings{max-width:720px;margin:18px auto}.il-settings label{display:block;margin:12px 0 5px;font-weight:650}.il-chart{width:100%;height:220px;border:1px solid var(--vm-border-2);border-radius:10px;background:var(--vm-surface);margin-top:10px}.il-note{font-size:.78rem;color:var(--vm-ink-3)}.il-error{color:var(--vm-danger);font-size:.84rem}.il-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 @media(max-width:720px){.il-practice,.il-editor,.il-section-grid,.il-section-grid.three{grid-template-columns:1fr}.il-passage{max-height:40vh}}
@@ -153,6 +153,7 @@ body.skill-reading .il-instr,body.skill-listening .il-instr{background:linear-gr
 .gt-instr{display:block;font-weight:700;color:var(--il-adk);line-height:1.6}
 
 .fd-chips,.bk-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 12px}.bk-tab{border:1.5px solid var(--vm-border);background:#fff;border-radius:999px;padding:6px 14px;font-weight:800;font-size:.86rem;cursor:pointer;color:var(--il-adk);font-family:inherit}.bk-tab.on{background:var(--il-a);border-color:var(--il-a);color:#fff}.bk-n{opacity:.7;font-weight:700;font-size:.72rem;margin-left:3px}.fd-tab{border-radius:12px}
+.tk-bookhead{grid-column:1/-1;font-weight:900;font-size:1.05rem;color:var(--il-adk);margin:10px 0 0;padding-bottom:4px;border-bottom:2px solid var(--il-alt)}
 .tk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}.tk{background:#fff;border:1px solid var(--vm-border);border-radius:16px;padding:12px 14px;display:flex;flex-direction:column;gap:9px;box-shadow:0 8px 20px -14px rgba(10,63,48,.35)}.tk-head{display:flex;justify-content:space-between;align-items:center}.tk-head b{font-size:1.04rem;color:var(--il-adk)}.tk-n{font-size:.72rem;font-weight:800;background:var(--il-asoft);color:var(--il-adk);border-radius:99px;padding:2px 9px}.tk-chips{display:flex;gap:6px;flex-wrap:wrap}.tk .il-chip{padding:5px 11px;min-width:42px;font-size:.82rem;font-weight:800}.tk .il-chip small{display:none}.tk-act{display:flex;gap:6px;flex-wrap:wrap;margin-top:auto;align-items:center}
 .fd-sect{margin:0 0 22px}.fd-head{display:flex;align-items:center;gap:12px;margin:14px 0 8px}.fd-head h3{margin:0;font-size:1.05rem;color:var(--il-adk)}
 .sk-banner{display:inline-flex;align-items:center;gap:10px;padding:7px 22px 7px 16px;border-radius:999px;background:linear-gradient(135deg,var(--il-a2),var(--il-a));color:#fff;font-size:1.45rem;font-weight:900;letter-spacing:.02em;box-shadow:0 10px 20px -10px var(--il-adk)}.sk-banner .sk-ic{display:inline-grid;place-items:center;width:30px;height:30px}.sk-banner .sk-ic svg{width:26px;height:26px;stroke:#fff;color:#fff}
@@ -302,7 +303,7 @@ body.exam-hc .il-wordbank{background:#fff;border-color:#000}body.exam-hc .wb-ite
 @media(min-width:760px){.wb-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 body.exam-dark .il-wordbank{background:#16241D!important;border-color:#2E4338}
 body.exam-hc .il-wordbank{border:2px solid #000}
-</style></head><body><div id="app"></div><script src="vm-common.js?v=20261012i"></script><script>
+</style></head><body><div id="app"></div><script src="vm-common.js?v=20261012k"></script><script>
 
 
 (function(){
@@ -573,7 +574,7 @@ function drawSFree(body,sk){
  document.getElementById('addTest').onclick=function(){editorDialog({skill:sk});};
  document.getElementById('importUrl').onclick=importUrl;
  state.freeMode=true;
- if(mine.length)drawTests(mine);
+ if(mine.length)drawTests(mine,{flat:true});
 }
 function drawSMix(body,sk){
  var live=state.items.filter(function(i){return i.skill===sk&&i.review!=='pending';}).slice().sort(function(a,b){return bookNum(b.book)-bookNum(a.book)||String(a.book).localeCompare(String(b.book))||(parseInt(a.test,10)||0)-(parseInt(b.test,10)||0)||String(a.test).localeCompare(String(b.test));});
@@ -610,7 +611,8 @@ function moveFolderDialog(g){
  document.getElementById('mvCancel').onclick=function(){el.innerHTML='';};
  document.getElementById('mvGo').onclick=function(){var b=this,fn=document.getElementById('mvSel').value;b.disabled=true;call('ielts.content.setFolder',{ids:parts.map(function(i){return i.id;}),folder:fn===OTHER_FOLDER?'':fn}).then(function(){VM.toast('Moved to “'+fn+'”.','ok');state.loaded=false;load();}).catch(function(e){b.disabled=false;document.getElementById('mvErr').textContent=e.message;});};
 }
-function drawTests(items){
+function drawTests(items,opts){
+ var flat=!!(opts&&opts.flat);   // Free Practice: just the student's own tests, no book screens
  var body=document.getElementById('libBody');
  var all=groupLibrary(items),groups=all;
  function firstPart(g){return g.parts[Object.keys(g.parts)[0]];}
@@ -623,20 +625,22 @@ function drawTests(items){
  var scope=all.filter(function(g){return !teacher||folderOf(firstPart(g))===selF;});
  var bc={};scope.forEach(function(g){if(g.book&&g.book!=='?')bc[g.book]=(bc[g.book]||0)+1;});
  var books=Object.keys(bc).sort(function(a,b){return bookNum(b)-bookNum(a)||String(a).localeCompare(String(b));});
- var selB=books.indexOf(state.bookFilter)>=0?state.bookFilter:(books[0]||'');state.bookFilter=selB;
+ var selB=flat?'':(books.indexOf(state.bookFilter)>=0?state.bookFilter:'');if(!flat)state.bookFilter=selB;   // '' = every book of the folder on one screen
  body.innerHTML=(teacher?'<div class="fd-chips" role="tablist">'+folders.map(function(n){return '<button class="bk-tab fd-tab'+(n===selF?' on':'')+'" data-fdsel="'+esc(n)+'">📁 '+esc(n)+' <span class="bk-n">'+(fc[n]||0)+'</span></button>';}).join('')+'</div>':'')+
-  (books.length?'<div class="bk-tabs" role="tablist" aria-label="Book">'+books.map(function(b){return '<button class="bk-tab'+(b===selB?' on':'')+'" data-bk="'+esc(b)+'">'+esc(b)+' <span class="bk-n">'+bc[b]+'</span></button>';}).join('')+'</div>':'')+'<div id="libGrid" class="tk-grid"></div>';
- var cards=scope.filter(function(g){return g.book===selB;}).map(function(g){
+  (books.length&&!flat?'<div class="bk-tabs" role="tablist" aria-label="Book"><button class="bk-tab'+(!selB?' on':'')+'" data-bk="">All books <span class="bk-n">'+scope.length+'</span></button>'+books.map(function(b){return '<button class="bk-tab'+(b===selB?' on':'')+'" data-bk="'+esc(b)+'">'+esc(b)+' <span class="bk-n">'+bc[b]+'</span></button>';}).join('')+'</div>':'')+'<div id="libGrid" class="tk-grid"></div>';
+ function cardFor(g){
   var gi=all.indexOf(g),n=partCount(g.skill),have=Object.keys(g.parts).length,full=true,chips='';
   for(var p=1;p<=n;p++){var it=g.parts[String(p)];if(!it){full=false;chips+='<button class="il-chip il-chip-empty" data-add="'+gi+'|'+p+'" title="'+partWord(g.skill)+' '+p+' is missing · add it">+P'+p+'</button>';}
    else{var pend=it.review==='pending',lock=pend&&!teacher&&!it.mine;chips+='<span class="il-chip-wrap"><button class="il-chip il-chip-'+esc(g.skill)+(pend?' il-chip-pending':'')+'" '+(lock?'disabled title="Waiting for a teacher to check this test"':'data-open="'+esc(it.id)+'" title="'+partWord(g.skill)+' '+p+' · '+(pend?(teacher?'needs check':(it.mine?'waiting for check':'awaiting check')):it.questionCount+' questions')+'"')+'>P'+p+'</button>'+(it.canEdit?'<button class="il-chip-edit" title="Edit" data-edit="'+esc(it.id)+'">✎</button>':'')+'</span>';}}
   var canDel=teacher||(have&&Object.keys(g.parts).every(function(k){return g.parts[k].canEdit;}));
-  return '<article class="tk tk-'+esc(g.skill)+'"><div class="tk-head"><b>Test '+esc(g.test)+'</b><span class="tk-n" title="'+have+' of '+n+' '+partWord(g.skill).toLowerCase()+'s">'+have+'/'+n+'</span></div><div class="tk-chips">'+chips+'</div><div class="tk-act">'+(full&&fullIds(g).length?'<button class="vm-btn vm-btn-primary vm-btn-sm" data-full="'+gi+'">Full test</button>':'<span class="il-note">'+(full?'Waiting for check':'Needs all '+n+' parts')+'</span>')+(canDel?'<button class="vm-btn vm-btn-ghost vm-btn-sm il-del" data-deltest="'+gi+'" title="Delete this test">Delete</button>':'')+(teacher?'<button class="vm-btn vm-btn-ghost vm-btn-sm" data-mvfolder="'+gi+'" title="Move this test to another folder">Move</button><button class="vm-btn vm-btn-accent vm-btn-sm" data-assign="'+gi+'">Assign</button>':'')+'</div></article>';
- });
+  return '<article class="tk tk-'+esc(g.skill)+'"><div class="tk-head"><b>'+(flat?esc(g.book)+' · ':'')+'Test '+esc(g.test)+'</b><span class="tk-n" title="'+have+' of '+n+' '+partWord(g.skill).toLowerCase()+'s">'+have+'/'+n+'</span></div><div class="tk-chips">'+chips+'</div><div class="tk-act">'+(full&&fullIds(g).length?'<button class="vm-btn vm-btn-primary vm-btn-sm" data-full="'+gi+'">Full test</button>':'<span class="il-note">'+(full?'Waiting for check':'Needs all '+n+' parts')+'</span>')+(canDel?'<button class="vm-btn vm-btn-ghost vm-btn-sm il-del" data-deltest="'+gi+'" title="Delete this test">Delete</button>':'')+(teacher?'<button class="vm-btn vm-btn-ghost vm-btn-sm" data-mvfolder="'+gi+'" title="Move this test to another folder">Move</button><button class="vm-btn vm-btn-accent vm-btn-sm" data-assign="'+gi+'">Assign</button>':'')+'</div></article>';
+ }
+ var cards=[];
+ books.forEach(function(b){if(selB&&b!==selB)return;var gs=scope.filter(function(g){return g.book===b;});cards.push((selB||flat?'':'<div class="tk-bookhead">'+esc(b)+' <span class="bk-n">'+gs.length+' test'+(gs.length===1?'':'s')+'</span></div>')+gs.map(cardFor).join(''));});
  var emptyFolder=teacher&&!(fc[selF]||0);
  document.getElementById('libGrid').innerHTML=cards.length?cards.join(''):'<div class="il-empty">'+(emptyFolder?'This folder is empty. Use “Move” on a test, or choose this folder when you add one.'+((selF!==CAM_FOLDER&&selF!==OTHER_FOLDER)?' <button class="vm-btn vm-btn-ghost vm-btn-sm" data-fdel="'+esc(selF)+'">Delete folder</button>':''):'No tests here yet.')+'</div>';
- qa('[data-bk]').forEach(function(b){b.onclick=function(){state.bookFilter=b.getAttribute('data-bk');drawTests(items);};});
- qa('[data-fdsel]').forEach(function(b){b.onclick=function(){state.tFolder=b.getAttribute('data-fdsel');state.bookFilter='';drawTests(items);};});
+ qa('[data-bk]').forEach(function(b){b.onclick=function(){state.bookFilter=b.getAttribute('data-bk');drawTests(items,opts);};});
+ qa('[data-fdsel]').forEach(function(b){b.onclick=function(){state.tFolder=b.getAttribute('data-fdsel');state.bookFilter='';drawTests(items,opts);};});
  function groupAt(i){return groups[i];}
  qa('[data-mvfolder]').forEach(function(b){b.onclick=function(){moveFolderDialog(groupAt(+b.getAttribute('data-mvfolder')));};});
  qa('[data-fdel]').forEach(function(b){b.onclick=function(){var nm=b.getAttribute('data-fdel');VM.confirm('Delete the empty folder “'+nm+'”?',{danger:true,ok:'Delete',title:'Delete folder'}).then(function(y){if(!y)return;call('ielts.folder.delete',{name:nm}).then(function(){state.folders=state.folders.filter(function(x){return x!==nm;});drawTests(items);}).catch(function(e){say(e.message);});});};});
