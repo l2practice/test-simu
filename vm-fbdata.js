@@ -858,7 +858,14 @@ function ieltsCanEdit(u, d) { return d.ownerUid === u.uid || (u.role === 'teache
 function ieltsLibraryId(skill, book, test, part) { return ('L_' + skill + '_' + book + '_T' + test + '_P' + part).replace(/[^A-Za-z0-9_]/g, ''); }
 // ── Library index: one small summary per part, grouped in one document per book, so opening the Library
 //    reads a handful of tiny documents (or none, thanks to the on-device cache) instead of every full test.
-const IDX_KEY = 'ielts_index_v2', IDX_SCHEMA = 2;
+const IDX_KEY = 'ielts_index_v3', IDX_SCHEMA = 3;
+// Tests students added BEFORE the approval step existed (12 Oct 2026, Vietnam time) count as already approved; only newer ones wait for the teacher.
+const REVIEW_FROM = Date.parse('2026-10-11T17:00:00Z');
+function effReview(d) {
+  const r = d.review || (d.ownerRole === 'student' ? 'pending' : 'approved');
+  if (r === 'pending') { const t = Date.parse(d.created || d.createdAt || d.updatedAt || '') || 0; if (t && t < REVIEW_FROM) return 'approved'; }
+  return r;
+}
 const idxShard = book => 'b_' + String(book || 'x').replace(/[^A-Za-z0-9_-]/g, '_');
 function idxSummary(id, d) {
   return {
@@ -866,7 +873,7 @@ function idxSummary(id, d) {
     questionCount: (d.sections || []).reduce((n, s) => n + (s.questions || []).length, 0),
     hasAudio: !!(d.sections || []).some(s => s.audio && (s.audio.path || s.audio.url)),
     ownerName: d.ownerName || '', ownerRole: d.ownerRole || '', ownerUid: d.ownerUid || '', teacherUid: d.teacherUid || '',
-    review: d.review || (d.ownerRole === 'student' ? 'pending' : 'approved'), folder: d.folder || '', src: String(d.sourceUrl || '').slice(0, 300),
+    review: effReview(d), created: d.createdAt || d.created || '', folder: d.folder || '', src: String(d.sourceUrl || '').slice(0, 300),
     version: d.version || 1, updatedAt: d.updatedAt || ''
   };
 }
@@ -928,7 +935,7 @@ async function ieltsContentSave(p) {
   let idxReady = false;
   try { idxReady = (await metaRef.get()).exists; } catch (e) { idxReady = false; }   // rules not published yet → just skip the index
   if (idxReady) {            // keep the index in step (skipped until a teacher's first Library visit has built it)
-    batch.set(fs.doc('ieltsIndex/' + idxShard(data.book)), { book: data.book, items: { [id]: idxSummary(id, Object.assign({}, data, { ownerUid, ownerName: prior.exists ? (prior.data().ownerName || '') : (u.fullName || ''), ownerRole: prior.exists ? (prior.data().ownerRole || '') : u.role, teacherUid, version, updatedAt: nowIso(), review: approved ? 'approved' : 'pending', folder })) } }, { merge: true });
+    batch.set(fs.doc('ieltsIndex/' + idxShard(data.book)), { book: data.book, items: { [id]: idxSummary(id, Object.assign({}, data, { ownerUid, ownerName: prior.exists ? (prior.data().ownerName || '') : (u.fullName || ''), ownerRole: prior.exists ? (prior.data().ownerRole || '') : u.role, teacherUid, version, updatedAt: nowIso(), createdAt: priorD ? (priorD.createdAt || '') : nowIso(), review: approved ? 'approved' : 'pending', folder })) } }, { merge: true });
     batch.set(metaRef, { rev: nowIso() }, { merge: true });
   }
   await batch.commit();
@@ -956,7 +963,7 @@ async function ieltsContentList(p) {
       await idxRebuild(all); rows = all.map(d => idxSummary(d._id, d));
     } catch (e) {}
   }
-  rows = rows.map(r => Object.assign({}, r, { review: r.review || (r.ownerRole === 'student' ? 'pending' : 'approved') }))
+  rows = rows.map(r => Object.assign({}, r, { review: effReview(r) }))
              .filter(r => r.review === 'approved' || r.ownerUid === u.uid || (u.role === 'teacher' && r.teacherUid === u.uid));
   return ok(rows.filter(d => p.skill ? d.skill === p.skill : true).map(d => ({
     id: d.id, title: d.title, skill: d.skill, book: d.book || '', test: d.test || '', part: d.part || '', taskTypes: d.taskTypes || [],

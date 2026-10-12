@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi"><head><meta charset="UTF-8"><link rel="icon" type="image/svg+xml" href="favicon.svg?v=20261009c"><link rel="apple-touch-icon" href="apple-touch-icon.png?v=20261009c"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#0F6B4F"><title>Test Simulation · IELTS Practice</title><link rel="stylesheet" href="vm-theme.css?v=20261012d">
+<meta name="theme-color" content="#0F6B4F"><title>Test Simulation · IELTS Practice</title><link rel="stylesheet" href="vm-theme.css?v=20261012f">
 <style>
 #app{min-height:100vh}.ielts-wrap{max-width:1180px;margin:auto}.ielts-hero{background:linear-gradient(120deg,var(--vm-sand-2),var(--vm-primary-lt));color:var(--vm-ink);padding:24px;border-radius:var(--vm-r);margin-bottom:18px}.ielts-hero h2{margin:0 0 6px;font-family:var(--vm-font-display)}.ielts-hero p{margin:0;color:var(--vm-ink-2)}.il-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}.il-card,.il-panel{background:var(--vm-surface);border:1px solid var(--vm-border-2);border-radius:var(--vm-r);padding:18px;box-shadow:var(--vm-shadow-sm)}.il-card h3{margin:5px 0;font-family:var(--vm-font-display)}.il-meta{font-size:.78rem;color:var(--vm-ink-3);margin:6px 0 12px}.il-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}.il-practice{display:grid;grid-template-columns:minmax(300px,1fr) minmax(300px,1fr);gap:16px}.il-passage{white-space:pre-wrap;line-height:1.85;max-height:68vh;overflow:auto}.il-q{border-bottom:1px solid var(--vm-border-2);padding:12px 0}.il-q label{display:block;font-weight:650;margin-bottom:7px}.il-q input,.il-q select{width:100%}.il-badge{display:inline-block;border-radius:99px;padding:3px 9px;background:var(--vm-primary-lt);color:var(--vm-primary-dk);font-size:.7rem;font-weight:700}.il-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.il-empty{padding:35px;text-align:center;color:var(--vm-ink-3)}.il-editor{display:grid;grid-template-columns:1fr 1fr;gap:10px}.il-editor textarea{min-height:130px;font-size:.92rem}.il-section-editor{margin:14px 0;padding:14px;border:1px solid var(--vm-border-2);border-radius:16px;background:var(--vm-surface)}.il-section-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.il-section-grid.three{grid-template-columns:1fr 1fr 1fr}.il-section-grid textarea{width:100%;min-height:230px;resize:vertical;white-space:pre-wrap}.il-answer-key{margin-top:20px;padding-top:16px;border-top:3px solid var(--vm-primary-lt)}.il-ai-output{white-space:pre-wrap;line-height:1.7}.il-settings{max-width:720px;margin:18px auto}.il-settings label{display:block;margin:12px 0 5px;font-weight:650}.il-chart{width:100%;height:220px;border:1px solid var(--vm-border-2);border-radius:10px;background:var(--vm-surface);margin-top:10px}.il-note{font-size:.78rem;color:var(--vm-ink-3)}.il-error{color:var(--vm-danger);font-size:.84rem}.il-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 @media(max-width:720px){.il-practice,.il-editor,.il-section-grid,.il-section-grid.three{grid-template-columns:1fr}.il-passage{max-height:40vh}}
@@ -297,7 +297,7 @@ body.exam-hc .il-wordbank{background:#fff;border-color:#000}body.exam-hc .wb-ite
 @media(min-width:760px){.wb-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 body.exam-dark .il-wordbank{background:#16241D!important;border-color:#2E4338}
 body.exam-hc .il-wordbank{border:2px solid #000}
-</style></head><body><div id="app"></div><script src="vm-common.js?v=20261012d"></script><script>
+</style></head><body><div id="app"></div><script src="vm-common.js?v=20261012f"></script><script>
 
 
 (function(){
@@ -363,7 +363,7 @@ function setExam(on){document.body.classList.toggle('exam-mode',!!on);if(!on)doc
 function setSkillTheme(s){document.body.classList.remove('skill-reading','skill-listening');if(s==='reading'||s==='listening')document.body.classList.add('skill-'+s);}
 function updateBadge(){
  if(!teacher)return;
- var n=state.items.filter(function(i){return i.review==='pending'&&i.canEdit;}).length,a=document.querySelector('.vm-side a.vm-nav[href="ielts.html#library"]');
+ var n=pendingTests().length,a=document.querySelector('.vm-side a.vm-nav[href="ielts.html#library"]');
  if(!a)return;var b=a.querySelector('.vm-nav-badge');
  if(!n){if(b)b.remove();return;}
  if(!b){b=document.createElement('span');b.className='vm-nav-badge';a.appendChild(b);}
@@ -466,12 +466,32 @@ function groupLibrary(items){
  return Object.keys(g).map(function(k){return g[k];}).sort(function(a,b){return bookNum(b.book)-bookNum(a.book)||String(a.book).localeCompare(String(b.book))||(parseInt(a.test,10)||0)-(parseInt(b.test,10)||0)||String(a.test).localeCompare(String(b.test))||a.skill.localeCompare(b.skill);});
 }
 function fullIds(g){var ids=[];for(var p=1;p<=partCount(g.skill);p++){var it=g.parts[String(p)];if(it&&true)ids.push(it.id);}return ids.length===partCount(g.skill)?ids:[];}
+/* Tests a student added: only a COMPLETE test (every passage / part present) goes to the teacher for approval; a single part or a few parts stay in the student's Free Practice. */
+function pendingTests(){
+ var g={};
+ state.items.forEach(function(i){var k=i.skill+'|'+i.book+'|'+i.test;(g[k]=g[k]||{skill:i.skill,book:i.book,test:i.test,items:[],parts:{}});g[k].items.push(i);g[k].parts[String(i.part)]=1;});
+ return Object.keys(g).map(function(k){return g[k];}).filter(function(t){return Object.keys(t.parts).length>=partCount(t.skill)&&t.items.some(function(i){return i.review==='pending'&&i.canEdit;});})
+  .map(function(t){t.pend=t.items.filter(function(i){return i.review==='pending'&&i.canEdit;});return t;})
+  .sort(function(a,b){return bookNum(b.book)-bookNum(a.book)||String(a.book).localeCompare(String(b.book))||(parseInt(a.test,10)||0)-(parseInt(b.test,10)||0);});
+}
+function defaultFolder(it){return /^Cam\d+$/i.test(String(it.book||''))?CAM_FOLDER:'';}
+function approveTests(tests,folderFor){
+ var ids=[];tests.forEach(function(t){t.pend.forEach(function(i){ids.push({id:i.id,folder:folderFor(t)});});});
+ if(!ids.length)return Promise.resolve();
+ var n=0;busy('Approving… 0/'+ids.length);
+ return ids.reduce(function(p,o){return p.then(function(){return call('ielts.content.approve',{id:o.id,folder:o.folder}).then(function(){n++;var b=document.querySelector('#ilBusy b');if(b)b.textContent='Approving… '+n+'/'+ids.length;});});},Promise.resolve()).then(function(){unbusy();state.loaded=false;load();VM.toast('Approved '+tests.length+' test'+(tests.length===1?'':'s')+' ('+n+' parts) into the Library.','ok');}).catch(function(e){unbusy();say((n?n+' approved. ':'')+e.message);state.loaded=false;load();});
+}
 function drawToCheck(){
  var box=document.getElementById('toCheck');if(!box)return;
- var rows=state.items.filter(function(i){return i.review==='pending'&&i.canEdit;});
- if(!rows.length){box.innerHTML='';return;}
- box.innerHTML='<div class="il-panel il-tocheck"><h3 style="margin-top:0">To check <span class="il-count">'+rows.length+'</span></h3><p class="il-note" style="margin-top:0">Students added these. Only they can practise them until you approve them into the Library.</p>'+rows.map(function(i){return '<div class="il-check-row"><div><b>'+esc(i.title)+'</b> <span class="il-note">· '+esc(i.skill)+' · '+i.questionCount+' questions · added by '+esc(i.ownerName||'a student')+' · '+esc(fmtAgo(i.updatedAt))+'</span></div><div class="il-actions"><button class="vm-btn vm-btn-accent vm-btn-sm" data-rv="'+esc(i.id)+'">Check &amp; approve</button></div></div>';}).join('')+'</div>';
+ var tests=pendingTests();
+ if(!tests.length){box.innerHTML='';return;}
+ var parts=tests.reduce(function(a,t){return a+t.pend.length;},0);
+ box.innerHTML='<div class="il-panel il-tocheck"><div class="il-row" style="align-items:center;gap:10px;flex-wrap:wrap"><h3 style="margin:0">To check <span class="il-count">'+tests.length+'</span></h3><span class="il-spacer"></span><button class="vm-btn vm-btn-primary vm-btn-sm" id="apAll">Approve all ('+tests.length+')</button></div><p class="il-note" style="margin:6px 0 4px">Complete tests your students added. Approving a test puts every '+'passage or part of it into the Library. A test with only some parts is not shown here and stays in the student’s Free Practice.</p>'+tests.map(function(t,k){var q=t.items.reduce(function(a,i){return a+(i.questionCount||0);},0),f=t.pend[0];return '<div class="il-check-row"><div><b>'+esc(t.book)+' · Test '+esc(t.test)+'</b> <span class="il-note">· '+esc(t.skill)+' · '+Object.keys(t.parts).length+' '+partWord(t.skill).toLowerCase()+'s · '+q+' questions · added by '+esc(f.ownerName||'a student')+' · '+esc(fmtAgo(f.updatedAt))+'</span></div><div class="il-actions"><button class="vm-btn vm-btn-ghost vm-btn-sm" data-rv="'+esc(f.id)+'">Check</button><button class="vm-btn vm-btn-accent vm-btn-sm" data-ap="'+k+'">Approve</button></div></div>';}).join('')+'</div>';
  qa('[data-rv]').forEach(function(b){b.onclick=function(){openReview(b.getAttribute('data-rv'));};});
+ qa('[data-ap]').forEach(function(b){b.onclick=function(){var t=tests[+b.getAttribute('data-ap')];b.disabled=true;approveTests([t],function(tt){return defaultFolder(tt.pend[0]);});};});
+ document.getElementById('apAll').onclick=function(){
+  VM.confirm('Approve all '+tests.length+' complete test'+(tests.length===1?'':'s')+' ('+parts+' parts) into the Library? Cambridge books go to “'+CAM_FOLDER+'”, other books to “'+OTHER_FOLDER+'”. You can move them later.',{ok:'Approve all',title:'Approve all'}).then(function(y){if(y)approveTests(tests,function(tt){return defaultFolder(tt.pend[0]);});});
+ };
 }
 function openReview(id){
  busy('Loading the test…');
@@ -479,11 +499,11 @@ function openReview(id){
 }
 function reviewDialog(x){
  var s=(x.sections||[])[0]||{},qs=s.questions||[];
- root().innerHTML='<div class="ielts-wrap wide"><div class="il-toolbar il-sticky"><button class="vm-btn vm-btn-ghost" id="rvBack">← Back</button><strong class="il-title">Check · '+esc(titleItem(x))+'</strong><span class="il-spacer"></span><button class="vm-btn vm-btn-ghost" id="rvRemove">Remove</button><button class="vm-btn vm-btn-ghost" id="rvPrev">Preview as student</button><button class="vm-btn vm-btn-ghost" id="rvEdit">Edit</button><select class="vm-select" id="rvFolder" title="Folder in the Library" aria-label="Folder in the Library" style="width:auto;min-width:150px">'+folderNames(state.items).filter(function(n){return n!==OTHER_FOLDER||folderOf(x)===OTHER_FOLDER;}).map(function(n){return '<option'+(n===folderOf(x)?' selected':'')+'>'+esc(n)+'</option>';}).join('')+'</select><button class="vm-btn vm-btn-primary" id="rvOk">Approve into Library</button></div><div class="il-note" style="margin:0 0 10px">Compare the passage, questions and answers with the original source'+(x.sourceUrl?' ('+esc(x.sourceUrl)+')':'')+'. Approving opens this test for students.</div><div class="il-split'+(x.skill==='listening'?' two':'')+'"><section class="il-panel il-pane"><h3>'+(x.skill==='listening'?'Script':'Passage')+'</h3><div class="il-text">'+esc((x.skill==='listening'?s.script:s.text)||'(empty)')+'</div></section><section class="il-panel il-pane"><h3>Questions &amp; answers</h3>'+qs.map(function(q,i){return (q.instruction?'<div class="il-instr">'+esc(q.instruction)+'</div>':'')+'<div class="il-q"><div class="il-qhead"><span class="il-qnum">'+(q.number||i+1)+'</span><span class="il-note">'+esc(typeName(q.type))+'</span></div><div class="il-qprompt">'+esc(q.prompt)+'</div>'+((q.options||[]).length?'<div class="il-note">Options: '+esc(q.options.join(' | '))+'</div>':'')+'<div><b>Answer:</b> '+esc((q.answers||[]).join(' / ')||'—')+'</div></div>';}).join('')+'</section></div></div>';
+ root().innerHTML='<div class="ielts-wrap wide"><div class="il-toolbar il-sticky"><button class="vm-btn vm-btn-ghost" id="rvBack">← Back</button><strong class="il-title">Check · '+esc(titleItem(x))+'</strong><span class="il-spacer"></span><button class="vm-btn vm-btn-ghost" id="rvRemove">Remove</button><button class="vm-btn vm-btn-ghost" id="rvPrev">Preview as student</button><button class="vm-btn vm-btn-ghost" id="rvEdit">Edit</button><select class="vm-select" id="rvFolder" title="Folder in the Library" aria-label="Folder in the Library" style="width:auto;min-width:150px">'+folderNames(state.items).filter(function(n){return n!==OTHER_FOLDER||folderOf(x)===OTHER_FOLDER;}).map(function(n){return '<option'+(n===folderOf(x)?' selected':'')+'>'+esc(n)+'</option>';}).join('')+'</select><button class="vm-btn vm-btn-primary" id="rvOk">Approve whole test</button></div><div class="il-note" style="margin:0 0 10px">Compare the passage, questions and answers with the original source'+(x.sourceUrl?' ('+esc(x.sourceUrl)+')':'')+'. Approving opens this test for students.</div><div class="il-split'+(x.skill==='listening'?' two':'')+'"><section class="il-panel il-pane"><h3>'+(x.skill==='listening'?'Script':'Passage')+'</h3><div class="il-text">'+esc((x.skill==='listening'?s.script:s.text)||'(empty)')+'</div></section><section class="il-panel il-pane"><h3>Questions &amp; answers</h3>'+qs.map(function(q,i){return (q.instruction?'<div class="il-instr">'+esc(q.instruction)+'</div>':'')+'<div class="il-q"><div class="il-qhead"><span class="il-qnum">'+(q.number||i+1)+'</span><span class="il-note">'+esc(typeName(q.type))+'</span></div><div class="il-qprompt">'+esc(q.prompt)+'</div>'+((q.options||[]).length?'<div class="il-note">Options: '+esc(q.options.join(' | '))+'</div>':'')+'<div><b>Answer:</b> '+esc((q.answers||[]).join(' / ')||'—')+'</div></div>';}).join('')+'</section></div></div>';
  document.getElementById('rvBack').onclick=function(){render();};
  document.getElementById('rvEdit').onclick=function(){editorDialog({existing:x});};
  document.getElementById('rvPrev').onclick=function(){state.active=JSON.parse(JSON.stringify(x));(state.active.sections||[]).forEach(function(sec){(sec.questions||[]).forEach(function(q){q.answers=[];});});state.run=null;state.review=null;state.assignment=null;state.previewBack=function(){state.previewBack=null;state.active=null;state.run=null;setExam(false);reviewDialog(x);};render();window.scrollTo(0,0);};
- document.getElementById('rvOk').onclick=function(){this.disabled=true;var fsel=document.getElementById('rvFolder').value;call('ielts.content.approve',{id:x.id||x._id,folder:fsel===OTHER_FOLDER?'':fsel}).then(function(){VM.toast('Approved. It is now in the Library for everyone.','ok');state.loaded=false;load();}).catch(function(e){say(e.message);});};
+ document.getElementById('rvOk').onclick=function(){this.disabled=true;var fsel=document.getElementById('rvFolder').value,tt=pendingTests().filter(function(t){return t.skill===x.skill&&t.book===x.book&&String(t.test)===String(x.test);})[0];if(!tt)return say('Only a complete test (all parts present) can be approved.');approveTests([tt],function(){return fsel===OTHER_FOLDER?'':fsel;});};
  document.getElementById('rvRemove').onclick=function(){VM.confirm('Remove this test from the Library?',{danger:true,ok:'Remove'}).then(function(y){if(y)call('ielts.content.archive',{id:x.id||x._id}).then(function(){VM.toast('Removed.','ok');state.loaded=false;load();}).catch(function(e){say(e.message);});});};
  window.scrollTo(0,0);
 }
@@ -498,7 +518,8 @@ function drawLibrary(){
  if(!teacher&&state.libSkill==='all')return chooseSkill();
  if(!teacher)return drawStudentHome();
  setTitle('Library');
- var items=state.items.filter(function(x){return state.libSkill==='all'||x.skill===state.libSkill;});
+ var okKeys={};pendingTests().forEach(function(t){okKeys[t.skill+'|'+t.book+'|'+t.test]=1;});
+ var items=state.items.filter(function(x){return (state.libSkill==='all'||x.skill===state.libSkill)&&(x.review!=='pending'||okKeys[x.skill+'|'+x.book+'|'+x.test]||x.mine);});
  root().innerHTML='<div class="ielts-wrap"><div class="il-toolbar">'+
   (teacher?'<select class="vm-select" id="fSkill"><option value="all">Reading &amp; Listening</option><option value="reading">Reading</option><option value="listening">Listening</option></select>':'<button class="vm-btn vm-btn-ghost" id="backSkill">← Change skill</button><span class="il-badge il-badge-'+esc(state.libSkill)+'">'+esc(state.libSkill)+'</span>')+
   '<div class="il-seg" id="libMode"><button data-m="tests" class="on">By test</button><button data-m="types">By task type</button></div><span class="il-spacer"></span>'+
