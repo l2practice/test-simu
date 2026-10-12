@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi"><head><meta charset="UTF-8"><link rel="icon" type="image/svg+xml" href="favicon.svg?v=20261009c"><link rel="apple-touch-icon" href="apple-touch-icon.png?v=20261009c"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#0F6B4F"><title>Test Simulation · IELTS Practice</title><link rel="stylesheet" href="vm-theme.css?v=20261012l">
+<meta name="theme-color" content="#0F6B4F"><title>Test Simulation · IELTS Practice</title><link rel="stylesheet" href="vm-theme.css?v=20261012m">
 <style>
 #app{min-height:100vh}.ielts-wrap{max-width:1180px;margin:auto}.ielts-hero{background:linear-gradient(120deg,var(--vm-sand-2),var(--vm-primary-lt));color:var(--vm-ink);padding:24px;border-radius:var(--vm-r);margin-bottom:18px}.ielts-hero h2{margin:0 0 6px;font-family:var(--vm-font-display)}.ielts-hero p{margin:0;color:var(--vm-ink-2)}.il-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}.il-card,.il-panel{background:var(--vm-surface);border:1px solid var(--vm-border-2);border-radius:var(--vm-r);padding:18px;box-shadow:var(--vm-shadow-sm)}.il-card h3{margin:5px 0;font-family:var(--vm-font-display)}.il-meta{font-size:.78rem;color:var(--vm-ink-3);margin:6px 0 12px}.il-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}.il-practice{display:grid;grid-template-columns:minmax(300px,1fr) minmax(300px,1fr);gap:16px}.il-passage{white-space:pre-wrap;line-height:1.85;max-height:68vh;overflow:auto}.il-q{border-bottom:1px solid var(--vm-border-2);padding:12px 0}.il-q label{display:block;font-weight:650;margin-bottom:7px}.il-q input,.il-q select{width:100%}.il-badge{display:inline-block;border-radius:99px;padding:3px 9px;background:var(--vm-primary-lt);color:var(--vm-primary-dk);font-size:.7rem;font-weight:700}.il-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.il-empty{padding:35px;text-align:center;color:var(--vm-ink-3)}.il-editor{display:grid;grid-template-columns:1fr 1fr;gap:10px}.il-editor textarea{min-height:130px;font-size:.92rem}.il-section-editor{margin:14px 0;padding:14px;border:1px solid var(--vm-border-2);border-radius:16px;background:var(--vm-surface)}.il-section-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.il-section-grid.three{grid-template-columns:1fr 1fr 1fr}.il-section-grid textarea{width:100%;min-height:230px;resize:vertical;white-space:pre-wrap}.il-answer-key{margin-top:20px;padding-top:16px;border-top:3px solid var(--vm-primary-lt)}.il-ai-output{white-space:pre-wrap;line-height:1.7}.il-settings{max-width:720px;margin:18px auto}.il-settings label{display:block;margin:12px 0 5px;font-weight:650}.il-chart{width:100%;height:220px;border:1px solid var(--vm-border-2);border-radius:10px;background:var(--vm-surface);margin-top:10px}.il-note{font-size:.78rem;color:var(--vm-ink-3)}.il-error{color:var(--vm-danger);font-size:.84rem}.il-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 @media(max-width:720px){.il-practice,.il-editor,.il-section-grid,.il-section-grid.three{grid-template-columns:1fr}.il-passage{max-height:40vh}}
@@ -154,6 +154,8 @@ body.skill-reading .il-instr,body.skill-listening .il-instr{background:linear-gr
 
 .fd-chips,.bk-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 12px}.bk-tab{border:1.5px solid var(--vm-border);background:#fff;border-radius:999px;padding:6px 14px;font-weight:800;font-size:.86rem;cursor:pointer;color:var(--il-adk);font-family:inherit}.bk-tab.on{background:var(--il-a);border-color:var(--il-a);color:#fff}.bk-n{opacity:.7;font-weight:700;font-size:.72rem;margin-left:3px}.fd-tab{border-radius:12px}
 .tk-bookhead{grid-column:1/-1;font-weight:900;font-size:1.05rem;color:var(--il-adk);margin:10px 0 0;padding-bottom:4px;border-bottom:2px solid var(--il-alt)}
+.tk-listening{--il-a:#E07A1F;--il-a2:#F5A55F;--il-adk:#A9500E;--il-alt:#FFE6CC;--il-asoft:#FFF6EC}.tk-reading{--il-a:#0F6B4F;--il-a2:#1E9970;--il-adk:#0A3F30;--il-alt:#DDEFE6;--il-asoft:#EEF7F2}
+.sc-modal{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.55);display:grid;place-items:center;padding:14px}.sc-card{background:#fff;color:var(--vm-ink);border-radius:18px;width:min(860px,100%);max-height:92vh;display:flex;flex-direction:column;box-shadow:0 30px 60px -20px rgba(0,0,0,.5)}.sc-head{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--vm-border)}.sc-head h3{margin:0;font-size:1.05rem;flex:1;color:var(--il-adk)}.sc-body{overflow:auto;padding:16px 22px 26px;line-height:1.85;font-size:1.02rem}.sc-body p{margin:0 0 .9em}
 .tk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}.tk{background:#fff;border:1px solid var(--vm-border);border-radius:16px;padding:12px 14px;display:flex;flex-direction:column;gap:9px;box-shadow:0 8px 20px -14px rgba(10,63,48,.35)}.tk-head{display:flex;justify-content:space-between;align-items:center}.tk-head b{font-size:1.04rem;color:var(--il-adk)}.tk-n{font-size:.72rem;font-weight:800;background:var(--il-asoft);color:var(--il-adk);border-radius:99px;padding:2px 9px}.tk-chips{display:flex;gap:6px;flex-wrap:wrap}.tk .il-chip{padding:5px 11px;min-width:42px;font-size:.82rem;font-weight:800}.tk .il-chip small{display:none}.tk-act{display:flex;gap:6px;flex-wrap:wrap;margin-top:auto;align-items:center}
 .fd-sect{margin:0 0 22px}.fd-head{display:flex;align-items:center;gap:12px;margin:14px 0 8px}.fd-head h3{margin:0;font-size:1.05rem;color:var(--il-adk)}
 .sk-banner{display:inline-flex;align-items:center;gap:10px;padding:7px 22px 7px 16px;border-radius:999px;background:linear-gradient(135deg,var(--il-a2),var(--il-a));color:#fff;font-size:1.45rem;font-weight:900;letter-spacing:.02em;box-shadow:0 10px 20px -10px var(--il-adk)}.sk-banner .sk-ic{display:inline-grid;place-items:center;width:30px;height:30px}.sk-banner .sk-ic svg{width:26px;height:26px;stroke:#fff;color:#fff}
@@ -303,7 +305,7 @@ body.exam-hc .il-wordbank{background:#fff;border-color:#000}body.exam-hc .wb-ite
 @media(min-width:760px){.wb-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 body.exam-dark .il-wordbank{background:#16241D!important;border-color:#2E4338}
 body.exam-hc .il-wordbank{border:2px solid #000}
-</style></head><body><div id="app"></div><script src="vm-common.js?v=20261012l"></script><script>
+</style></head><body><div id="app"></div><script src="vm-common.js?v=20261012m"></script><script>
 
 
 (function(){
@@ -312,8 +314,8 @@ var sess=VM.session.require(); if(!sess) return;
 var teacher=sess.role==='teacher';
 var state={items:[],attempts:[],classes:[],inclass:[],active:null,run:null,review:null,started:'',assignment:null,libSkill:'all',libMode:'tests',bookFilter:'',folders:[],sTab:'full',folderOpen:'',view:teacher?'glance':'library',loaded:false,glanceClass:'',glanceStudent:''};
 var navDef=teacher
- ?[['glance','Glance','overview','ielts.html#glance'],['library','Library','reading','ielts.html#library'],['types','Task Types','assign','ielts.html#types'],['inclass','In-class','inclass','ielts.html#inclass'],['results','Results','results','ielts.html#results'],['classes','Classes','classes','teacher.html#tab=classes'],['settings','Settings','edit','teacher.html#tab=settings']]
- :[['glance','Glance','overview','ielts.html#glance'],['library','IELTS Practice','reading','ielts.html#library'],['settings','Settings','edit','student.html#tab=settings']];
+ ?[['glance','Glance','overview','ielts.html#glance'],['library','Library','reading','ielts.html#library'],['types','Task Types','assign','ielts.html#types'],['inclass','In-class','inclass','ielts.html#inclass'],['scripts','Audio Scripts','listening','ielts.html#scripts'],['results','Results','results','ielts.html#results'],['classes','Classes','classes','teacher.html#tab=classes'],['settings','Settings','edit','teacher.html#tab=settings']]
+ :[['glance','Glance','overview','ielts.html#glance'],['library','IELTS Practice','reading','ielts.html#library'],['scripts','Audio Scripts','listening','ielts.html#scripts'],['settings','Settings','edit','student.html#tab=settings']];
 VM.renderShell({mount:'app',eyebrow:'Test Simulation · IELTS',title:'IELTS Practice',user:sess,nav:navDef.map(function(n){return{id:n[0],label:n[1],icon:n[2],href:n[3],active:n[0]===(teacher?'glance':'library')};})});
 function esc(x){return VM.esc(String(x==null?'':x));}
 function root(){return document.getElementById('vmContent');}
@@ -352,7 +354,7 @@ function itemsById(ids){var m={};state.items.forEach(function(i){m[i.id]=i;});re
 function markNav(){qa('.vm-side a.vm-nav').forEach(function(a){a.classList.toggle('active',(a.getAttribute('href')||'')==='ielts.html#'+state.view);});}
 function route(){
  var h=(location.hash||'').replace('#','')||(teacher?'glance':'library');
- var ok=teacher?['glance','library','types','inclass','results']:['glance','library','types','inclass'];
+ var ok=teacher?['glance','library','types','inclass','results','scripts']:['glance','library','types','inclass','scripts'];
  state.view=ok.indexOf(h)>=0?h:(teacher?'glance':'library');
  stopTimer();state.active=null;state.run=null;state.review=null;state.assignment=null;state.previewBack=null;
  markNav();
@@ -382,6 +384,7 @@ function render(){
  if(state.view==='types')return drawTypesPage();
  if(state.view==='inclass')return teacher?drawInclassTeacher():drawInclassStudent();
  if(state.view==='results'&&teacher)return drawResultsPage();
+ if(state.view==='scripts')return drawScriptsPage();
  if(state.view==='glance')return teacher?drawGlanceTeacher():drawGlanceStudent();
  return drawLibrary();
 }
@@ -530,7 +533,7 @@ function drawLibrary(){
   (teacher?'<select class="vm-select" id="fSkill"><option value="all">Reading &amp; Listening</option><option value="reading">Reading</option><option value="listening">Listening</option></select>':'<button class="vm-btn vm-btn-ghost" id="backSkill">← Change skill</button><span class="il-badge il-badge-'+esc(state.libSkill)+'">'+esc(state.libSkill)+'</span>')+
   '<div class="il-seg" id="libMode"><button data-m="tests" class="on">By test</button><button data-m="types">By task type</button></div><span class="il-spacer"></span>'+
   '<button class="vm-btn vm-btn-primary" id="addTest">＋ Add test</button><button class="vm-btn vm-btn-ghost" id="importUrl">Import from URL</button><button class="vm-btn vm-btn-ghost" id="newFolder">＋ Create folder</button>'+(teacher?'':'<button class="vm-btn vm-btn-ghost" id="aiSettings">AI settings</button>')+'</div><div id="toCheck"></div><div id="libBody"></div><div id="extra"></div></div>';
- if(teacher)document.getElementById('fSkill').value=state.libSkill;
+ if(teacher){document.getElementById('fSkill').value=state.libSkill;setSkillTheme(state.libSkill);}   // Reading green, Listening orange
  qa('#libMode button').forEach(function(b){b.onclick=function(){if(b.getAttribute('data-m')==='types'){state.typeSkill=state.libSkill;location.hash='#types';}};});
  document.getElementById('addTest').onclick=function(){editorDialog({skill:state.libSkill==='listening'?'listening':'reading'});};
  if(teacher){document.getElementById('fSkill').onchange=function(){state.libSkill=this.value;state.bookFilter='';drawLibrary();};}
@@ -556,17 +559,18 @@ function drawStudentHome(){
  if(state.sTab==='types')return drawTypesPage(body,sk);
  return drawSFull(body,sk);
 }
-function drawSFull(body,sk){
+function drawSFull(body,sk,mode){
+ var scriptMode=!!(mode&&mode.script),redraw=(mode&&mode.redraw)||drawStudentHome;
  var items=state.items.filter(function(i){return i.skill===sk&&i.review!=='pending';});
  if(state.folderOpen){
   var inF=items.filter(function(i){return folderOf(i)===state.folderOpen;});
   body.innerHTML='<div class="il-toolbar"><button class="vm-btn vm-btn-ghost" id="fdBack">← Folders</button><strong class="il-title">📁 '+esc(state.folderOpen)+'</strong></div><div id="libBody"></div>';
-  document.getElementById('fdBack').onclick=function(){state.folderOpen='';state.bookFilter='';drawStudentHome();};
-  return drawTests(inF);
+  document.getElementById('fdBack').onclick=function(){state.folderOpen='';state.bookFilter='';redraw();};
+  return drawTests(inF,scriptMode?{scriptMode:true}:undefined);
  }
  var names=folderNames(items).filter(function(n){return items.some(function(i){return folderOf(i)===n;});});
- body.innerHTML='<p class="il-note" style="margin-top:0">Full Practice is the shared Library. Open a folder, then take one passage or a whole test.</p>'+(names.length?'<div class="il-grid">'+names.map(function(n,k){var its=items.filter(function(i){return folderOf(i)===n;}),tests=groupLibrary(its).length;return '<article class="il-card fd-card" tabindex="0" role="button" data-fd="'+k+'"><h3>📁 '+esc(n)+'</h3><div class="il-meta">'+tests+' test'+(tests===1?'':'s')+' · '+its.length+' '+partWord(sk).toLowerCase()+'s</div></article>';}).join('')+'</div>':'<div class="il-empty">No tests in the Library for this skill yet. Add one in Free Practice and your teacher will check it.</div>');
- qa('[data-fd]').forEach(function(c){function go(){state.folderOpen=names[+c.getAttribute('data-fd')];state.bookFilter='';drawStudentHome();}c.onclick=go;c.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();go();}};});
+ body.innerHTML='<p class="il-note" style="margin-top:0">'+(scriptMode?'Audio scripts of the Listening tests in the Library. Open a folder, then choose a part to read its script.':'Full Practice is the shared Library. Open a folder, then take one passage or a whole test.')+'</p>'+(names.length?'<div class="il-grid">'+names.map(function(n,k){var its=items.filter(function(i){return folderOf(i)===n;}),tests=groupLibrary(its).length;return '<article class="il-card fd-card" tabindex="0" role="button" data-fd="'+k+'"><h3>📁 '+esc(n)+'</h3><div class="il-meta">'+tests+' test'+(tests===1?'':'s')+' · '+its.length+' '+partWord(sk).toLowerCase()+'s</div></article>';}).join('')+'</div>':'<div class="il-empty">No tests in the Library for this skill yet. Add one in Free Practice and your teacher will check it.</div>');
+ qa('[data-fd]').forEach(function(c){function go(){state.folderOpen=names[+c.getAttribute('data-fd')];state.bookFilter='';redraw();}c.onclick=go;c.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();go();}};});
 }
 function drawSFree(body,sk){
  var mine=state.items.filter(function(i){return i.skill===sk&&i.mine&&i.review==='pending';});
@@ -590,6 +594,28 @@ function drawSMix(body,sk){
   this.disabled=true;openItems(picked.map(function(i){return i.id;}),null,{title:titleFor('mix',picked,sk)});
  };
 }
+
+function openScript(id,label){
+ busy('Loading the audio script…');
+ call('ielts.script.get',{id:id}).then(function(d){
+  unbusy();
+  var txt=String(d.script||'').trim(),m=document.createElement('div');m.className='sc-modal';m.setAttribute('role','dialog');m.setAttribute('aria-label','Audio script');
+  m.innerHTML='<div class="sc-card"><div class="sc-head"><h3>'+esc(label||d.title||'Audio script')+'</h3><button class="vm-btn vm-btn-ghost vm-btn-sm" id="scCopy">Copy</button><button class="vm-btn vm-btn-primary vm-btn-sm" id="scClose">Close</button></div><div class="sc-body">'+(txt?txt.split(/\n{2,}/).map(function(p){return '<p>'+esc(p).replace(/\n/g,'<br>')+'</p>';}).join(''):'<p class="il-note">No audio script has been added for this part yet.</p>')+'</div></div>';
+  document.body.appendChild(m);
+  function close(){m.remove();document.removeEventListener('keydown',onk);}
+  function onk(e){if(e.key==='Escape')close();}
+  document.addEventListener('keydown',onk);
+  m.onclick=function(e){if(e.target===m)close();};
+  document.getElementById('scClose').onclick=close;
+  document.getElementById('scCopy').onclick=function(){try{navigator.clipboard.writeText(txt);VM.toast('Script copied.','ok');}catch(e){say('Could not copy.');}};
+ }).catch(function(e){unbusy();say(e.message);});
+}
+function drawScriptsPage(){
+ setTitle('Audio Scripts');setSkillTheme('listening');
+ root().innerHTML='<div class="ielts-wrap"><div class="ielts-hero"><h2>Audio scripts</h2><p>Read the script of any Listening part in the Library. Scripts are grouped in folders like the tests.</p></div><div id="scHost"><div id="libBody"></div></div><div id="extra"></div></div>';
+ if(teacher)drawTests(state.items.filter(function(i){return i.skill==='listening'&&i.review!=='pending';}),{scriptMode:true});
+ else drawSFull(document.getElementById('scHost'),'listening',{script:true,redraw:drawScriptsPage});
+}
 function libCards(groups,cardHtml){
  if(!groups.length&&!teacher)return '<div class="il-empty">No tests here yet.</div>';
  if(!teacher)return cardHtml.join('');
@@ -612,7 +638,7 @@ function moveFolderDialog(g){
  document.getElementById('mvGo').onclick=function(){var b=this,fn=document.getElementById('mvSel').value;b.disabled=true;call('ielts.content.setFolder',{ids:parts.map(function(i){return i.id;}),folder:fn===OTHER_FOLDER?'':fn}).then(function(){VM.toast('Moved to “'+fn+'”.','ok');state.loaded=false;load();}).catch(function(e){b.disabled=false;document.getElementById('mvErr').textContent=e.message;});};
 }
 function drawTests(items,opts){
- var flat=!!(opts&&opts.flat);   // Free Practice: just the student's own tests, no book screens
+ var flat=!!(opts&&opts.flat),scriptMode=!!(opts&&opts.scriptMode);   // Free Practice: just the student's own tests, no book screens
  var body=document.getElementById('libBody');
  var all=groupLibrary(items),groups=all;
  function firstPart(g){return g.parts[Object.keys(g.parts)[0]];}
@@ -631,6 +657,7 @@ function drawTests(items,opts){
   (books.length>1&&!flat?'<div class="bk-tabs" role="tablist" aria-label="Book">'+books.map(function(b){return '<button class="bk-tab'+(b===selB?' on':'')+'" data-bk="'+esc(b)+'">'+esc(b)+' <span class="bk-n">'+bc[b]+'</span></button>';}).join('')+'</div>':'')+'<div id="libGrid" class="tk-grid"></div>';
  function cardFor(g){
   var gi=all.indexOf(g),n=partCount(g.skill),have=Object.keys(g.parts).length,full=true,chips='';
+  if(scriptMode){var sc='';for(var q=1;q<=n;q++){var si=g.parts[String(q)];sc+=si?'<button class="il-chip il-chip-listening" data-script="'+esc(si.id)+'" data-sclabel="'+esc(g.book+' · Test '+g.test+' · Part '+q)+'" title="Part '+q+' audio script">P'+q+'</button>':'<span class="il-chip il-chip-empty" aria-disabled="true">P'+q+'</span>';}return '<article class="tk tk-'+esc(g.skill)+'"><div class="tk-head"><b>'+(flat?esc(g.book)+' · ':'')+'Test '+esc(g.test)+'</b><span class="tk-n">'+have+'/'+n+'</span></div><div class="tk-chips">'+sc+'</div></article>';}
   for(var p=1;p<=n;p++){var it=g.parts[String(p)];if(!it){full=false;chips+='<button class="il-chip il-chip-empty" data-add="'+gi+'|'+p+'" title="'+partWord(g.skill)+' '+p+' is missing · add it">+P'+p+'</button>';}
    else{var pend=it.review==='pending',lock=pend&&!teacher&&!it.mine;chips+='<span class="il-chip-wrap"><button class="il-chip il-chip-'+esc(g.skill)+(pend?' il-chip-pending':'')+'" '+(lock?'disabled title="Waiting for a teacher to check this test"':'data-open="'+esc(it.id)+'" title="'+partWord(g.skill)+' '+p+' · '+(pend?(teacher?'needs check':(it.mine?'waiting for check':'awaiting check')):it.questionCount+' questions')+'"')+'>P'+p+'</button>'+(it.canEdit?'<button class="il-chip-edit" title="Edit" data-edit="'+esc(it.id)+'">✎</button>':'')+'</span>';}}
   var canDel=teacher||(have&&Object.keys(g.parts).every(function(k){return g.parts[k].canEdit;}));
@@ -642,6 +669,7 @@ function drawTests(items,opts){
   under.forEach(function(b){var gs=scope.filter(function(g){return g.book===b;});cards.push((under.length>1?'<div class="tk-bookhead">'+esc(b)+' <span class="bk-n">'+gs.length+' test'+(gs.length===1?'':'s')+'</span></div>':'')+gs.map(cardFor).join(''));});}
  var emptyFolder=teacher&&!(fc[selF]||0);
  document.getElementById('libGrid').innerHTML=cards.length?cards.join(''):'<div class="il-empty">'+(emptyFolder?'This folder is empty. Use “Move” on a test, or choose this folder when you add one.'+((selF!==CAM_FOLDER&&selF!==OTHER_FOLDER)?' <button class="vm-btn vm-btn-ghost vm-btn-sm" data-fdel="'+esc(selF)+'">Delete folder</button>':''):'No tests here yet.')+'</div>';
+ qa('[data-script]').forEach(function(b){b.onclick=function(){openScript(b.getAttribute('data-script'),b.getAttribute('data-sclabel'));};});
  qa('[data-bk]').forEach(function(b){b.onclick=function(){state.bookFilter=b.getAttribute('data-bk');drawTests(items,opts);};});
  qa('[data-fdsel]').forEach(function(b){b.onclick=function(){state.tFolder=b.getAttribute('data-fdsel');state.bookFilter='';drawTests(items,opts);};});
  function groupAt(i){return groups[i];}
@@ -665,7 +693,7 @@ var TYPE_INFO={'multiple-choice':'Choose the correct answer(s) from a list of op
 var TYPES_BY_SKILL={reading:['multiple-choice','true-false-not-given','yes-no-not-given','matching-headings','matching-features','matching','sentence-completion','summary-completion','short-answer','diagram-completion'],listening:['multiple-choice','matching-features','plan-map-diagram-labelling','form-note-table-flow-chart-summary-completion','sentence-completion','short-answer']};
 function drawTypesPage(into,fixed){
  if(!into)setTitle('Task Types');
- var sk=fixed||state.typeSkill||(state.libSkill!=='all'?state.libSkill:'all');state.typeSkill=sk;
+ var sk=fixed||state.typeSkill||(state.libSkill!=='all'?state.libSkill:'all');state.typeSkill=sk;if(!into)setSkillTheme(sk);
  var approved=state.items.filter(function(i){return i.review!=='pending';});
  if(into)into.innerHTML='<p class="il-note" style="margin-top:0">Pick a question type and practise it across many tests. Only the questions of that type are shown, laid out just like the real exam.</p><div id="tyBody"></div><div id="tyPick"></div>';
  else root().innerHTML='<div class="ielts-wrap"><div class="ielts-hero"><h2>Practise by task type</h2><p>Pick a question type and practise it across many tests. Only the questions of that type are shown, laid out just like the real exam.</p></div><div class="il-toolbar"><div class="il-seg" id="tySkill"><button data-s="all" class="'+(sk==='all'?'on':'')+'">Reading &amp; Listening</button><button data-s="reading" class="'+(sk==='reading'?'on':'')+'">Reading</button><button data-s="listening" class="'+(sk==='listening'?'on':'')+'">Listening</button></div><span class="il-spacer"></span><button class="vm-btn vm-btn-ghost" id="tyToTests">Browse by test</button></div><div id="tyBody"></div><div id="tyPick"></div></div>';
@@ -1495,9 +1523,9 @@ function runAnalysis(){
  var focus={};ins.wrong.forEach(function(n){focus[n]=1;});ins.slow.forEach(function(z){focus[z.num]=1;});
  var avg=(tel.totalSec||0)/(flat.length||1);
  var qs=flat.filter(function(f){return focus[f.num];}).slice(0,40).map(function(f){var rr=resp[f.n-1]||{},t=tel.per[f.n-1]||{},sc=t.sec;return{n:f.num,part:f.part+1,type:f.q.type,prompt:f.q.prompt,options:f.q.options||[],studentAnswer:rr.answer||'(blank)',correctAnswers:rr.accepted||[],correct:rr.correct,seconds:sc,timeComparedWithAverage:sc==null?'unknown':(sc<avg*0.5?'much faster than average (possible rush or guess)':(sc>avg*2?'much slower than average (possible difficulty or getting stuck)':'about average')),answerChanges:t.changes};});
- var parts={};qs.forEach(function(q){if(!parts[q.part]){var s=snapSecs[q.part-1]||(x.sections||[])[q.part-1]||{};parts[q.part]={passage:String(s.text||'').slice(0,3500),script:String(s.script||'').slice(0,3500)};}});
+ var parts={};qs.forEach(function(q){if(!parts[q.part]){var s=snapSecs[q.part-1]||(x.sections||[])[q.part-1]||{};parts[q.part]={passage:String(s.text||'').slice(0,3500),script:String(s.script||'').slice(0,x.skill==='listening'?6500:3500)};}});
  var data={skill:x.skill,score:{correct:a.correct,graded:a.gradedCount,percent:a.score},totalSeconds:tel.totalSec,averageSecondsPerQuestion:Math.round(avg),secondsPerPart:tel.partSec,leftTabCount:tel.hidden,blankQuestions:ins.blank,answerChanged:{becameCorrect:ins.changedRight,stillWrong:ins.changedWrong},accuracyByType:ins.byType,questionsToReview:qs,contextByPart:parts};
- var prompt='You are an IELTS Reading and Listening teacher helping Vietnamese EFL university students. Using the JSON data about the attempt (score, time per question, answer changes, blank questions, times the student left the tab), write feedback in clear, simple English as plain text without markdown. Use these parts, each heading on its own line in CAPITAL LETTERS starting with one emoji: "🎯 OVERALL", "✅ STRENGTHS", "⏱️ TEST-TAKING HABITS" (based on timing, answer changes, blanks), "🔍 QUESTIONS TO REVIEW" (go through EVERY item in questionsToReview without skipping or merging any, even if there are 40 of them, and write TWO lines for each one. Line 1 starts with "❌ Q<number>" and explains why the correct answer in correctAnswers is right, using contextByPart. Line 2 starts with "• Likely reason:" and names the most probable reason this student chose this answer, judged from the data of that question: studentAnswer compared with correctAnswers, timeComparedWithAverage, answerChanges, blank, and leftTabCount. Pick from reasons such as: rushed or guessed, lost focus or got distracted, did not know a key word or phrase, missed a paraphrase or synonym, fell for a similar-looking distractor, misread the question or instruction, spelling or word-form or number-format slip, ran out of time, missed the answer while still writing the previous one (Listening), changed a correct answer to a wrong one. Say "may have" or "possibly", never state it as certain, and give at most one or two reasons), "🧠 WHY MISTAKES HAPPEN" (two or three lines summarising the patterns across all wrong answers, for example how many looked like rushing, vocabulary gaps or distractors, and the habit to fix first), "📅 PRACTICE PLAN" (three short steps for next week) and "💡 TIP" (one memorable tip). Start good habits with ✔ and risks with ⚠️. Use • for bullet lines and keep emoji light elsewhere. Use only the information in the data and do not invent facts. If context is missing, say so. End with a note that this is AI-generated study guidance, not marking by a teacher.\nDATA: '+JSON.stringify(data);
+ var prompt='You are an IELTS Reading and Listening teacher helping Vietnamese EFL university students. Using the JSON data about the attempt (score, time per question, answer changes, blank questions, times the student left the tab), write feedback in clear, simple English as plain text without markdown. Use these parts, each heading on its own line in CAPITAL LETTERS starting with one emoji: "🎯 OVERALL", "✅ STRENGTHS", "⏱️ TEST-TAKING HABITS" (based on timing, answer changes, blanks), "🔍 QUESTIONS TO REVIEW" (go through EVERY item in questionsToReview without skipping or merging any, even if there are 40 of them, and write TWO lines for each one. Line 1 starts with "❌ Q<number>" and explains why the correct answer in correctAnswers is right, using contextByPart: for Reading quote or paraphrase the relevant sentence of the passage; for Listening use contextByPart[part].script (the audio script) and quote the exact words the speaker says, and point out distractors, corrections or paraphrases in the script that may have misled the student. If the script for a part is empty, say that the script is not available. Line 2 starts with "• Likely reason:" and names the most probable reason this student chose this answer, judged from the data of that question: studentAnswer compared with correctAnswers, timeComparedWithAverage, answerChanges, blank, and leftTabCount. Pick from reasons such as: rushed or guessed, lost focus or got distracted, did not know a key word or phrase, missed a paraphrase or synonym, fell for a similar-looking distractor, misread the question or instruction, spelling or word-form or number-format slip, ran out of time, missed the answer while still writing the previous one (Listening), changed a correct answer to a wrong one. Say "may have" or "possibly", never state it as certain, and give at most one or two reasons), "🧠 WHY MISTAKES HAPPEN" (two or three lines summarising the patterns across all wrong answers, for example how many looked like rushing, vocabulary gaps or distractors, and the habit to fix first), "📅 PRACTICE PLAN" (three short steps for next week) and "💡 TIP" (one memorable tip). Start good habits with ✔ and risks with ⚠️. Use • for bullet lines and keep emoji light elsewhere. Use only the information in the data and do not invent facts. If context is missing, say so. End with a note that this is AI-generated study guidance, not marking by a teacher.\nDATA: '+JSON.stringify(data);
  box.textContent='Generating feedback…';
  return callAI(keys,prompt).then(function(t){box.innerHTML=renderAI(t);rv.aiText=t;return t;}).catch(function(e){box.textContent=e.message;});
 }
