@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi"><head><meta charset="UTF-8"><link rel="icon" type="image/svg+xml" href="favicon.svg?v=20261009c"><link rel="apple-touch-icon" href="apple-touch-icon.png?v=20261009c"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#0F6B4F"><title>Test Simulation · IELTS Practice</title><link rel="stylesheet" href="vm-theme.css?v=20261012m">
+<meta name="theme-color" content="#0F6B4F"><title>Test Simulation · IELTS Practice</title><link rel="stylesheet" href="vm-theme.css?v=20261012n">
 <style>
 #app{min-height:100vh}.ielts-wrap{max-width:1180px;margin:auto}.ielts-hero{background:linear-gradient(120deg,var(--vm-sand-2),var(--vm-primary-lt));color:var(--vm-ink);padding:24px;border-radius:var(--vm-r);margin-bottom:18px}.ielts-hero h2{margin:0 0 6px;font-family:var(--vm-font-display)}.ielts-hero p{margin:0;color:var(--vm-ink-2)}.il-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}.il-card,.il-panel{background:var(--vm-surface);border:1px solid var(--vm-border-2);border-radius:var(--vm-r);padding:18px;box-shadow:var(--vm-shadow-sm)}.il-card h3{margin:5px 0;font-family:var(--vm-font-display)}.il-meta{font-size:.78rem;color:var(--vm-ink-3);margin:6px 0 12px}.il-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}.il-practice{display:grid;grid-template-columns:minmax(300px,1fr) minmax(300px,1fr);gap:16px}.il-passage{white-space:pre-wrap;line-height:1.85;max-height:68vh;overflow:auto}.il-q{border-bottom:1px solid var(--vm-border-2);padding:12px 0}.il-q label{display:block;font-weight:650;margin-bottom:7px}.il-q input,.il-q select{width:100%}.il-badge{display:inline-block;border-radius:99px;padding:3px 9px;background:var(--vm-primary-lt);color:var(--vm-primary-dk);font-size:.7rem;font-weight:700}.il-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.il-empty{padding:35px;text-align:center;color:var(--vm-ink-3)}.il-editor{display:grid;grid-template-columns:1fr 1fr;gap:10px}.il-editor textarea{min-height:130px;font-size:.92rem}.il-section-editor{margin:14px 0;padding:14px;border:1px solid var(--vm-border-2);border-radius:16px;background:var(--vm-surface)}.il-section-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.il-section-grid.three{grid-template-columns:1fr 1fr 1fr}.il-section-grid textarea{width:100%;min-height:230px;resize:vertical;white-space:pre-wrap}.il-answer-key{margin-top:20px;padding-top:16px;border-top:3px solid var(--vm-primary-lt)}.il-ai-output{white-space:pre-wrap;line-height:1.7}.il-settings{max-width:720px;margin:18px auto}.il-settings label{display:block;margin:12px 0 5px;font-weight:650}.il-chart{width:100%;height:220px;border:1px solid var(--vm-border-2);border-radius:10px;background:var(--vm-surface);margin-top:10px}.il-note{font-size:.78rem;color:var(--vm-ink-3)}.il-error{color:var(--vm-danger);font-size:.84rem}.il-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 @media(max-width:720px){.il-practice,.il-editor,.il-section-grid,.il-section-grid.three{grid-template-columns:1fr}.il-passage{max-height:40vh}}
@@ -305,7 +305,7 @@ body.exam-hc .il-wordbank{background:#fff;border-color:#000}body.exam-hc .wb-ite
 @media(min-width:760px){.wb-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 body.exam-dark .il-wordbank{background:#16241D!important;border-color:#2E4338}
 body.exam-hc .il-wordbank{border:2px solid #000}
-</style></head><body><div id="app"></div><script src="vm-common.js?v=20261012m"></script><script>
+</style></head><body><div id="app"></div><script src="vm-common.js?v=20261012n"></script><script>
 
 
 (function(){
@@ -1167,13 +1167,17 @@ function renderPractice(){
 function drawAudio(){
  var bar=document.getElementById('audioBar');if(!bar)return;
  var x=state.active,r=state.run,s=(x.sections||[])[r.part]||{},a=s.audio||null,mine=r.userAudio[r.part];
- function player(src){bar.innerHTML='<audio controls preload="metadata" id="audioEl" src="'+esc(src)+'"></audio><span class="il-note exam-audio-n">'+esc(secLabel(x,r.part))+' audio</span>';}
+ function addOwn(why){
+  bar.innerHTML='<div class="exam-audio-add"><b>'+esc(why||('No audio is attached to '+secLabel(x,r.part)+'.'))+'</b> Add your own: <input type="file" id="uaFile" accept="audio/*"> or <input class="vm-input" id="uaUrl" placeholder="https://… link to the audio"> <button class="exam-btn" id="uaGo">Load</button></div>';
+  document.getElementById('uaFile').onchange=function(){var f=this.files&&this.files[0];if(f){r.userAudio[r.part]=URL.createObjectURL(f);drawAudio();}};
+  document.getElementById('uaGo').onclick=function(){var u=document.getElementById('uaUrl').value.trim();if(!/^https?:\/\//i.test(u))return say('Paste a link that starts with http:// or https://.');r.userAudio[r.part]=u;drawAudio();};
+ }
+ function player(src,own){bar.innerHTML='<audio controls preload="metadata" id="audioEl" src="'+esc(src)+'"></audio><span class="il-note exam-audio-n">'+esc(secLabel(x,r.part))+' audio</span>';
+  var au=document.getElementById('audioEl');if(au)au.addEventListener('error',function(){if(own)r.userAudio[r.part]=null;addOwn('The audio for '+secLabel(x,r.part)+' could not be loaded.');});}
  if(a&&a.url)return player(a.url);
  if(a&&a.path){bar.innerHTML='<span class="il-note">Loading audio…</span>';return call('ielts.audio.url',{path:a.path}).then(player).catch(function(e){bar.innerHTML='<span class="il-note">Could not load the audio: '+esc(e.message)+'</span>';});}
- if(mine)return player(mine);
- bar.innerHTML='<div class="exam-audio-add"><b>No audio is attached to '+esc(secLabel(x,r.part))+'.</b> Add your own: <input type="file" id="uaFile" accept="audio/*"> or <input class="vm-input" id="uaUrl" placeholder="https://… link to the audio"> <button class="exam-btn" id="uaGo">Load</button></div>';
- document.getElementById('uaFile').onchange=function(){var f=this.files&&this.files[0];if(f){r.userAudio[r.part]=URL.createObjectURL(f);drawAudio();}};
- document.getElementById('uaGo').onclick=function(){var u=document.getElementById('uaUrl').value.trim();if(!/^https?:\/\//i.test(u))return say('Paste a link that starts with http:// or https://.');r.userAudio[r.part]=u;drawAudio();};
+ if(mine)return player(mine,true);
+ addOwn();
 }
 function drawPartBar(){
  var bar=document.getElementById('partBar');if(!bar)return;
@@ -1293,7 +1297,8 @@ function passageHtml(text){
 }
 function imgW(u){var m=/#w=(\d+)$/.exec(String(u||''));return m?Math.max(20,Math.min(100,+m[1])):0;}
 function imgSrc(u){return String(u||'').replace(/#w=\d+$/,'');}
-function imgTag(u,alt){var w=imgW(u);return '<img class="il-img" src="'+esc(imgSrc(u))+'" alt="'+esc(alt)+'"'+(w?' style="width:'+w+'%;max-width:100%"':'')+' loading="lazy" referrerpolicy="no-referrer">';}
+function imgTag(u,alt,bk){var w=imgW(u);return '<img class="il-img" src="'+esc(imgSrc(u))+'" alt="'+esc(alt)+'"'+(bk?' data-bk="'+esc(bk)+'"':'')+(w?' style="width:'+w+'%;max-width:100%"':'')+' loading="lazy" referrerpolicy="no-referrer">';}
+document.addEventListener('error',function(e){var t=e.target;if(t&&t.tagName==='IMG'&&t.getAttribute&&t.getAttribute('data-bk')&&!t._bk){t._bk=1;t.src=t.getAttribute('data-bk');}},true);   // the original image is gone: use the Google Drive backup
 var IMG_AT=function(){return '';};
 function imgBlock(k){return '<div class="il-fig">'+IMG_AT(+k)+'</div>';}
 function splitImgMarks(text){var marks=[],keep=[];String(text||'').split('\n').forEach(function(l){var m=/^\s*\[image\s+(\d+)\]\s*$/i.exec(l);if(m)marks.push(+m[1]);else keep.push(l);});return{text:keep.join('\n'),marks:marks};}
@@ -1354,8 +1359,8 @@ function drawSplit(){
 
  var allImgs=(s.images||[]).filter(function(u){return /^https:\/\//i.test(u);}),usedMarks={};
  flat.filter(function(f){return f.part===p;}).forEach(function(f){String(f.q.instruction||'').replace(/\[image\s+(\d+)\]/gi,function(m,k){usedMarks[+k]=1;return m;});});
- IMG_AT=function(k){var u=(s.images||[])[k-1];return u&&/^https:\/\//i.test(u)?imgTag(u,'Figure '+k):'';};
- var imgs=allImgs.filter(function(u,i){return !usedMarks[i+1];}).map(function(u){return imgTag(u,'Figure');}).join('');
+ IMG_AT=function(k){var u=(s.images||[])[k-1];return u&&/^https:\/\//i.test(u)?imgTag(u,'Figure '+k,(s.imagesBackup||[])[k-1]):'';};
+ var imgs=allImgs.filter(function(u,i){return !usedMarks[i+1];}).map(function(u){return imgTag(u,'Figure',(s.imagesBackup||[])[(s.images||[]).indexOf(u)]);}).join('');
  var left='<section class="'+pc+'"><h3 class="pane-h">'+(listen?'Notes':esc(secLabel(x,p)))+'</h3>'+(listen||imgInGroup?'':imgs)+'<div class="il-text" data-hk="p'+p+'">'+(s.text?passageHtml(s.text):'<span class="il-note">'+(listen?'Listen to the audio and answer the questions.':'No passage text.')+'</span>')+'</div></section>';
  var partQs=flat.filter(function(f){return f.part===p;}),groups=groupQuestions(partQs);
  var imgInGroup=groups.some(function(g){return g.type==='plan-map-diagram-labelling'||g.type==='diagram-completion';});
@@ -1563,7 +1568,7 @@ function editorDialog(init){
  function taken(part){return !ex&&book&&test&&state.items.some(function(i){return i.skill===skill&&i.book===book&&String(i.test)===String(test)&&String(i.part)===String(part);});}
  function newRow(part,sec){
   sec=sec||{};
-  var r={part:String(part),title:(ex&&ex.title)||'',text:sec.text||'',script:sec.script||'',images:(sec.images||[]).slice(0,6),pendingAns:sec.answersText?parseAnswers(sec.answersText):null,audio:sec.audio||null,audioMode:(sec.audio&&sec.audio.url)?'link':'file',audioUrl:(sec.audio&&sec.audio.url)||'',file:null,ans:{},types:{},questions:[]};
+  var r={part:String(part),title:(ex&&ex.title)||'',text:sec.text||'',script:sec.script||'',images:(sec.images||[]).slice(0,6),imagesBackup:(sec.imagesBackup||[]).slice(0,6),pendingAns:sec.answersText?parseAnswers(sec.answersText):null,audio:sec.audio||null,audioMode:(sec.audio&&sec.audio.url)?'link':'file',audioUrl:(sec.audio&&sec.audio.url)||'',file:null,ans:{},types:{},questions:[]};
   var qs=sec.questions||[];
   qs.forEach(function(q,i){var k=q.number||i+1;r.ans[k]=(q.answers||[]).slice();if(q.type)r.types[k]=q.type;});
   r.qtext=sec.questionsText||serializeQuestions(qs);
@@ -1609,7 +1614,7 @@ function editorDialog(init){
   var counts={};r.questions.forEach(function(q){counts[q.type]=(counts[q.type]||0)+1;});
   var instr=r.questions.filter(function(q){return q.instruction;}).length;
   var ib=document.getElementById('img'+i);
-  if(ib)ib.innerHTML=(r.images||[]).length?'<div class="il-note">Images for this '+partWord(skill).toLowerCase()+' (they appear in this order). Use ◀ ▶ to move one, choose its size, or × to remove it:</div><div class="ed-thumbs">'+r.images.map(function(u,k){var w=imgW(u);return '<span class="ed-thumb ed-thumb2"><img src="'+esc(imgSrc(u))+'" alt="" referrerpolicy="no-referrer"><button type="button" class="ed-x" data-rmimg="'+i+'|'+k+'" title="Remove">×</button><span class="ed-imgbar"><button type="button" class="vm-btn vm-btn-ghost vm-btn-sm" data-mvimg="'+i+'|'+k+'|-1"'+(k===0?' disabled':'')+' title="Move earlier" aria-label="Move earlier">◀</button><button type="button" class="vm-btn vm-btn-ghost vm-btn-sm" data-mvimg="'+i+'|'+k+'|1"'+(k===r.images.length-1?' disabled':'')+' title="Move later" aria-label="Move later">▶</button><select class="vm-select ed-imgsz" data-szimg="'+i+'|'+k+'" aria-label="Image size"><option value="0">Auto</option>'+[30,40,50,60,70,80,100].map(function(p){return '<option value="'+p+'"'+(w===p?' selected':'')+'>'+p+'%</option>';}).join('')+'</select></span></span>';}).join('')+'</div>':'';
+  if(ib)ib.innerHTML=(r.images||[]).length?'<div class="il-note">Images for this '+partWord(skill).toLowerCase()+' (they appear in this order). Use ◀ ▶ to move one, choose its size, or × to remove it. '+((r.imagesBackup||[]).filter(Boolean).length===r.images.length?'<b>Backed up to Google Drive ✓</b>':'<button type="button" class="vm-btn vm-btn-ghost vm-btn-sm" data-bkimg="'+i+'">☁ Back up to Google Drive</button>')+'</div><div class="ed-thumbs">'+r.images.map(function(u,k){var w=imgW(u);return '<span class="ed-thumb ed-thumb2"><img src="'+esc(imgSrc(u))+'"'+((r.imagesBackup||[])[k]?' data-bk="'+esc(r.imagesBackup[k])+'"':'')+' alt="" referrerpolicy="no-referrer"><button type="button" class="ed-x" data-rmimg="'+i+'|'+k+'" title="Remove">×</button><span class="ed-imgbar"><button type="button" class="vm-btn vm-btn-ghost vm-btn-sm" data-mvimg="'+i+'|'+k+'|-1"'+(k===0?' disabled':'')+' title="Move earlier" aria-label="Move earlier">◀</button><button type="button" class="vm-btn vm-btn-ghost vm-btn-sm" data-mvimg="'+i+'|'+k+'|1"'+(k===r.images.length-1?' disabled':'')+' title="Move later" aria-label="Move later">▶</button><select class="vm-select ed-imgsz" data-szimg="'+i+'|'+k+'" aria-label="Image size"><option value="0">Auto</option>'+[30,40,50,60,70,80,100].map(function(p){return '<option value="'+p+'"'+(w===p?' selected':'')+'>'+p+'%</option>';}).join('')+'</select></span></span>';}).join('')+'</div>':'';
   var det=document.getElementById('det'+i);
   if(det)det.innerHTML=r.questions.length?'<div class="il-note">Detected <b>'+r.questions.length+'</b> question'+(r.questions.length===1?'':'s')+' in '+instr+' group'+(instr===1?'':'s')+': '+Object.keys(counts).map(function(t){return esc(typeName(t))+' × '+counts[t];}).join(' · ')+' <button type="button" class="vm-btn vm-btn-ghost vm-btn-sm" data-redetect="'+i+'" title="Forget manually chosen task types and detect them again">↻ Re-detect task types</button></div>':'<div class="il-note">No questions detected yet. Paste the full question section.</div>';
   var list=document.getElementById('ans'+i);
@@ -1666,8 +1671,9 @@ function editorDialog(init){
    var b=e.target.closest('button');if(!b)return;
    if(b.hasAttribute('data-fill')){var i=+b.getAttribute('data-fill'),r=ed.rows[i],m=parseAnswers(document.getElementById('ap'+i).value),n=0;r.questions.forEach(function(q,k){var key=qNum(q,k);if(m[key]){r.ans[key]=m[key];n++;}});recompute(i);document.getElementById('edError').textContent=n?'':'None of the pasted answers matched the question numbers. Write one answer per line, starting with the question number, e.g. “1 weather”, “2. 10/ten”, “3 B”. For two answers to one item write “21&22 B, D”.';if(n)VM.toast('Filled '+n+' answers.','ok');}
    else if(b.hasAttribute('data-redetect')){var rdi=+b.getAttribute('data-redetect');ed.rows[rdi].types={};recompute(rdi);VM.toast('Task types detected again.','ok',2200);}
-   else if(b.hasAttribute('data-mvimg')){var ma=b.getAttribute('data-mvimg').split('|'),mi=+ma[0],mk2=+ma[1],md=+ma[2],imgs2=ed.rows[mi].images,tk=mk2+md;if(tk>=0&&tk<imgs2.length){var tmp=imgs2[mk2];imgs2[mk2]=imgs2[tk];imgs2[tk]=tmp;recompute(mi);}}
-   else if(b.hasAttribute('data-rmimg')){var ra=b.getAttribute('data-rmimg').split('|');ed.rows[+ra[0]].images.splice(+ra[1],1);recompute(+ra[0]);}
+   else if(b.hasAttribute('data-mvimg')){var ma=b.getAttribute('data-mvimg').split('|'),mi=+ma[0],mk2=+ma[1],md=+ma[2],imgs2=ed.rows[mi].images,tk=mk2+md;if(tk>=0&&tk<imgs2.length){var tmp=imgs2[mk2];imgs2[mk2]=imgs2[tk];imgs2[tk]=tmp;var bb=ed.rows[mi].imagesBackup=ed.rows[mi].imagesBackup||[];var tb=bb[mk2];bb[mk2]=bb[tk];bb[tk]=tb;recompute(mi);}}
+   else if(b.hasAttribute('data-bkimg')){var bi=+b.getAttribute('data-bkimg'),brow=ed.rows[bi];b.disabled=true;b.textContent='Backing up…';call('ielts.images.backup',{urls:brow.images.map(imgSrc)}).then(function(res){brow.imagesBackup=(res.backups||[]).slice(0,6);recompute(bi);VM.toast('Images backed up to Google Drive.','ok');}).catch(function(e){b.disabled=false;b.textContent='☁ Back up to Google Drive';say(e.message);});}
+   else if(b.hasAttribute('data-rmimg')){var ra=b.getAttribute('data-rmimg').split('|');ed.rows[+ra[0]].images.splice(+ra[1],1);(ed.rows[+ra[0]].imagesBackup||[]).splice(+ra[1],1);recompute(+ra[0]);}
    else if(b.hasAttribute('data-rm')){ed.rows.splice(+b.getAttribute('data-rm'),1);build();}});
   var add=document.getElementById('edAdd');if(add)add.onclick=function(){var p=nextPart();if(!p)return;var imp=init.imported&&init.imported.filter(function(s){return String(s.part)===String(p);})[0];ed.rows.push(newRow(p,imp));ed.rows.sort(function(a,b){return +a.part-+b.part;});build();};
   var ar=document.getElementById('edArchive');if(ar)ar.onclick=function(){VM.confirm('Remove this item from the Library? Past attempts are kept.',{danger:true,ok:'Remove'}).then(function(y){if(y)call('ielts.content.archive',{id:ex.id||ex._id}).then(function(){VM.toast('Removed from the Library.','ok');state.loaded=false;load();}).catch(function(e){say(e.message);});});};
@@ -1681,7 +1687,7 @@ function editorDialog(init){
   var secs=act.map(function(r){
    var qs=r.questions.map(function(q,k){return{number:qNum(q,k),type:q.type,prompt:q.prompt,options:q.options||[],optTitle:q.optTitle||'',instruction:q.instruction||'',answers:[]};});
    var audio=r.audio;if(skill==='listening'){if(r.audioMode==='link'&&/^https?:\/\//i.test(r.audioUrl.trim()))audio={url:r.audioUrl.trim()};else if(r.audioMode==='file'&&r.file)audio={url:URL.createObjectURL(r.file)};}
-   return{title:partWord(skill)+' '+r.part,part:r.part,text:skill==='reading'?r.text:'',script:r.script,images:(r.images||[]).filter(function(u){return /^https:\/\//i.test(u);}),questions:qs,audio:audio};});
+   return{title:partWord(skill)+' '+r.part,part:r.part,text:skill==='reading'?r.text:'',script:r.script,images:(r.images||[]).filter(function(u){return /^https:\/\//i.test(u);}),imagesBackup:(r.images||[]).map(function(u,k){return /^https:\/\//i.test(u)?((r.imagesBackup||[])[k]||''):null;}).filter(function(v){return v!==null;}),questions:qs,audio:audio};});
   state.active={title:'Preview · '+(book||'Book')+' · Test '+(test||'?'),skill:skill,sections:secs};state.run=null;state.review=null;state.assignment=null;
   state.previewBack=function(){state.previewBack=null;state.active=null;state.run=null;setExam(false);build();window.scrollTo(0,0);};
   render();window.scrollTo(0,0);
@@ -1720,7 +1726,7 @@ function editorDialog(init){
     else if(!(r.audio&&r.audio.path))audio=undefined;
    }
    payloads.push({row:r,body:{folder:teacher?(document.getElementById('edFolder')?document.getElementById('edFolder').value:undefined):undefined,id:ex?(ex.id||ex._id):undefined,title:(r.title||'').trim()||(book+' · Test '+test+' · '+partWord(skill)+' '+r.part),skill:skill,book:book,test:test,part:r.part,sourceUrl:init.sourceUrl||(ex&&ex.sourceUrl)||'',sourceTitle:init.sourceTitle||(ex&&ex.sourceTitle)||'',attribution:(ex&&ex.attribution)||'',
-    sections:[{title:partWord(skill)+' '+r.part,part:r.part,images:(r.images||[]).filter(function(u){return /^https:\/\//i.test(u);}).slice(0,6),text:skill==='reading'?r.text:'',script:skill==='listening'?r.script:'',questionsText:r.qtext,questions:questions,audio:audio}]}});
+    sections:[{title:partWord(skill)+' '+r.part,part:r.part,images:(r.images||[]).filter(function(u){return /^https:\/\//i.test(u);}).slice(0,6),imagesBackup:(r.images||[]).map(function(u,k){return /^https:\/\//i.test(u)?((r.imagesBackup||[])[k]||''):null;}).filter(function(v){return v!==null;}).slice(0,6),text:skill==='reading'?r.text:'',script:skill==='listening'?r.script:'',questionsText:r.qtext,questions:questions,audio:audio}]}});
   });
   if(problem)return err(problem);
   var btn=document.getElementById('edDone');btn.disabled=true;
