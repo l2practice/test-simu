@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi"><head><meta charset="UTF-8"><link rel="icon" type="image/svg+xml" href="favicon.svg?v=20261009c"><link rel="apple-touch-icon" href="apple-touch-icon.png?v=20261009c"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#0F6B4F"><title>Test Simulation · IELTS Practice</title><link rel="stylesheet" href="vm-theme.css?v=20261012o">
+<meta name="theme-color" content="#0F6B4F"><title>Test Simulation · IELTS Practice</title><link rel="stylesheet" href="vm-theme.css?v=20261012p">
 <style>
 #app{min-height:100vh}.ielts-wrap{max-width:1180px;margin:auto}.ielts-hero{background:linear-gradient(120deg,var(--vm-sand-2),var(--vm-primary-lt));color:var(--vm-ink);padding:24px;border-radius:var(--vm-r);margin-bottom:18px}.ielts-hero h2{margin:0 0 6px;font-family:var(--vm-font-display)}.ielts-hero p{margin:0;color:var(--vm-ink-2)}.il-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}.il-card,.il-panel{background:var(--vm-surface);border:1px solid var(--vm-border-2);border-radius:var(--vm-r);padding:18px;box-shadow:var(--vm-shadow-sm)}.il-card h3{margin:5px 0;font-family:var(--vm-font-display)}.il-meta{font-size:.78rem;color:var(--vm-ink-3);margin:6px 0 12px}.il-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}.il-practice{display:grid;grid-template-columns:minmax(300px,1fr) minmax(300px,1fr);gap:16px}.il-passage{white-space:pre-wrap;line-height:1.85;max-height:68vh;overflow:auto}.il-q{border-bottom:1px solid var(--vm-border-2);padding:12px 0}.il-q label{display:block;font-weight:650;margin-bottom:7px}.il-q input,.il-q select{width:100%}.il-badge{display:inline-block;border-radius:99px;padding:3px 9px;background:var(--vm-primary-lt);color:var(--vm-primary-dk);font-size:.7rem;font-weight:700}.il-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.il-empty{padding:35px;text-align:center;color:var(--vm-ink-3)}.il-editor{display:grid;grid-template-columns:1fr 1fr;gap:10px}.il-editor textarea{min-height:130px;font-size:.92rem}.il-section-editor{margin:14px 0;padding:14px;border:1px solid var(--vm-border-2);border-radius:16px;background:var(--vm-surface)}.il-section-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.il-section-grid.three{grid-template-columns:1fr 1fr 1fr}.il-section-grid textarea{width:100%;min-height:230px;resize:vertical;white-space:pre-wrap}.il-answer-key{margin-top:20px;padding-top:16px;border-top:3px solid var(--vm-primary-lt)}.il-ai-output{white-space:pre-wrap;line-height:1.7}.il-settings{max-width:720px;margin:18px auto}.il-settings label{display:block;margin:12px 0 5px;font-weight:650}.il-chart{width:100%;height:220px;border:1px solid var(--vm-border-2);border-radius:10px;background:var(--vm-surface);margin-top:10px}.il-note{font-size:.78rem;color:var(--vm-ink-3)}.il-error{color:var(--vm-danger);font-size:.84rem}.il-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 @media(max-width:720px){.il-practice,.il-editor,.il-section-grid,.il-section-grid.three{grid-template-columns:1fr}.il-passage{max-height:40vh}}
@@ -305,7 +305,7 @@ body.exam-hc .il-wordbank{background:#fff;border-color:#000}body.exam-hc .wb-ite
 @media(min-width:760px){.wb-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 body.exam-dark .il-wordbank{background:#16241D!important;border-color:#2E4338}
 body.exam-hc .il-wordbank{border:2px solid #000}
-</style></head><body><div id="app"></div><script src="vm-common.js?v=20261012o"></script><script>
+</style></head><body><div id="app"></div><script src="vm-common.js?v=20261012p"></script><script>
 
 
 (function(){
@@ -335,6 +335,7 @@ function fmtAgo(v){var t=new Date(v).getTime();if(!t)return '';var s=Math.max(0,
 function localInput(t){var d=new Date(t),p=function(n){return ('0'+n).slice(-2);};return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T'+p(d.getHours())+':'+p(d.getMinutes());}
 function setTitle(t){VM.setTitle(t,'Test Simulation · IELTS');}
 var C_READ='#1E8A5E',C_LIST='#F08A3C';
+function fixCellBreaks(t){return String(t==null?'':t).split('\n').map(function(l){return (l.indexOf('\t')<0&&l.indexOf('\u2028')>=0)?l.split('\u2028').join('\n'):l;}).join('\n');}   // a one-cell box (an option list, an info box) is just lines; only multi-cell table rows keep in-cell line breaks
 function skillAbbr(s){return s==='listening'?'Lis':'Read';}
 var CAM_FOLDER='Cambridge Books',OTHER_FOLDER='Other books';
 function folderOf(it){return it.folder||(/^Cam\d+$/i.test(String(it.book||''))?CAM_FOLDER:OTHER_FOLDER);}
@@ -950,7 +951,7 @@ var GAP_RE=/(?:^|[^\d])(40|[1-3]\d|[1-9])(?!\d)\s*\)?\s*[‘'"“]?\s*(?:[£$€
 var JUNK_RE=/^(?:cam(?:bridge)?\s*\d+\s*)?(?:listening|reading)\s+test\s*\d+$/i;
 function cleanJunk(t){return String(t||'').split('\n').filter(function(l){return !JUNK_RE.test(l.trim());}).join('\n');}
 function parseQuestions(text){
- var lines=String(text||'').replace(/\r/g,'').split('\n'),groups=[],cur=null;
+ var lines=fixCellBreaks(String(text||'').replace(/\r/g,'')).split('\n'),groups=[],cur=null;
  var headRe=/^\s*questions?\s+(40|[1-3]\d|[1-9])(?!\d)(?:\s*(?:[-–—]|to|and|&)\s*(40|[1-3]\d|[1-9])(?!\d))?\b/i;
  lines.forEach(function(raw){var line=raw.replace(/\s+$/,''),h=headRe.exec(line);if(JUNK_RE.test(line.trim()))return;
   if(h){cur={from:+h[1],to:+(h[2]||h[1]),raw:[line.trim()]};groups.push(cur);return;}
@@ -1253,7 +1254,7 @@ function tableCells(line){
 }
 /* Renders text where runs of tab- or pipe-separated lines become real tables; cells may hold numbered blanks. */
 function richHtml(text,byNum,mk){
- var lines=String(text||'').split('\n'),out='',buf=[],used={};
+ var lines=fixCellBreaks(text).split('\n'),out='',buf=[],used={};
  var INSTR=/^(questions?\s+\d|complete\b|choose\b|write\b|label\b|match\b|do the following|look at|answer the|which\b|read the|use the|the diagram|the table|the plan|the map|the flow)/i,sawInstr=false,titled=false;
  function fmtB(s){return s.replace(/\*\*([^*\n]+?)\*\*/g,'<b>$1</b>');}
  function cell1(x){x=String(x).replace(/[●▪◦‣]/g,'•');if(!mk)return fmtB(esc(x));var g=gapInline(x,byNum,mk);for(var k in g.used)used[k]=1;return fmtB(g.html);}
@@ -1571,10 +1572,10 @@ function editorDialog(init){
  function taken(part){return !ex&&book&&test&&state.items.some(function(i){return i.skill===skill&&i.book===book&&String(i.test)===String(test)&&String(i.part)===String(part);});}
  function newRow(part,sec){
   sec=sec||{};
-  var r={part:String(part),title:(ex&&ex.title)||'',text:sec.text||'',script:sec.script||'',images:(sec.images||[]).slice(0,6),imagesBackup:(sec.imagesBackup||[]).slice(0,6),pendingAns:sec.answersText?parseAnswers(sec.answersText):null,audio:sec.audio||null,audioMode:(sec.audio&&sec.audio.url)?'link':'file',audioUrl:(sec.audio&&sec.audio.url)||'',file:null,ans:{},types:{},questions:[]};
+  var r={part:String(part),title:(ex&&ex.title)||'',text:fixCellBreaks(sec.text||''),script:sec.script||'',images:(sec.images||[]).slice(0,6),imagesBackup:(sec.imagesBackup||[]).slice(0,6),pendingAns:sec.answersText?parseAnswers(sec.answersText):null,audio:sec.audio||null,audioMode:(sec.audio&&sec.audio.url)?'link':'file',audioUrl:(sec.audio&&sec.audio.url)||'',file:null,ans:{},types:{},questions:[]};
   var qs=sec.questions||[];
   qs.forEach(function(q,i){var k=q.number||i+1;r.ans[k]=(q.answers||[]).slice();if(q.type)r.types[k]=q.type;});
-  r.qtext=sec.questionsText||serializeQuestions(qs);
+  r.qtext=fixCellBreaks(sec.questionsText||serializeQuestions(qs));
   return r;
  }
  function nextPart(){for(var p=1;p<=maxParts();p++){var s=String(p);if(!ed.rows.some(function(r){return r.part===s;})&&!taken(s))return s;}return '';}
