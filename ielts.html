@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi"><head><meta charset="UTF-8"><link rel="icon" type="image/svg+xml" href="favicon.svg?v=20261009c"><link rel="apple-touch-icon" href="apple-touch-icon.png?v=20261009c"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#0F6B4F"><title>Test Simulation · IELTS Practice</title><link rel="stylesheet" href="vm-theme.css?v=20261012r">
+<meta name="theme-color" content="#0F6B4F"><title>Test Simulation · IELTS Practice</title><link rel="stylesheet" href="vm-theme.css?v=20261012s">
 <style>
 #app{min-height:100vh}.ielts-wrap{max-width:1180px;margin:auto}.ielts-hero{background:linear-gradient(120deg,var(--vm-sand-2),var(--vm-primary-lt));color:var(--vm-ink);padding:24px;border-radius:var(--vm-r);margin-bottom:18px}.ielts-hero h2{margin:0 0 6px;font-family:var(--vm-font-display)}.ielts-hero p{margin:0;color:var(--vm-ink-2)}.il-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}.il-card,.il-panel{background:var(--vm-surface);border:1px solid var(--vm-border-2);border-radius:var(--vm-r);padding:18px;box-shadow:var(--vm-shadow-sm)}.il-card h3{margin:5px 0;font-family:var(--vm-font-display)}.il-meta{font-size:.78rem;color:var(--vm-ink-3);margin:6px 0 12px}.il-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}.il-practice{display:grid;grid-template-columns:minmax(300px,1fr) minmax(300px,1fr);gap:16px}.il-passage{white-space:pre-wrap;line-height:1.85;max-height:68vh;overflow:auto}.il-q{border-bottom:1px solid var(--vm-border-2);padding:12px 0}.il-q label{display:block;font-weight:650;margin-bottom:7px}.il-q input,.il-q select{width:100%}.il-badge{display:inline-block;border-radius:99px;padding:3px 9px;background:var(--vm-primary-lt);color:var(--vm-primary-dk);font-size:.7rem;font-weight:700}.il-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.il-empty{padding:35px;text-align:center;color:var(--vm-ink-3)}.il-editor{display:grid;grid-template-columns:1fr 1fr;gap:10px}.il-editor textarea{min-height:130px;font-size:.92rem}.il-section-editor{margin:14px 0;padding:14px;border:1px solid var(--vm-border-2);border-radius:16px;background:var(--vm-surface)}.il-section-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.il-section-grid.three{grid-template-columns:1fr 1fr 1fr}.il-section-grid textarea{width:100%;min-height:230px;resize:vertical;white-space:pre-wrap}.il-answer-key{margin-top:20px;padding-top:16px;border-top:3px solid var(--vm-primary-lt)}.il-ai-output{white-space:pre-wrap;line-height:1.7}.il-settings{max-width:720px;margin:18px auto}.il-settings label{display:block;margin:12px 0 5px;font-weight:650}.il-chart{width:100%;height:220px;border:1px solid var(--vm-border-2);border-radius:10px;background:var(--vm-surface);margin-top:10px}.il-note{font-size:.78rem;color:var(--vm-ink-3)}.il-error{color:var(--vm-danger);font-size:.84rem}.il-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 @media(max-width:720px){.il-practice,.il-editor,.il-section-grid,.il-section-grid.three{grid-template-columns:1fr}.il-passage{max-height:40vh}}
@@ -306,7 +306,7 @@ body.exam-hc .il-wordbank{background:#fff;border-color:#000}body.exam-hc .wb-ite
 @media(min-width:760px){.wb-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 body.exam-dark .il-wordbank{background:#16241D!important;border-color:#2E4338}
 body.exam-hc .il-wordbank{border:2px solid #000}
-</style></head><body><div id="app"></div><script src="vm-common.js?v=20261012r"></script><script>
+</style></head><body><div id="app"></div><script src="vm-common.js?v=20261012s"></script><script>
 
 
 (function(){
@@ -1028,6 +1028,7 @@ function parseQuestions(text){
  return out;
 }
 function answerAlts(s){
+ s=String(s||'').replace(/\bin either order\b/ig,'').replace(/\(\s*both required[^)]*\)/ig,'').replace(/\s+/g,' ').trim();   // "IN EITHER ORDER (BOTH REQUIRED FOR ONE MARK) leaves (and) bark"
  var alts=String(s||'').split(/\s*(?:\/|\||;)\s*|\s+or\s+|\s*,\s*(?=[A-Za-z]\b)/i).map(function(v){return v.trim();}).filter(Boolean),res=[];
  alts.forEach(function(a){
   if(res.indexOf(a)<0)res.push(a);   // brackets are kept as typed: the grader expands optional (words) when it marks, so old tests follow any later rule change
@@ -1079,7 +1080,7 @@ function filled(v){return String(v==null?'':v).trim()!=='';}
 function newRun(x){return{forItem:x,part:0,answers:[],committed:{},qMs:{},qChanges:{},qFirst:{},partMs:[],partSince:Date.now(),startedMs:Date.now(),focusQ:-1,focusSince:0,hidden:0,hl:{},flags:{},userAudio:{}};}
 function focusOn(i){var r=state.run,now=Date.now();if(r.focusQ>=0)r.qMs[r.focusQ]=(r.qMs[r.focusQ]||0)+now-r.focusSince;r.focusQ=i;r.focusSince=now;}
 function flushTiming(){var r=state.run,now=Date.now();focusOn(-1);r.partMs[r.part]=(r.partMs[r.part]||0)+now-r.partSince;r.partSince=now;}
-function syncVisible(){var r=state.run;if(!r||state.review)return;qa('#splitArea [data-q]').forEach(function(el){var i=+el.getAttribute('data-q');if(el.type==='radio'){if(el.checked)r.answers[i]=el.value;}else r.answers[i]=el.value;});}
+function syncVisible(){var r=state.run;if(!r||state.review)return;var subs={};qa('#splitArea [data-q]').forEach(function(el){var i=+el.getAttribute('data-q');if(el.hasAttribute('data-sub')){subs[i]=1;return;}if(el.type==='radio'){if(el.checked)r.answers[i]=el.value;}else r.answers[i]=el.value;});Object.keys(subs).forEach(function(i){var vs=qa('#splitArea input[data-q="'+i+'"][data-sub]').sort(function(a,b){return +a.getAttribute('data-sub')-+b.getAttribute('data-sub');}).map(function(x){return x.value.trim();});r.answers[i]=vs.some(Boolean)?vs.join(' and '):'';});}
 function answeredCount(){var r=state.run;return flatQs(state.active).filter(function(f,i){return filled(r.answers[i]);}).length;}
 function updateProgress(){var el=document.getElementById('prog');if(el)el.textContent=answeredCount()+'/'+flatQs(state.active).length+' answered';drawExamNav(true);}
 
@@ -1123,8 +1124,9 @@ function renderPractice(){
  document.getElementById('exit').onclick=function(){var pb=state.previewBack;function out(){stopTimer();exitFS();if(pb){pb();return;}state.active=null;state.run=null;state.review=null;state.assignment=null;render();window.scrollTo(0,0);}if(!rv&&!isPrev()&&answeredCount())VM.confirm('Leave the test and discard your answers?',{danger:true,ok:'Leave'}).then(function(y){if(y)out();});else out();};
  document.getElementById('report').onclick=function(){VM.prompt('Which question number has a problem? (optional)',{title:'Report an issue',ok:'Next'}).then(function(n){if(n===null)return;VM.prompt('Describe the problem for your teacher:',{title:'Report an issue',multiline:true,ok:'Send'}).then(function(message){if(!message||!message.trim())return;call('ielts.report.create',{contentId:String(x.id||x._id).split(',')[0],contentTitle:titleItem(x),questionNumber:n,message:message,privateContent:false}).then(function(){VM.toast('Report sent to your teacher.','ok');}).catch(function(e){say(e.message);});});});};
  var split=document.getElementById('splitArea');
- split.addEventListener('input',function(e){var el=e.target,r=state.run;if(rv||!el.hasAttribute('data-q'))return;r.answers[+el.getAttribute('data-q')]=el.value;updateProgress();});
- split.addEventListener('change',function(e){var el=e.target,r=state.run;if(rv||!el.hasAttribute('data-q'))return;var i=+el.getAttribute('data-q'),v=el.value;r.answers[i]=v;
+ function joinSub(i){var vs=qa('#splitArea input[data-q="'+i+'"][data-sub]').sort(function(a,b){return +a.getAttribute('data-sub')-+b.getAttribute('data-sub');}).map(function(x){return x.value.trim();});return vs.some(Boolean)?vs.join(' and ').replace(/^ and | and $/g,''):'';}
+ split.addEventListener('input',function(e){var el=e.target,r=state.run;if(rv||!el.hasAttribute('data-q'))return;var qi=+el.getAttribute('data-q');r.answers[qi]=el.hasAttribute('data-sub')?joinSub(qi):el.value;updateProgress();});
+ split.addEventListener('change',function(e){var el=e.target,r=state.run;if(rv||!el.hasAttribute('data-q'))return;var i=+el.getAttribute('data-q'),v=el.hasAttribute('data-sub')?joinSub(i):el.value;r.answers[i]=v;
   if(filled(v)&&r.qFirst[i]==null)r.qFirst[i]=Date.now()-r.startedMs;
   if(filled(r.committed[i])&&v!==r.committed[i])r.qChanges[i]=(r.qChanges[i]||0)+1;
   r.committed[i]=v;updateProgress();});
@@ -1240,11 +1242,17 @@ function letterSel(c,f,pairs,opts){
  var q=f.q,i=f.n-1,val=c.r.answers[i]||'';
  return '<select class="vm-select il-sel gap-sel gap-letter'+qcls(c,f)+'" data-q="'+i+'" aria-label="Answer for question '+f.num+'"'+c.dis+'><option value="">–</option>'+pairs.map(function(p,k){var v=opts.length?optValue(q,opts[k],k):p.l;return '<option value="'+esc(v)+'"'+(val===v?' selected':'')+'>'+esc(p.l)+'</option>';}).join('')+'</select>';
 }
-function txtCtl(c,f,cls,ph){var i=f.n-1;return '<input class="vm-input '+(cls||'il-ans')+qcls(c,f)+'" type="text" data-q="'+i+'" value="'+esc(c.r.answers[i]||'')+'" placeholder="'+esc(ph||'')+'" autocomplete="off"'+c.dis+'>';}
+function txtCtl(c,f,cls,ph,sub){var i=f.n-1,val=c.r.answers[i]||'',sa=sub===undefined?'':' data-sub="'+sub+'"';if(sub!==undefined)val=(String(val).split(/\s+and\s+/i)[sub]||'');return '<input class="vm-input '+(cls||'il-ans')+qcls(c,f)+'" type="text" data-q="'+i+'"'+sa+' value="'+esc(val)+'" placeholder="'+esc(ph||'')+'" autocomplete="off"'+c.dis+'>';}
 function gapInline(text,byNum,mk,wrap){
  wrap=wrap||function(s){return s;};
  var re=/(^|[^\d])(40|[1-3]\d|[1-9])(?!\d)(\s*\)?\s*[‘'"“]?\s*)([£$€¥]?)\s*(?:[\.…_]{3,}|…)([’'"”]?)/g,out='',last=0,m,used={};
- while((m=re.exec(text))){var f=byNum[+m[2]];if(!f)continue;out+=wrap(esc(text.slice(last,m.index+m[1].length)))+(m[4]?esc(m[4])+' ':'')+mk(f);used[+m[2]]=1;last=m.index+m[0].length;}
+ var and2=/^(\s*(?:and|&|or|,|\/)\s*)(?:[\.…_]{3,}|…)/i;
+ while((m=re.exec(text))){var f=byNum[+m[2]];if(!f)continue;
+  var tail=text.slice(m.index+m[0].length),a2=and2.exec(tail),second='';
+  out+=wrap(esc(text.slice(last,m.index+m[1].length)))+(m[4]?esc(m[4])+' ':'')+mk(f,a2?0:undefined);
+  used[+m[2]]=1;last=m.index+m[0].length;
+  if(a2){out+=wrap(esc(a2[1]))+mk(f,1);last+=a2[0].length;re.lastIndex=last;}   // "7 ….. and ….." = two boxes for question 7 (answer stored as "x and y")
+ }
  return{html:out+wrap(esc(text.slice(last))),used:used};
 }
 function tableCells(line){
@@ -1324,8 +1332,9 @@ function renderGroup(g,c){
    BANK_HTML='<div class="il-wordbank" role="group" aria-label="List of words"><div class="wb-grid">'+wl.map(function(w,wi){return '<div class="wb-item"><b>'+esc(w.l)+'</b><span data-hk="wb'+first.n+'_'+wi+'">'+esc(w.t)+'</span></div>';}).join('')+'</div></div>';}
   else BANK_HTML='';
   HK_PREFIX='g'+first.n+'_';
-  var gi=richHtml(shown,byNum,function(f){var o=f.q.options||[];
-   var ctl=wl.length>=2?letterSel(c,f,wl,o):(o.length?selCtl(c,f,o,' gap-sel'):txtCtl(c,f,'gap-in','…'));
+  var gi=richHtml(shown,byNum,function(f,sub){var o=f.q.options||[];
+   if(sub===1)return '<span class="gap-wrap">'+txtCtl(c,f,'gap-in','…',1)+'</span>';
+   var ctl=wl.length>=2?letterSel(c,f,wl,o):(o.length?selCtl(c,f,o,' gap-sel'):txtCtl(c,f,'gap-in','…',sub));
    return '<span class="gap-wrap" id="q'+f.n+'"><b class="gap-n">'+f.num+'</b>'+ctl+qmark(c,f)+'</span>';});
   HK_PREFIX='';
   if(Object.keys(gi.used).length>=Math.max(1,g.qs.length-1)){
