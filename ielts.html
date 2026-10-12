@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi"><head><meta charset="UTF-8"><link rel="icon" type="image/svg+xml" href="favicon.svg?v=20261009c"><link rel="apple-touch-icon" href="apple-touch-icon.png?v=20261009c"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#0F6B4F"><title>Test Simulation · IELTS Practice</title><link rel="stylesheet" href="vm-theme.css?v=20261012p">
+<meta name="theme-color" content="#0F6B4F"><title>Test Simulation · IELTS Practice</title><link rel="stylesheet" href="vm-theme.css?v=20261012q">
 <style>
 #app{min-height:100vh}.ielts-wrap{max-width:1180px;margin:auto}.ielts-hero{background:linear-gradient(120deg,var(--vm-sand-2),var(--vm-primary-lt));color:var(--vm-ink);padding:24px;border-radius:var(--vm-r);margin-bottom:18px}.ielts-hero h2{margin:0 0 6px;font-family:var(--vm-font-display)}.ielts-hero p{margin:0;color:var(--vm-ink-2)}.il-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}.il-card,.il-panel{background:var(--vm-surface);border:1px solid var(--vm-border-2);border-radius:var(--vm-r);padding:18px;box-shadow:var(--vm-shadow-sm)}.il-card h3{margin:5px 0;font-family:var(--vm-font-display)}.il-meta{font-size:.78rem;color:var(--vm-ink-3);margin:6px 0 12px}.il-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}.il-practice{display:grid;grid-template-columns:minmax(300px,1fr) minmax(300px,1fr);gap:16px}.il-passage{white-space:pre-wrap;line-height:1.85;max-height:68vh;overflow:auto}.il-q{border-bottom:1px solid var(--vm-border-2);padding:12px 0}.il-q label{display:block;font-weight:650;margin-bottom:7px}.il-q input,.il-q select{width:100%}.il-badge{display:inline-block;border-radius:99px;padding:3px 9px;background:var(--vm-primary-lt);color:var(--vm-primary-dk);font-size:.7rem;font-weight:700}.il-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.il-empty{padding:35px;text-align:center;color:var(--vm-ink-3)}.il-editor{display:grid;grid-template-columns:1fr 1fr;gap:10px}.il-editor textarea{min-height:130px;font-size:.92rem}.il-section-editor{margin:14px 0;padding:14px;border:1px solid var(--vm-border-2);border-radius:16px;background:var(--vm-surface)}.il-section-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.il-section-grid.three{grid-template-columns:1fr 1fr 1fr}.il-section-grid textarea{width:100%;min-height:230px;resize:vertical;white-space:pre-wrap}.il-answer-key{margin-top:20px;padding-top:16px;border-top:3px solid var(--vm-primary-lt)}.il-ai-output{white-space:pre-wrap;line-height:1.7}.il-settings{max-width:720px;margin:18px auto}.il-settings label{display:block;margin:12px 0 5px;font-weight:650}.il-chart{width:100%;height:220px;border:1px solid var(--vm-border-2);border-radius:10px;background:var(--vm-surface);margin-top:10px}.il-note{font-size:.78rem;color:var(--vm-ink-3)}.il-error{color:var(--vm-danger);font-size:.84rem}.il-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 @media(max-width:720px){.il-practice,.il-editor,.il-section-grid,.il-section-grid.three{grid-template-columns:1fr}.il-passage{max-height:40vh}}
@@ -305,7 +305,7 @@ body.exam-hc .il-wordbank{background:#fff;border-color:#000}body.exam-hc .wb-ite
 @media(min-width:760px){.wb-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 body.exam-dark .il-wordbank{background:#16241D!important;border-color:#2E4338}
 body.exam-hc .il-wordbank{border:2px solid #000}
-</style></head><body><div id="app"></div><script src="vm-common.js?v=20261012p"></script><script>
+</style></head><body><div id="app"></div><script src="vm-common.js?v=20261012q"></script><script>
 
 
 (function(){
@@ -1234,16 +1234,17 @@ function selCtl(c,f,opts,extra){
  var q=f.q,i=f.n-1,val=c.r.answers[i]||'';
  return '<select class="vm-select il-sel'+qcls(c,f)+(extra||'')+'" data-q="'+i+'"'+c.dis+'><option value="">Select…</option>'+opts.map(function(o,oi){var v=optValue(q,o,oi);return '<option value="'+esc(v)+'"'+(val===v?' selected':'')+'>'+esc(optText(q,o,oi))+'</option>';}).join('')+'</select>';
 }
-var BANK_HTML='',FLOW_MODE=false;
+var BANK_HTML='',FLOW_MODE=false,HK_PREFIX='';   // HK_PREFIX: makes the text pieces around the answer boxes of a gap-fill group highlightable
 function letterSel(c,f,pairs,opts){
  var q=f.q,i=f.n-1,val=c.r.answers[i]||'';
  return '<select class="vm-select il-sel gap-sel gap-letter'+qcls(c,f)+'" data-q="'+i+'" aria-label="Answer for question '+f.num+'"'+c.dis+'><option value="">–</option>'+pairs.map(function(p,k){var v=opts.length?optValue(q,opts[k],k):p.l;return '<option value="'+esc(v)+'"'+(val===v?' selected':'')+'>'+esc(p.l)+'</option>';}).join('')+'</select>';
 }
 function txtCtl(c,f,cls,ph){var i=f.n-1;return '<input class="vm-input '+(cls||'il-ans')+qcls(c,f)+'" type="text" data-q="'+i+'" value="'+esc(c.r.answers[i]||'')+'" placeholder="'+esc(ph||'')+'" autocomplete="off"'+c.dis+'>';}
-function gapInline(text,byNum,mk){
+function gapInline(text,byNum,mk,wrap){
+ wrap=wrap||function(s){return s;};
  var re=/(^|[^\d])(40|[1-3]\d|[1-9])(?!\d)(\s*\)?\s*[‘'"“]?\s*)([£$€¥]?)\s*(?:[\.…_]{3,}|…)([’'"”]?)/g,out='',last=0,m,used={};
- while((m=re.exec(text))){var f=byNum[+m[2]];if(!f)continue;out+=esc(text.slice(last,m.index+m[1].length))+(m[4]?esc(m[4])+' ':'')+mk(f);used[+m[2]]=1;last=m.index+m[0].length;}
- return{html:out+esc(text.slice(last)),used:used};
+ while((m=re.exec(text))){var f=byNum[+m[2]];if(!f)continue;out+=wrap(esc(text.slice(last,m.index+m[1].length)))+(m[4]?esc(m[4])+' ':'')+mk(f);used[+m[2]]=1;last=m.index+m[0].length;}
+ return{html:out+wrap(esc(text.slice(last))),used:used};
 }
 function tableCells(line){
  var t=line.replace(/\s+$/,'');
@@ -1257,7 +1258,8 @@ function richHtml(text,byNum,mk){
  var lines=fixCellBreaks(text).split('\n'),out='',buf=[],used={};
  var INSTR=/^(questions?\s+\d|complete\b|choose\b|write\b|label\b|match\b|do the following|look at|answer the|which\b|read the|use the|the diagram|the table|the plan|the map|the flow)/i,sawInstr=false,titled=false;
  function fmtB(s){return s.replace(/\*\*([^*\n]+?)\*\*/g,'<b>$1</b>');}
- function cell1(x){x=String(x).replace(/[●▪◦‣]/g,'•');if(!mk)return fmtB(esc(x));var g=gapInline(x,byNum,mk);for(var k in g.used)used[k]=1;return fmtB(g.html);}
+ var hkn=0;function hkWrap(s){return (HK_PREFIX&&s&&s.trim())?'<span data-hk="'+HK_PREFIX+(hkn++)+'">'+s+'</span>':s;}
+ function cell1(x){x=String(x).replace(/[●▪◦‣]/g,'•');if(!mk)return fmtB(esc(x));var g=gapInline(x,byNum,mk,hkWrap);for(var k in g.used)used[k]=1;return fmtB(g.html);}
  function lvOf(lead){var t=(lead.match(/\t/g)||[]).length,s=lead.replace(/\t/g,'').length;return Math.min(4,t+Math.floor(s/3));}
  function blk(p,inCell){   // one visual line: bullet with a hanging indent, indented text, or plain text
   var m=/^([\t ]*)([•●▪◦‣·]|[-–—])\s+(\S[\s\S]*)$/.exec(p);
@@ -1318,11 +1320,13 @@ function renderGroup(g,c){
   FLOW_MODE=/flow-?\s?chart/i.test(instr);
   var ex=extractWordBank(instr),wl=(first.q.options&&first.q.options.length>=2)?first.q.options.map(function(t,i){return{l:letterOf(i),t:t};}):ex.pairs,shown=instr;
   if(wl.length>=2){shown=ex.pairs.length>=2?ex.text:instr+'\n[[WORDBANK]]';
-   BANK_HTML='<div class="il-wordbank" role="group" aria-label="List of words"><div class="wb-grid">'+wl.map(function(w){return '<div class="wb-item"><b>'+esc(w.l)+'</b><span>'+esc(w.t)+'</span></div>';}).join('')+'</div></div>';}
+   BANK_HTML='<div class="il-wordbank" role="group" aria-label="List of words"><div class="wb-grid">'+wl.map(function(w,wi){return '<div class="wb-item"><b>'+esc(w.l)+'</b><span data-hk="wb'+first.n+'_'+wi+'">'+esc(w.t)+'</span></div>';}).join('')+'</div></div>';}
   else BANK_HTML='';
+  HK_PREFIX='g'+first.n+'_';
   var gi=richHtml(shown,byNum,function(f){var o=f.q.options||[];
    var ctl=wl.length>=2?letterSel(c,f,wl,o):(o.length?selCtl(c,f,o,' gap-sel'):txtCtl(c,f,'gap-in','…'));
    return '<span class="gap-wrap" id="q'+f.n+'"><b class="gap-n">'+f.num+'</b>'+ctl+qmark(c,f)+'</span>';});
+  HK_PREFIX='';
   if(Object.keys(gi.used).length>=Math.max(1,g.qs.length-1)){
    var rest=g.qs.filter(function(f){return !gi.used[f.num];});
    return '<div class="il-group il-gapbox">'+(c.img&&/diagram|labelling/.test(t)?c.img:'')+'<div class="il-gaptext">'+gi.html+'</div>'+(rest.length?qrowTable(c,{qs:rest},function(f){return txtCtl(c,f,'il-ans','Your answer');}):'')+'</div>';
