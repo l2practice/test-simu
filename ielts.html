@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi"><head><meta charset="UTF-8"><link rel="icon" type="image/svg+xml" href="favicon.svg?v=20261009c"><link rel="apple-touch-icon" href="apple-touch-icon.png?v=20261009c"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#0F6B4F"><title>Test Simulation · IELTS Practice</title><link rel="stylesheet" href="vm-theme.css?v=20261014c">
+<meta name="theme-color" content="#0F6B4F"><title>Test Simulation · IELTS Practice</title><link rel="stylesheet" href="vm-theme.css?v=20261016a">
 <style>
 #app{min-height:100vh}.ielts-wrap{max-width:1180px;margin:auto}.ielts-hero{background:linear-gradient(120deg,var(--vm-sand-2),var(--vm-primary-lt));color:var(--vm-ink);padding:24px;border-radius:var(--vm-r);margin-bottom:18px}.ielts-hero h2{margin:0 0 6px;font-family:var(--vm-font-display)}.ielts-hero p{margin:0;color:var(--vm-ink-2)}.il-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}.il-card,.il-panel{background:var(--vm-surface);border:1px solid var(--vm-border-2);border-radius:var(--vm-r);padding:18px;box-shadow:var(--vm-shadow-sm)}.il-card h3{margin:5px 0;font-family:var(--vm-font-display)}.il-meta{font-size:.78rem;color:var(--vm-ink-3);margin:6px 0 12px}.il-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}.il-practice{display:grid;grid-template-columns:minmax(300px,1fr) minmax(300px,1fr);gap:16px}.il-passage{white-space:pre-wrap;line-height:1.85;max-height:68vh;overflow:auto}.il-q{border-bottom:1px solid var(--vm-border-2);padding:12px 0}.il-q label{display:block;font-weight:650;margin-bottom:7px}.il-q input,.il-q select{width:100%}.il-badge{display:inline-block;border-radius:99px;padding:3px 9px;background:var(--vm-primary-lt);color:var(--vm-primary-dk);font-size:.7rem;font-weight:700}.il-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.il-empty{padding:35px;text-align:center;color:var(--vm-ink-3)}.il-editor{display:grid;grid-template-columns:1fr 1fr;gap:10px}.il-editor textarea{min-height:130px;font-size:.92rem}.il-section-editor{margin:14px 0;padding:14px;border:1px solid var(--vm-border-2);border-radius:16px;background:var(--vm-surface)}.il-section-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.il-section-grid.three{grid-template-columns:1fr 1fr 1fr}.il-section-grid textarea{width:100%;min-height:230px;resize:vertical;white-space:pre-wrap}.il-answer-key{margin-top:20px;padding-top:16px;border-top:3px solid var(--vm-primary-lt)}.il-ai-output{white-space:pre-wrap;line-height:1.7}.il-settings{max-width:720px;margin:18px auto}.il-settings label{display:block;margin:12px 0 5px;font-weight:650}.il-chart{width:100%;height:220px;border:1px solid var(--vm-border-2);border-radius:10px;background:var(--vm-surface);margin-top:10px}.il-note{font-size:.78rem;color:var(--vm-ink-3)}.il-error{color:var(--vm-danger);font-size:.84rem}.il-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 @media(max-width:720px){.il-practice,.il-editor,.il-section-grid,.il-section-grid.three{grid-template-columns:1fr}.il-passage{max-height:40vh}}
@@ -306,7 +306,7 @@ body.exam-hc .il-wordbank{background:#fff;border-color:#000}body.exam-hc .wb-ite
 @media(min-width:760px){.wb-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 body.exam-dark .il-wordbank{background:#16241D!important;border-color:#2E4338}
 body.exam-hc .il-wordbank{border:2px solid #000}
-</style></head><body><div id="app"></div><script src="vm-common.js?v=20261014c"></script><script>
+</style></head><body><div id="app"></div><script src="vm-common.js?v=20261016a"></script><script>
 
 
 (function(){
@@ -404,7 +404,7 @@ function typeStats(attempts){
 function glanceView(box,attempts,opts){
  opts=opts||{};
  var st={skill:'all',view:'chart',hide:{}};
- var data=attempts.filter(function(a){return typeof a.score==='number'&&isFinite(a.score);}).sort(function(a,b){return String(a.completedAt).localeCompare(String(b.completedAt));});
+ var data=attempts.filter(function(a){return typeof a.score==='number'&&isFinite(a.score)&&!/^task type\b/i.test(a.title||(a.snapshot&&a.snapshot.title)||'');}).sort(function(a,b){return String(a.completedAt).localeCompare(String(b.completedAt));});
  box.innerHTML='<div class="il-panel gl-panel"><div class="il-toolbar"><div class="il-seg" id="glSkill"><button data-s="all" class="on">All skills</button><button data-s="reading">Reading</button><button data-s="listening">Listening</button></div><span class="il-spacer"></span><div class="il-seg" id="glView"><button data-v="chart" class="on">Chart</button><button data-v="table">Table</button></div></div><div id="glBody"></div></div><div class="il-panel" id="glTypes"></div>';
  function seg(id,key){qa('#'+id+' button').forEach(function(b){b.onclick=function(){st[key]=b.getAttribute(key==='skill'?'data-s':'data-v');qa('#'+id+' button').forEach(function(x){x.classList.toggle('on',x===b);});draw();};});}
  seg('glSkill','skill');seg('glView','view');
@@ -719,21 +719,32 @@ function drawTypesPage(into,fixed){
 function pickParts(t){
  var box=document.getElementById('tyPick');
  var sorted=t.items.slice().sort(function(a,b){return bookNum(b.book)-bookNum(a.book)||String(a.book).localeCompare(String(b.book))||(parseInt(a.test,10)||0)-(parseInt(b.test,10)||0)||(parseInt(a.part,10)||0)-(parseInt(b.part,10)||0);});
- box.innerHTML='<div class="il-panel il-dialog"><h3>'+esc(typeName(t.type))+' · choose parts</h3><div class="il-note">Select up to 12 parts. Only the <b>'+esc(typeName(t.type))+'</b> questions from them are shown.</div><div class="il-students">'+sorted.map(function(i,k){return '<label class="il-opt"><input type="checkbox" value="'+esc(i.id)+'"'+(k<3?' checked':'')+'> '+esc(i.title)+'</label>';}).join('')+'</div><div class="il-row" style="margin-top:12px"><button class="vm-btn vm-btn-primary" id="tyGo">Start practice</button><button class="vm-btn vm-btn-ghost" id="tyCancel">Cancel</button></div></div>';
+ box.innerHTML='<div class="il-panel il-dialog"><h3>'+esc(typeName(t.type))+' · choose parts</h3><div class="il-note">Choose one part. Only its <b>'+esc(typeName(t.type))+'</b> questions are shown, numbered as in the real test. Afterwards you can pick another part.</div><div class="il-students">'+sorted.map(function(i,k){return '<label class="il-opt"><input type="radio" name="tyPart" value="'+esc(i.id)+'"'+(k<1?' checked':'')+'> '+esc(i.title)+'</label>';}).join('')+'</div><div class="il-row" style="margin-top:12px"><button class="vm-btn vm-btn-primary" id="tyGo">Start practice</button><button class="vm-btn vm-btn-ghost" id="tyCancel">Cancel</button></div></div>';
  box.scrollIntoView({behavior:'smooth'});
  document.getElementById('tyCancel').onclick=function(){box.innerHTML='';};
- document.getElementById('tyGo').onclick=function(){var ids=qa('#tyPick input:checked').map(function(i){return i.value;});if(!ids.length)return say('Select at least one part.');if(ids.length>12)return say('Select 12 parts or fewer.');this.disabled=true;openItems(ids,null,{taskType:t.type,taskTypes:t.types,skill:t.skill});};
+ document.getElementById('tyGo').onclick=function(){var ids=qa('#tyPick input:checked').map(function(i){return i.value;}).slice(0,1);if(!ids.length)return say('Choose a part.');this.disabled=true;openItems(ids,null,{taskType:t.type,taskTypes:t.types,skill:t.skill});};
+}
+function fixStoredTypes(r){   // older saves: a True/False/Not Given or Yes/No/Not Given group stored as short answer
+ (r.sections||[]).forEach(function(s){var ins='';(s.questions||[]).forEach(function(q){if(q.instruction)ins=String(q.instruction).toLowerCase();
+  if(q.type==='short-answer'&&!(q.options&&q.options.length)){if(/true\W+false\W+(or\W+|and\W+)?not given/.test(ins)||(/\btrue\b[\s\S]*\bfalse\b[\s\S]*not given/.test(ins)&&/agree|statement|information/.test(ins)))q.type='true-false-not-given';else if(/yes\W+no\W+(or\W+|and\W+)?not given/.test(ins)||(/\byes\b[\s\S]*\bno\b[\s\S]*not given/.test(ins)&&/views|claims|writer/.test(ins)))q.type='yes-no-not-given';}});});
+}
+function taskNext(x){
+ var used=String(x.id).split(',');
+ setTimeout(function(){VM.confirm('Would you like to practise another '+typeName(x.taskType)+' part? You can choose a different test next.',{title:'Keep practising?',ok:'Choose another part',cancel:'Not now'}).then(function(y){if(!y)return;
+  var sk=x.skill,tset=x.ttSet||[x.taskType],its=state.items.filter(function(i){return i.review!=='pending'&&i.skill===sk&&used.indexOf(i.id)<0&&(i.taskTypes||[]).some(function(t){return tset.indexOf(t)>=0;});});
+  if(!its.length)return say('There are no other parts with this task type yet.');
+  stopTimer();exitFS();state.active=null;state.run=null;state.review=null;state.assignment=null;render();drawTypesPage(null,sk);pickParts({skill:sk,type:x.taskType,types:tset,items:its});});},700);
 }
 function fetchItems(ids,opts){
  opts=opts||{};
  if(!ids||!ids.length)return Promise.reject(new Error('This test is not ready yet. Please refresh the page and try again.'));
  return Promise.all(ids.map(function(id){return call('ielts.content.get',{id:id});})).then(function(x0){return x0;}).then(function(rows){
-  rows=rows.filter(Boolean);if(!rows.length)throw new Error('Could not load this test. Please refresh the page and try again.');
+  rows=rows.filter(Boolean);rows.forEach(fixStoredTypes);if(!rows.length)throw new Error('Could not load this test. Please refresh the page and try again.');
   if(opts.taskType){
    var secs=[],used=[];
    rows.forEach(function(r){var s=(r.sections||[])[0]||{},qs=(s.questions||[]).filter(function(q){return (opts.taskTypes||[opts.taskType]).indexOf(q.type)>=0;});if(!qs.length)return;used.push(r.id||r._id);secs.push(Object.assign({},s,{part:r.part,label:r.title,questions:qs}));});
    if(!secs.length)throw new Error('No questions of this task type were found in the selected parts.');
-   return{id:used.join(','),title:'Task type · '+typeName(opts.taskType),skill:opts.skill,taskType:opts.taskType,sequential:true,visibility:'library',version:1,taskTypes:[opts.taskType],sections:secs};
+   return{id:used.join(','),title:'Task type · '+typeName(opts.taskType),skill:opts.skill,taskType:opts.taskType,ttSet:opts.taskTypes||[opts.taskType],sequential:true,visibility:'library',version:1,taskTypes:[opts.taskType],sections:secs};
   }
   rows.sort(function(a,b){return (parseInt(a.part,10)||0)-(parseInt(b.part,10)||0);});
   rows.forEach(function(r){(r.sections||[]).forEach(function(s){s.part=r.part;});});
@@ -1462,7 +1473,7 @@ function submitNow(){
   state.review={attempt:a,tel:tel};r.part=0;
   renderPractice();window.scrollTo(0,0);
   VM.toast('Submitted · practice score '+(a.score===null?'not available (no answer key)':a.score+'%'),'ok');
-  runAnalysis();
+  runAnalysis();if(x.taskType)taskNext(x);
  }).catch(function(e){qa('.exam-submit').forEach(function(b){b.disabled=false;});say(e.message);});
 }
 
