@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi"><head><meta charset="UTF-8"><link rel="icon" type="image/svg+xml" href="favicon.svg?v=20261009c"><link rel="apple-touch-icon" href="apple-touch-icon.png?v=20261009c"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#0F6B4F"><title>Test Simulation · IELTS Practice</title><link rel="stylesheet" href="vm-theme.css?v=20261018d">
+<meta name="theme-color" content="#0F6B4F"><title>Test Simulation · IELTS Practice</title><link rel="stylesheet" href="vm-theme.css?v=20261018e">
 <style>
 #app{min-height:100vh}.ielts-wrap{max-width:1180px;margin:auto}.ielts-hero{background:linear-gradient(120deg,var(--vm-sand-2),var(--vm-primary-lt));color:var(--vm-ink);padding:24px;border-radius:var(--vm-r);margin-bottom:18px}.ielts-hero h2{margin:0 0 6px;font-family:var(--vm-font-display)}.ielts-hero p{margin:0;color:var(--vm-ink-2)}.il-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}.il-card,.il-panel{background:var(--vm-surface);border:1px solid var(--vm-border-2);border-radius:var(--vm-r);padding:18px;box-shadow:var(--vm-shadow-sm)}.il-card h3{margin:5px 0;font-family:var(--vm-font-display)}.il-meta{font-size:.78rem;color:var(--vm-ink-3);margin:6px 0 12px}.il-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}.il-practice{display:grid;grid-template-columns:minmax(300px,1fr) minmax(300px,1fr);gap:16px}.il-passage{white-space:pre-wrap;line-height:1.85;max-height:68vh;overflow:auto}.il-q{border-bottom:1px solid var(--vm-border-2);padding:12px 0}.il-q label{display:block;font-weight:650;margin-bottom:7px}.il-q input,.il-q select{width:100%}.il-badge{display:inline-block;border-radius:99px;padding:3px 9px;background:var(--vm-primary-lt);color:var(--vm-primary-dk);font-size:.7rem;font-weight:700}.il-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.il-empty{padding:35px;text-align:center;color:var(--vm-ink-3)}.il-editor{display:grid;grid-template-columns:1fr 1fr;gap:10px}.il-editor textarea{min-height:130px;font-size:.92rem}.il-section-editor{margin:14px 0;padding:14px;border:1px solid var(--vm-border-2);border-radius:16px;background:var(--vm-surface)}.il-section-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.il-section-grid.three{grid-template-columns:1fr 1fr 1fr}.il-section-grid textarea{width:100%;min-height:230px;resize:vertical;white-space:pre-wrap}.il-answer-key{margin-top:20px;padding-top:16px;border-top:3px solid var(--vm-primary-lt)}.il-ai-output{white-space:pre-wrap;line-height:1.7}.il-settings{max-width:720px;margin:18px auto}.il-settings label{display:block;margin:12px 0 5px;font-weight:650}.il-chart{width:100%;height:220px;border:1px solid var(--vm-border-2);border-radius:10px;background:var(--vm-surface);margin-top:10px}.il-note{font-size:.78rem;color:var(--vm-ink-3)}.il-error{color:var(--vm-danger);font-size:.84rem}.il-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 @media(max-width:720px){.il-practice,.il-editor,.il-section-grid,.il-section-grid.three{grid-template-columns:1fr}.il-passage{max-height:40vh}}
@@ -386,7 +386,21 @@ body:not(.exam-mode) .il-card .vm-btn-primary::after,body:not(.exam-mode) .il-to
 body:not(.exam-mode) .il-card .vm-btn-primary:hover::after,body:not(.exam-mode) .il-toolbar a.vm-btn-primary:hover::after{transform:rotate(45deg)}
 
 .tb-c{display:none!important}body:not(.exam-mode) .vm-topbar{grid-template-columns:1fr auto!important;padding:12px 16px!important}
-</style></head><body><div id="app"></div><script src="vm-common.js?v=20261018d"></script><script>
+
+/* ───────── Theme: soft teal + pastel course colours on a warm off-white page ───────── */
+:root{--pc-pink:#DCF3EA;--pc-peach:#FCE6DB;--pc-lav:#F4E1DC;--pc-mint:#DDE1EE;--pc-blue:#E6E3DF;--pc-rose:#FFF3D1;--pc-purple:#DDE1EE;--pc-sand:#FFF3D1;
+ --vm-primary:#14B8A0;--vm-primary-hv:#0FA18C;--vm-primary-dk:#0B7F70;--vm-primary-lt:#DDF3EA}
+body:not(.skill-reading):not(.skill-listening){--il-a:#14B8A0;--il-a2:#5ED3C0;--il-adk:#0B7F70}
+body:not(.exam-mode){background:#FBF8F5!important;background-image:radial-gradient(circle at 0 0,#FBE3D8 0 170px,transparent 171px),radial-gradient(circle at 100% 0,#DDF3EA 0 240px,transparent 241px)!important;background-attachment:fixed!important;background-repeat:no-repeat!important}
+body:not(.exam-mode) .vm-topbar{background:#fff!important}
+body:not(.exam-mode) .ielts-wrap .ielts-hero{background:linear-gradient(100deg,#DDF3EA,#F1FAF6)!important}
+body:not(.exam-mode) .ielts-wrap .ielts-hero h2{color:#0FA18C!important}
+body:not(.exam-mode) .ielts-wrap .ielts-hero p{color:#8A8F8C!important}
+body.skill-reading:not(.exam-mode) .ielts-wrap .ielts-hero h2{color:#0A5A3F!important}body.skill-listening:not(.exam-mode) .ielts-wrap .ielts-hero h2{color:#9A4A0E!important}
+body:not(.exam-mode) .il-grid-lib .il-card h3,body:not(.exam-mode) .gl-card-h{color:#4A4F4C}
+body:not(.exam-mode) .il-sect-h{color:#14B8A0}
+body:not(.exam-mode) .il-panel{background:#fff!important;-webkit-backdrop-filter:none;backdrop-filter:none}
+</style></head><body><div id="app"></div><script src="vm-common.js?v=20261018e"></script><script>
 
 
 (function(){
