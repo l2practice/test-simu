@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi"><head><meta charset="UTF-8"><link rel="icon" type="image/svg+xml" href="favicon.svg?v=20261009c"><link rel="apple-touch-icon" href="apple-touch-icon.png?v=20261009c"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#0F6B4F"><title>Test Simulation · IELTS Practice</title><link rel="stylesheet" href="vm-theme.css?v=20261017d">
+<meta name="theme-color" content="#0F6B4F"><title>Test Simulation · IELTS Practice</title><link rel="stylesheet" href="vm-theme.css?v=20261018a">
 <style>
 #app{min-height:100vh}.ielts-wrap{max-width:1180px;margin:auto}.ielts-hero{background:linear-gradient(120deg,var(--vm-sand-2),var(--vm-primary-lt));color:var(--vm-ink);padding:24px;border-radius:var(--vm-r);margin-bottom:18px}.ielts-hero h2{margin:0 0 6px;font-family:var(--vm-font-display)}.ielts-hero p{margin:0;color:var(--vm-ink-2)}.il-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}.il-card,.il-panel{background:var(--vm-surface);border:1px solid var(--vm-border-2);border-radius:var(--vm-r);padding:18px;box-shadow:var(--vm-shadow-sm)}.il-card h3{margin:5px 0;font-family:var(--vm-font-display)}.il-meta{font-size:.78rem;color:var(--vm-ink-3);margin:6px 0 12px}.il-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}.il-practice{display:grid;grid-template-columns:minmax(300px,1fr) minmax(300px,1fr);gap:16px}.il-passage{white-space:pre-wrap;line-height:1.85;max-height:68vh;overflow:auto}.il-q{border-bottom:1px solid var(--vm-border-2);padding:12px 0}.il-q label{display:block;font-weight:650;margin-bottom:7px}.il-q input,.il-q select{width:100%}.il-badge{display:inline-block;border-radius:99px;padding:3px 9px;background:var(--vm-primary-lt);color:var(--vm-primary-dk);font-size:.7rem;font-weight:700}.il-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.il-empty{padding:35px;text-align:center;color:var(--vm-ink-3)}.il-editor{display:grid;grid-template-columns:1fr 1fr;gap:10px}.il-editor textarea{min-height:130px;font-size:.92rem}.il-section-editor{margin:14px 0;padding:14px;border:1px solid var(--vm-border-2);border-radius:16px;background:var(--vm-surface)}.il-section-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.il-section-grid.three{grid-template-columns:1fr 1fr 1fr}.il-section-grid textarea{width:100%;min-height:230px;resize:vertical;white-space:pre-wrap}.il-answer-key{margin-top:20px;padding-top:16px;border-top:3px solid var(--vm-primary-lt)}.il-ai-output{white-space:pre-wrap;line-height:1.7}.il-settings{max-width:720px;margin:18px auto}.il-settings label{display:block;margin:12px 0 5px;font-weight:650}.il-chart{width:100%;height:220px;border:1px solid var(--vm-border-2);border-radius:10px;background:var(--vm-surface);margin-top:10px}.il-note{font-size:.78rem;color:var(--vm-ink-3)}.il-error{color:var(--vm-danger);font-size:.84rem}.il-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 @media(max-width:720px){.il-practice,.il-editor,.il-section-grid,.il-section-grid.three{grid-template-columns:1fr}.il-passage{max-height:40vh}}
@@ -357,7 +357,25 @@ body:not(.exam-mode) .il-panel{background:rgba(255,255,255,.78)!important;-webki
 .il-sect-h{letter-spacing:.14em;text-transform:uppercase;font-size:.74rem!important;color:#7a8780}
 /* one typeface everywhere: no serif fallbacks, form controls and tables inherit it */
 body,button,input,select,textarea,table,th,td,label,h1,h2,h3,h4,p,a,li,span,div{font-family:'Be Vietnam Pro',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif}
-</style></head><body><div id="app"></div><script src="vm-common.js?v=20261017d"></script><script>
+
+/* ───────── Sliding tab thumb + calmer page banner ───────── */
+.st-tabs,.il-seg{position:relative}
+.st-tabs{flex-wrap:nowrap!important;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;max-width:100%;padding:4px 26px 8px 4px;-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 30px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 30px),transparent)}
+.st-tabs::-webkit-scrollbar{display:none}
+.st-tab{flex:0 0 auto;white-space:nowrap;position:relative;z-index:1;border-radius:99px!important;padding:10px 22px!important;transition:color .25s}
+.il-seg button{position:relative;z-index:1;transition:color .25s}
+.sl-thumb{position:absolute;z-index:0;left:0;top:0;width:0;height:0;border-radius:99px;pointer-events:none;background:linear-gradient(160deg,var(--il-a2,#2FB584),var(--il-a,#0F6B4F));box-shadow:0 10px 18px -10px rgba(40,50,40,.55)}
+.sl-thumb.go{transition:transform .38s cubic-bezier(.3,.9,.3,1),width .38s cubic-bezier(.3,.9,.3,1),height .38s}
+.st-tabs .st-tab.on,.il-seg button.on{background:transparent!important;box-shadow:none!important;color:#fff!important;border-color:transparent!important}
+.st-tabs .st-tab:not(.on):hover{background:rgba(255,255,255,.7)}
+body:not(.exam-mode) .ielts-wrap .ielts-hero{background:linear-gradient(100deg,#E6E1F5,#F7E8E3)!important;color:#2B3A35!important;box-shadow:none!important;padding:18px 28px!important;border-radius:26px!important;min-height:0!important;border:none!important}
+body.skill-reading:not(.exam-mode) .ielts-wrap .ielts-hero{background:linear-gradient(100deg,#C6EDDA,#E7F7EF)!important}
+body.skill-listening:not(.exam-mode) .ielts-wrap .ielts-hero{background:linear-gradient(100deg,#FFDDB0,#FFF0DC)!important}
+body:not(.exam-mode) .ielts-wrap .ielts-hero::before,body:not(.exam-mode) .ielts-wrap .ielts-hero::after{display:none!important}
+body:not(.exam-mode) .ielts-wrap .ielts-hero h2{color:#22342E!important;font-size:1.7rem!important;font-weight:500!important;letter-spacing:-.02em;margin:0 0 4px!important}
+body:not(.exam-mode) .ielts-wrap .ielts-hero p{color:#52655D!important;opacity:1!important;margin:0!important}
+body.skill-reading:not(.exam-mode) .ielts-wrap .ielts-hero h2{color:#0A5A3F!important}body.skill-listening:not(.exam-mode) .ielts-wrap .ielts-hero h2{color:#9A4A0E!important}
+</style></head><body><div id="app"></div><script src="vm-common.js?v=20261018a"></script><script>
 
 
 (function(){
@@ -512,7 +530,7 @@ function glanceView(box,attempts,opts){
 }
 function drawGlanceStudent(){
  setTitle('Glance');
- var done=state.attempts.slice().sort(function(a,b){return String(b.completedAt).localeCompare(String(a.completedAt));}),rec=done.slice(0,3),nm=String((sess&&(sess.fullName||sess.name))||'').split(' ').slice(-1)[0];
+ var done=state.attempts.slice().sort(function(a,b){return String(b.completedAt).localeCompare(String(a.completedAt));}),rec=done.slice(0,3),nm=String((sess&&(sess.fullName||sess.name))||'').trim();
  var cards=rec.map(function(a){var col=a.skill==='reading'?C_READ:C_LIST;return '<div class="gl-card" style="border-top-color:'+col+'"><div class="gl-card-h">'+esc(a.title||'Practice')+'</div><div class="gl-big">'+(typeof a.score==='number'?a.score+'%':'—')+'</div><div class="il-note">'+esc(modeOf(a))+' · '+(a.correct!=null?a.correct+'/'+a.gradedCount+' correct · ':'')+fmtDate(a.completedAt)+'</div></div>';}).join('');
  root().innerHTML='<div class="ielts-wrap wide"><div class="ielts-hero"><h2>Welcome back'+(nm?', '+esc(nm):'')+'</h2><p>'+(rec.length?'Here is what you practised most recently and how you are doing.':'Complete a test to see your progress here.')+'</p></div>'+(rec.length?'<h3 class="il-sect-h">Recently completed</h3><div class="rc-grid">'+cards+'</div><div class="il-toolbar"><a class="vm-btn vm-btn-ghost" href="ielts.html#history">See all history</a><a class="vm-btn vm-btn-primary" href="ielts.html#library">Practise now</a></div>':'<div class="il-toolbar"><a class="vm-btn vm-btn-primary" href="ielts.html#library">Start practising</a></div>')+'<div id="glBox"></div></div>';
  glanceView(document.getElementById('glBox'),state.attempts,{});
@@ -1228,6 +1246,29 @@ function bindEP(){
 }
 function exitFS(){try{state.fsOff=false;if(document.fullscreenElement){state.fsLeaving=true;document.exitFullscreen();}}catch(e){}}
 document.addEventListener('fullscreenchange',function(){var f=document.getElementById('fsb');if(f)f.textContent=document.fullscreenElement?'⛶ Exit full screen':'⛶ Full screen';if(!document.fullscreenElement&&document.querySelector('.exam')&&!state.fsLeaving)state.fsOff=true;if(!document.fullscreenElement)state.fsLeaving=false;});
+
+(function(){
+ var SL={},busy=false,pend=0;
+ function sync(){
+  pend=0;var n={};
+  [].forEach.call(document.querySelectorAll('.st-tabs,.il-seg'),function(c){
+   var k=(c.id||c.className.split(' ')[0]),i=n[k]=(n[k]||0)+1;k+='#'+i;
+   var th=c.querySelector(':scope>.sl-thumb'),on=c.querySelector('button.on'),fresh=false;
+   if(!th){th=document.createElement('span');th.className='sl-thumb';c.insertBefore(th,c.firstChild);fresh=true;}
+   if(!on){th.style.width='0';return;}
+   var x=on.offsetLeft,y=on.offsetTop,w=on.offsetWidth,hh=on.offsetHeight;
+   function put(p){th.style.transform='translate('+p.x+'px,'+p.y+'px)';th.style.width=p.w+'px';th.style.height=p.h+'px';}
+   var prev=SL[k];
+   if(fresh&&prev&&prev.w){th.classList.remove('go');put(prev);void th.offsetWidth;th.classList.add('go');put({x:x,y:y,w:w,h:hh});}
+   else{if(fresh)th.classList.remove('go');put({x:x,y:y,w:w,h:hh});if(!th.classList.contains('go'))requestAnimationFrame(function(){th.classList.add('go');});}
+   SL[k]={x:x,y:y,w:w,h:hh};
+   if(c.scrollWidth>c.clientWidth+4)c.scrollTo({left:Math.max(0,x-24),behavior:'smooth'});
+  });
+ }
+ function later(){if(!pend){pend=1;requestAnimationFrame(sync);}}
+ new MutationObserver(function(ms){for(var i=0;i<ms.length;i++){var m=ms[i];if(m.type==='attributes'||[].some.call(m.addedNodes,function(x){return !(x.classList&&x.classList.contains('sl-thumb'));})){later();return;}}}).observe(document.getElementById('app')||document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class']});
+ window.addEventListener('resize',later);
+})();
 (function(){var last=0,tb=null;window.addEventListener('scroll',function(){tb=document.querySelector('.vm-topbar');if(!tb)return;var y=window.pageYOffset||0;if(Math.abs(y-last)<6)return;tb.classList.toggle('tb-hide',y>last&&y>70);last=y;},{passive:true});})();
 document.addEventListener('pointerdown',function(e){if(e.target&&e.target.closest&&e.target.closest('#exit'))return;   // browsers only allow full screen after a click, so the first click inside a test switches it on
  if(EP.fs&&!state.fsOff&&!isPrev()&&document.querySelector('.exam')&&!document.fullscreenElement&&document.documentElement.requestFullscreen)document.documentElement.requestFullscreen().catch(function(){});
