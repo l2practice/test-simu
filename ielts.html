@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi"><head><meta charset="UTF-8"><link rel="icon" type="image/svg+xml" href="favicon.svg?v=20261009c"><link rel="apple-touch-icon" href="apple-touch-icon.png?v=20261009c"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#0F6B4F"><title>Test Simulation · IELTS Practice</title><link rel="stylesheet" href="vm-theme.css?v=20261017c">
+<meta name="theme-color" content="#0F6B4F"><title>Test Simulation · IELTS Practice</title><link rel="stylesheet" href="vm-theme.css?v=20261017d">
 <style>
 #app{min-height:100vh}.ielts-wrap{max-width:1180px;margin:auto}.ielts-hero{background:linear-gradient(120deg,var(--vm-sand-2),var(--vm-primary-lt));color:var(--vm-ink);padding:24px;border-radius:var(--vm-r);margin-bottom:18px}.ielts-hero h2{margin:0 0 6px;font-family:var(--vm-font-display)}.ielts-hero p{margin:0;color:var(--vm-ink-2)}.il-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}.il-card,.il-panel{background:var(--vm-surface);border:1px solid var(--vm-border-2);border-radius:var(--vm-r);padding:18px;box-shadow:var(--vm-shadow-sm)}.il-card h3{margin:5px 0;font-family:var(--vm-font-display)}.il-meta{font-size:.78rem;color:var(--vm-ink-3);margin:6px 0 12px}.il-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}.il-practice{display:grid;grid-template-columns:minmax(300px,1fr) minmax(300px,1fr);gap:16px}.il-passage{white-space:pre-wrap;line-height:1.85;max-height:68vh;overflow:auto}.il-q{border-bottom:1px solid var(--vm-border-2);padding:12px 0}.il-q label{display:block;font-weight:650;margin-bottom:7px}.il-q input,.il-q select{width:100%}.il-badge{display:inline-block;border-radius:99px;padding:3px 9px;background:var(--vm-primary-lt);color:var(--vm-primary-dk);font-size:.7rem;font-weight:700}.il-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.il-empty{padding:35px;text-align:center;color:var(--vm-ink-3)}.il-editor{display:grid;grid-template-columns:1fr 1fr;gap:10px}.il-editor textarea{min-height:130px;font-size:.92rem}.il-section-editor{margin:14px 0;padding:14px;border:1px solid var(--vm-border-2);border-radius:16px;background:var(--vm-surface)}.il-section-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.il-section-grid.three{grid-template-columns:1fr 1fr 1fr}.il-section-grid textarea{width:100%;min-height:230px;resize:vertical;white-space:pre-wrap}.il-answer-key{margin-top:20px;padding-top:16px;border-top:3px solid var(--vm-primary-lt)}.il-ai-output{white-space:pre-wrap;line-height:1.7}.il-settings{max-width:720px;margin:18px auto}.il-settings label{display:block;margin:12px 0 5px;font-weight:650}.il-chart{width:100%;height:220px;border:1px solid var(--vm-border-2);border-radius:10px;background:var(--vm-surface);margin-top:10px}.il-note{font-size:.78rem;color:var(--vm-ink-3)}.il-error{color:var(--vm-danger);font-size:.84rem}.il-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 @media(max-width:720px){.il-practice,.il-editor,.il-section-grid,.il-section-grid.three{grid-template-columns:1fr}.il-passage{max-height:40vh}}
@@ -331,15 +331,33 @@ body:not(.exam-mode) .il-tab:hover{background:var(--pc-peach)!important}
 body:not(.exam-mode) .il-tab.on,body:not(.exam-mode) .il-tab.active{background:var(--il-a,#0F6B4F)!important;color:#fff!important}
 .il-toolbar{flex-wrap:wrap}.il-toolbar .il-seg{flex:0 1 auto}
 
-/* ───────── Header: slides away on scroll down, back on scroll up; tinted per skill ───────── */
-body:not(.exam-mode) .vm-topbar{position:sticky;top:0;z-index:60;padding:10px 18px!important;margin:0 0 4px;border-radius:0 0 22px 22px;background:rgba(255,255,255,.92)!important;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:none!important;border-bottom:4px solid #CBD5D0!important;box-shadow:0 10px 24px -18px rgba(90,70,40,.5);transition:transform .28s ease,box-shadow .28s}
-body:not(.exam-mode) .vm-topbar.tb-hide{transform:translateY(-130%);box-shadow:none}
-body.skill-reading:not(.exam-mode) .vm-topbar{background:linear-gradient(90deg,#DDF4E8,#F3FBF7)!important;border-bottom-color:#1F9D6B!important}
-body.skill-listening:not(.exam-mode) .vm-topbar{background:linear-gradient(90deg,#FFE9CC,#FFF7EB)!important;border-bottom-color:#F08A3C!important}
-body.skill-reading:not(.exam-mode) .vm-page-title{color:#0A5A3F}body.skill-listening:not(.exam-mode) .vm-page-title{color:#B25410}
+/* ───────── Header: floating dock with a scooped centre island; slides away on scroll down ───────── */
+body:not(.exam-mode) .vm-topbar{position:sticky;top:8px;z-index:60;display:grid!important;grid-template-columns:1fr auto 1fr;align-items:center;gap:0;margin:8px 8px 6px!important;padding:12px 16px 14px!important;border-radius:30px;border:none!important;background:linear-gradient(100deg,#E4E6EE,#EFE9F4 55%,#F6E8E4)!important;box-shadow:0 18px 36px -24px rgba(70,55,40,.55),inset 0 0 0 1.5px rgba(255,255,255,.7);transition:transform .3s ease,opacity .3s;overflow:visible}
+body.skill-reading:not(.exam-mode) .vm-topbar{background:linear-gradient(100deg,#BFEBD6,#D9F3E6 55%,#E9F8F0)!important}
+body.skill-listening:not(.exam-mode) .vm-topbar{background:linear-gradient(100deg,#FFD9A8,#FFE8C9 55%,#FFF2E0)!important}
+body:not(.exam-mode) .vm-topbar.tb-hide{transform:translateY(-140%);opacity:0}
+.tb-l{display:flex;align-items:center;gap:10px}.tb-r{display:flex;justify-content:flex-end}
+.tb-pill{display:inline-flex;align-items:center;gap:10px;background:#fff;border-radius:99px;padding:13px 26px 13px 20px;font-weight:700;font-size:.92rem;color:#2c3a35;box-shadow:0 8px 18px -14px rgba(70,55,40,.5)}
+.tb-pill i{width:11px;height:11px;border-radius:50%;background:#9AA7A1;display:inline-block}
+body.skill-reading .tb-pill i{background:#1F9D6B}body.skill-listening .tb-pill i{background:#F08A3C}
+.tb-c{position:relative;background:#fff;border-radius:0 0 28px 28px;padding:12px 34px 12px;margin:-12px 30px -14px;text-align:center;min-width:220px;max-width:46vw}
+.tb-c::before,.tb-c::after{content:"";position:absolute;top:0;width:30px;height:30px}
+.tb-c::before{left:-30px;background:radial-gradient(circle at 0 100%,transparent 30px,#fff 30.5px)}
+.tb-c::after{right:-30px;background:radial-gradient(circle at 100% 100%,transparent 30px,#fff 30.5px)}
+.tb-c .vm-eyebrow{font-size:.72rem!important;letter-spacing:.14em!important;text-transform:uppercase!important;color:#7a8780!important}
+.tb-c .vm-page-title{font-size:1.3rem!important;margin:2px 0 0!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.skill-reading .tb-c .vm-page-title{color:#0A5A3F}body.skill-listening .tb-c .vm-page-title{color:#B25410}
+body:not(.exam-mode) .vm-topbar .vm-topbar-right{margin-left:0}
+body:not(.exam-mode) .vm-topbar .vm-user{box-shadow:0 8px 18px -14px rgba(70,55,40,.5)}
+body:not(.exam-mode) .vm-top-logout{background:#fff;border-radius:50%}
+@media(max-width:760px){body:not(.exam-mode) .vm-topbar{grid-template-columns:auto 1fr auto;padding:10px!important}.tb-pill{padding:9px 14px;font-size:.8rem}.tb-c{margin:-10px 14px -12px;padding:10px 16px;min-width:0;max-width:none}.tb-c::before,.tb-c::after{display:none}.tb-c .vm-eyebrow{display:none}.tb-r .vm-user>div:last-child{display:none}}
+/* glass + editorial touches */
+body:not(.exam-mode) .il-panel{background:rgba(255,255,255,.78)!important;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.ielts-hero h2{font-weight:300!important;font-size:2.3rem!important;letter-spacing:-.025em}.ielts-hero p{letter-spacing:.01em}
+.il-sect-h{letter-spacing:.14em;text-transform:uppercase;font-size:.74rem!important;color:#7a8780}
 /* one typeface everywhere: no serif fallbacks, form controls and tables inherit it */
 body,button,input,select,textarea,table,th,td,label,h1,h2,h3,h4,p,a,li,span,div{font-family:'Be Vietnam Pro',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif}
-</style></head><body><div id="app"></div><script src="vm-common.js?v=20261017c"></script><script>
+</style></head><body><div id="app"></div><script src="vm-common.js?v=20261017d"></script><script>
 
 
 (function(){
@@ -386,7 +404,16 @@ function titleFor(kind,picked,skill){
 function itemsById(ids){var m={};state.items.forEach(function(i){m[i.id]=i;});return ids.map(function(id){return m[id];}).filter(Boolean);}
 
 /* ───────── routing ───────── */
-function markNav(){qa('.vm-side a.vm-nav').forEach(function(a){a.classList.toggle('active',(a.getAttribute('href')||'')==='ielts.html#'+state.view);});}
+function markNav(){tbBuild();tbUpdate();qa('.vm-side a.vm-nav').forEach(function(a){a.classList.toggle('active',(a.getAttribute('href')||'')==='ielts.html#'+state.view);});}
+function tbBuild(){
+ var tb=document.querySelector('.vm-topbar');if(!tb||tb.querySelector('.tb-c'))return;
+ var menu=tb.querySelector('.vm-menu-btn'),title=tb.querySelector('div'),right=tb.querySelector('.vm-topbar-right');
+ var l=document.createElement('div');l.className='tb-l';if(menu)l.appendChild(menu);var pill=document.createElement('span');pill.className='tb-pill';pill.id='tbPill';l.appendChild(pill);
+ var c=document.createElement('div');c.className='tb-c';c.appendChild(title);
+ var r=document.createElement('div');r.className='tb-r';r.appendChild(right);
+ tb.appendChild(l);tb.appendChild(c);tb.appendChild(r);
+}
+function tbUpdate(){var p=document.getElementById('tbPill');if(!p)return;var b=document.body.classList;p.innerHTML='<i></i>'+(b.contains('skill-reading')?'Reading':b.contains('skill-listening')?'Listening':'IELTS Practice');}
 function route(){
  var h=(location.hash||'').replace('#','')||'glance';
  if(h==='results'&&!teacher)h='history';
@@ -404,7 +431,7 @@ function load(){
  return Promise.all([call('ielts.content.list'),second,call('ielts.folder.list').catch(function(){return [];})]).then(function(v){state.items=v[0]||[];state.folders=v[2]||[];state.loaded=true;if(teacher)state.classes=v[1]||[];else state.attempts=v[1]||[];render();}).catch(function(e){root().innerHTML='<div class="il-empty">'+esc(e.message)+'</div>';});
 }
 function setExam(on){document.body.classList.toggle('exam-mode',!!on);if(!on)document.body.classList.remove('skill-reading','skill-listening','exam-dark','exam-hc');}
-function setSkillTheme(s){document.body.classList.remove('skill-reading','skill-listening');if(s==='reading'||s==='listening')document.body.classList.add('skill-'+s);}
+function setSkillTheme(s){document.body.classList.remove('skill-reading','skill-listening');if(s==='reading'||s==='listening')document.body.classList.add('skill-'+s);tbUpdate();}
 function updateBadge(){
  if(!teacher)return;
  var n=pendingTests().length,a=document.querySelector('.vm-side a.vm-nav[href="ielts.html#library"]');
