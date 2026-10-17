@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi"><head><meta charset="UTF-8"><link rel="icon" type="image/svg+xml" href="favicon.svg?v=20261009c"><link rel="apple-touch-icon" href="apple-touch-icon.png?v=20261009c"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#0F6B4F"><title>Test Simulation · IELTS Practice</title><link rel="stylesheet" href="vm-theme.css?v=20261017a">
+<meta name="theme-color" content="#0F6B4F"><title>Test Simulation · IELTS Practice</title><link rel="stylesheet" href="vm-theme.css?v=20261017b">
 <style>
 #app{min-height:100vh}.ielts-wrap{max-width:1180px;margin:auto}.ielts-hero{background:linear-gradient(120deg,var(--vm-sand-2),var(--vm-primary-lt));color:var(--vm-ink);padding:24px;border-radius:var(--vm-r);margin-bottom:18px}.ielts-hero h2{margin:0 0 6px;font-family:var(--vm-font-display)}.ielts-hero p{margin:0;color:var(--vm-ink-2)}.il-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}.il-card,.il-panel{background:var(--vm-surface);border:1px solid var(--vm-border-2);border-radius:var(--vm-r);padding:18px;box-shadow:var(--vm-shadow-sm)}.il-card h3{margin:5px 0;font-family:var(--vm-font-display)}.il-meta{font-size:.78rem;color:var(--vm-ink-3);margin:6px 0 12px}.il-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}.il-practice{display:grid;grid-template-columns:minmax(300px,1fr) minmax(300px,1fr);gap:16px}.il-passage{white-space:pre-wrap;line-height:1.85;max-height:68vh;overflow:auto}.il-q{border-bottom:1px solid var(--vm-border-2);padding:12px 0}.il-q label{display:block;font-weight:650;margin-bottom:7px}.il-q input,.il-q select{width:100%}.il-badge{display:inline-block;border-radius:99px;padding:3px 9px;background:var(--vm-primary-lt);color:var(--vm-primary-dk);font-size:.7rem;font-weight:700}.il-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.il-empty{padding:35px;text-align:center;color:var(--vm-ink-3)}.il-editor{display:grid;grid-template-columns:1fr 1fr;gap:10px}.il-editor textarea{min-height:130px;font-size:.92rem}.il-section-editor{margin:14px 0;padding:14px;border:1px solid var(--vm-border-2);border-radius:16px;background:var(--vm-surface)}.il-section-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.il-section-grid.three{grid-template-columns:1fr 1fr 1fr}.il-section-grid textarea{width:100%;min-height:230px;resize:vertical;white-space:pre-wrap}.il-answer-key{margin-top:20px;padding-top:16px;border-top:3px solid var(--vm-primary-lt)}.il-ai-output{white-space:pre-wrap;line-height:1.7}.il-settings{max-width:720px;margin:18px auto}.il-settings label{display:block;margin:12px 0 5px;font-weight:650}.il-chart{width:100%;height:220px;border:1px solid var(--vm-border-2);border-radius:10px;background:var(--vm-surface);margin-top:10px}.il-note{font-size:.78rem;color:var(--vm-ink-3)}.il-error{color:var(--vm-danger);font-size:.84rem}.il-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 @media(max-width:720px){.il-practice,.il-editor,.il-section-grid,.il-section-grid.three{grid-template-columns:1fr}.il-passage{max-height:40vh}}
@@ -306,7 +306,31 @@ body.exam-hc .il-wordbank{background:#fff;border-color:#000}body.exam-hc .wb-ite
 @media(min-width:760px){.wb-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 body.exam-dark .il-wordbank{background:#16241D!important;border-color:#2E4338}
 body.exam-hc .il-wordbank{border:2px solid #000}
-</style></head><body><div id="app"></div><script src="vm-common.js?v=20261017a"></script><script>
+
+/* ───────── Pastel colour system + sliding pill rows ───────── */
+:root{--pc-pink:#F5C9C9;--pc-peach:#FADFBE;--pc-lav:#DAD2FB;--pc-mint:#C2EFDA;--pc-blue:#B1C8F2;--pc-purple:#CDAAF2;--pc-rose:#F0ABCB;--pc-sand:#F1D8B0}
+body:not(.exam-mode){background:linear-gradient(180deg,#FDF9F5 0%,#F7EFE7 100%)!important}
+body:not(.exam-mode) .il-grid-lib .il-card,body:not(.exam-mode) .gl-card,body:not(.exam-mode) .il-tab{border:none!important;border-radius:24px!important;box-shadow:none!important}
+body:not(.exam-mode) .il-grid-lib .il-card:nth-child(6n+1),body:not(.exam-mode) .gl-cards .gl-card:nth-child(6n+1),.rc-grid .gl-card:nth-child(6n+1),.hs-sum .gl-card:nth-child(6n+1){background:var(--pc-pink)!important}
+body:not(.exam-mode) .il-grid-lib .il-card:nth-child(6n+2),body:not(.exam-mode) .gl-cards .gl-card:nth-child(6n+2),.rc-grid .gl-card:nth-child(6n+2),.hs-sum .gl-card:nth-child(6n+2){background:var(--pc-peach)!important}
+body:not(.exam-mode) .il-grid-lib .il-card:nth-child(6n+3),body:not(.exam-mode) .gl-cards .gl-card:nth-child(6n+3),.rc-grid .gl-card:nth-child(6n+3),.hs-sum .gl-card:nth-child(6n+3){background:var(--pc-lav)!important}
+body:not(.exam-mode) .il-grid-lib .il-card:nth-child(6n+4),body:not(.exam-mode) .gl-cards .gl-card:nth-child(6n+4),.rc-grid .gl-card:nth-child(6n+4),.hs-sum .gl-card:nth-child(6n+4){background:var(--pc-mint)!important}
+body:not(.exam-mode) .il-grid-lib .il-card:nth-child(6n+5),body:not(.exam-mode) .gl-cards .gl-card:nth-child(6n+5),.rc-grid .gl-card:nth-child(6n+5),.hs-sum .gl-card:nth-child(6n+5){background:var(--pc-blue)!important}
+body:not(.exam-mode) .il-grid-lib .il-card:nth-child(6n+6),body:not(.exam-mode) .gl-cards .gl-card:nth-child(6n+6),.rc-grid .gl-card:nth-child(6n+6),.hs-sum .gl-card:nth-child(6n+6){background:var(--pc-rose)!important}
+body:not(.exam-mode) .gl-cards .gl-card[style*="border-top-color"]{border-top:none!important}
+body:not(.exam-mode) .il-panel{border-radius:26px!important;border:none!important;box-shadow:0 1px 0 rgba(120,90,60,.06),0 12px 30px -18px rgba(120,90,60,.25)!important}
+body:not(.exam-mode) .gl-big{font-size:2rem;letter-spacing:-.02em}
+body:not(.exam-mode) .il-grid-lib .il-card .il-badge{background:rgba(255,255,255,.7)!important;color:var(--vm-ink,#173)!important}
+/* sliding pill rows (tabs, segmented switches) */
+.il-seg,.il-tabs{display:flex!important;flex-wrap:nowrap!important;max-width:100%;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;padding-right:26px;-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 30px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 30px),transparent)}
+.il-seg::-webkit-scrollbar,.il-tabs::-webkit-scrollbar{display:none}
+.il-seg{width:max-content}.il-seg button,.il-tab{flex:0 0 auto;scroll-snap-align:start;white-space:nowrap}
+body:not(.exam-mode) .il-seg{background:rgba(255,255,255,.75);border:none;box-shadow:0 8px 20px -14px rgba(120,90,60,.45)}
+body:not(.exam-mode) .il-tab{background:#fff!important;box-shadow:0 8px 20px -16px rgba(120,90,60,.5)!important;border-radius:99px!important;padding:10px 20px}
+body:not(.exam-mode) .il-tab:hover{background:var(--pc-peach)!important}
+body:not(.exam-mode) .il-tab.on,body:not(.exam-mode) .il-tab.active{background:var(--il-a,#0F6B4F)!important;color:#fff!important}
+.il-toolbar{flex-wrap:wrap}.il-toolbar .il-seg{flex:0 1 auto}
+</style></head><body><div id="app"></div><script src="vm-common.js?v=20261017b"></script><script>
 
 
 (function(){
