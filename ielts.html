@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi"><head><meta charset="UTF-8"><link rel="icon" type="image/svg+xml" href="favicon.svg?v=20261009c"><link rel="apple-touch-icon" href="apple-touch-icon.png?v=20261009c"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#0F6B4F"><title>Test Simulation · IELTS Practice</title><link rel="stylesheet" href="vm-theme.css?v=20261016a">
+<meta name="theme-color" content="#0F6B4F"><title>Test Simulation · IELTS Practice</title><link rel="stylesheet" href="vm-theme.css?v=20261017a">
 <style>
 #app{min-height:100vh}.ielts-wrap{max-width:1180px;margin:auto}.ielts-hero{background:linear-gradient(120deg,var(--vm-sand-2),var(--vm-primary-lt));color:var(--vm-ink);padding:24px;border-radius:var(--vm-r);margin-bottom:18px}.ielts-hero h2{margin:0 0 6px;font-family:var(--vm-font-display)}.ielts-hero p{margin:0;color:var(--vm-ink-2)}.il-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}.il-card,.il-panel{background:var(--vm-surface);border:1px solid var(--vm-border-2);border-radius:var(--vm-r);padding:18px;box-shadow:var(--vm-shadow-sm)}.il-card h3{margin:5px 0;font-family:var(--vm-font-display)}.il-meta{font-size:.78rem;color:var(--vm-ink-3);margin:6px 0 12px}.il-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}.il-practice{display:grid;grid-template-columns:minmax(300px,1fr) minmax(300px,1fr);gap:16px}.il-passage{white-space:pre-wrap;line-height:1.85;max-height:68vh;overflow:auto}.il-q{border-bottom:1px solid var(--vm-border-2);padding:12px 0}.il-q label{display:block;font-weight:650;margin-bottom:7px}.il-q input,.il-q select{width:100%}.il-badge{display:inline-block;border-radius:99px;padding:3px 9px;background:var(--vm-primary-lt);color:var(--vm-primary-dk);font-size:.7rem;font-weight:700}.il-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.il-empty{padding:35px;text-align:center;color:var(--vm-ink-3)}.il-editor{display:grid;grid-template-columns:1fr 1fr;gap:10px}.il-editor textarea{min-height:130px;font-size:.92rem}.il-section-editor{margin:14px 0;padding:14px;border:1px solid var(--vm-border-2);border-radius:16px;background:var(--vm-surface)}.il-section-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.il-section-grid.three{grid-template-columns:1fr 1fr 1fr}.il-section-grid textarea{width:100%;min-height:230px;resize:vertical;white-space:pre-wrap}.il-answer-key{margin-top:20px;padding-top:16px;border-top:3px solid var(--vm-primary-lt)}.il-ai-output{white-space:pre-wrap;line-height:1.7}.il-settings{max-width:720px;margin:18px auto}.il-settings label{display:block;margin:12px 0 5px;font-weight:650}.il-chart{width:100%;height:220px;border:1px solid var(--vm-border-2);border-radius:10px;background:var(--vm-surface);margin-top:10px}.il-note{font-size:.78rem;color:var(--vm-ink-3)}.il-error{color:var(--vm-danger);font-size:.84rem}.il-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 @media(max-width:720px){.il-practice,.il-editor,.il-section-grid,.il-section-grid.three{grid-template-columns:1fr}.il-passage{max-height:40vh}}
@@ -55,7 +55,7 @@ mark.hl{border-radius:3px;padding:0 1px;color:inherit}mark.hl-yellow{background:
 @media(max-width:900px){.exam-split{grid-template-columns:1fr;grid-template-rows:1fr 1fr}.exam-pane{border-right:none;border-bottom:2px solid var(--vm-border)}.exam-top{flex-wrap:wrap}.exam-split.single{grid-template-rows:1fr}}
 /* ── Glance ── */
 .il-seg{display:inline-flex;background:#fff;border:1.5px solid var(--vm-border);border-radius:99px;padding:3px}.il-seg button{border:none;background:none;padding:6px 16px;border-radius:99px;font-weight:700;color:var(--vm-ink-2);cursor:pointer;font-family:inherit;font-size:.85rem}.il-seg button.on{background:linear-gradient(135deg,var(--il-a),var(--il-a2));color:#fff}
-.gl-panel{margin-bottom:14px}.gl-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:6px 0 14px}.gl-card{border:1px solid var(--vm-border);border-top:5px solid;border-radius:14px;padding:12px 16px;background:#fff}.gl-card-h{font-weight:800;color:var(--vm-ink-2);font-size:.85rem}.gl-big{font-size:2rem;font-weight:800;color:var(--vm-ink);line-height:1.2}
+.gl-panel{margin-bottom:14px}.gl-chip{display:inline-block;border:1.5px solid;border-radius:99px;padding:1px 9px;margin:2px 4px 2px 0;font-size:.76rem;white-space:nowrap}.gl-tt td,.gl-tt th{white-space:nowrap}.gl-acc{min-width:170px}.gl-bar1{display:grid;grid-template-columns:1fr auto;margin:0}.gl-bt{min-width:220px}.hs-sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:6px 0 14px}.hs-sum .gl-card{padding:10px 14px}.hs-th{cursor:pointer;user-select:none}.hs-th:hover{text-decoration:underline}.rc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-bottom:14px}.gl-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:6px 0 14px}.gl-card{border:1px solid var(--vm-border);border-top:5px solid;border-radius:14px;padding:12px 16px;background:#fff}.gl-card-h{font-weight:800;color:var(--vm-ink-2);font-size:.85rem}.gl-big{font-size:2rem;font-weight:800;color:var(--vm-ink);line-height:1.2}
 .gl-legend{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:6px}.gl-leg{display:inline-flex;gap:6px;align-items:center;border:1.5px solid var(--vm-border);background:#fff;border-radius:99px;padding:4px 12px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--vm-ink)}.gl-leg i{width:12px;height:12px;border-radius:50%;display:inline-block}.gl-leg.off{opacity:.4;text-decoration:line-through}
 .gl-chart-wrap{position:relative}.gl-chart{width:100%;height:auto;max-height:340px}.gl-pt{cursor:pointer}.gl-pt:hover{stroke-width:5}.gl-tip{display:none;position:absolute;background:var(--vm-ink);color:#fff;font-size:.78rem;padding:7px 10px;border-radius:10px;max-width:260px;pointer-events:none;z-index:5}
 .il-dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
@@ -306,18 +306,18 @@ body.exam-hc .il-wordbank{background:#fff;border-color:#000}body.exam-hc .wb-ite
 @media(min-width:760px){.wb-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 body.exam-dark .il-wordbank{background:#16241D!important;border-color:#2E4338}
 body.exam-hc .il-wordbank{border:2px solid #000}
-</style></head><body><div id="app"></div><script src="vm-common.js?v=20261016a"></script><script>
+</style></head><body><div id="app"></div><script src="vm-common.js?v=20261017a"></script><script>
 
 
 (function(){
 'use strict';
 var sess=VM.session.require(); if(!sess) return;
 var teacher=sess.role==='teacher';
-var state={items:[],attempts:[],classes:[],inclass:[],active:null,run:null,review:null,started:'',assignment:null,libSkill:'all',libMode:'tests',bookFilter:'',folders:[],sTab:'full',folderOpen:'',view:teacher?'glance':'library',loaded:false,glanceClass:'',glanceStudent:''};
+var state={items:[],attempts:[],classes:[],inclass:[],active:null,run:null,review:null,started:'',assignment:null,libSkill:'all',libMode:'tests',bookFilter:'',folders:[],sTab:'full',folderOpen:'',view:'glance',loaded:false,glanceClass:'',glanceStudent:''};
 var navDef=teacher
  ?[['glance','Glance','overview','ielts.html#glance'],['library','Library','reading','ielts.html#library'],['types','Task Types','assign','ielts.html#types'],['inclass','In-class','inclass','ielts.html#inclass'],['scripts','Audio Scripts','listening','ielts.html#scripts'],['results','Results','results','ielts.html#results'],['classes','Classes','classes','teacher.html#tab=classes'],['settings','Settings','edit','teacher.html#tab=settings']]
- :[['glance','Glance','overview','ielts.html#glance'],['library','IELTS Practice','reading','ielts.html#library'],['scripts','Audio Scripts','listening','ielts.html#scripts'],['settings','Settings','edit','student.html#tab=settings']];
-VM.renderShell({mount:'app',eyebrow:'Test Simulation · IELTS',title:'IELTS Practice',user:sess,nav:navDef.map(function(n){return{id:n[0],label:n[1],icon:n[2],href:n[3],active:n[0]===(teacher?'glance':'library')};})});
+ :[['glance','Glance','overview','ielts.html#glance'],['library','IELTS Practice','reading','ielts.html#library'],['history','History','results','ielts.html#history'],['scripts','Audio Scripts','listening','ielts.html#scripts'],['settings','Settings','edit','student.html#tab=settings']];
+VM.renderShell({mount:'app',eyebrow:'Test Simulation · IELTS',title:'IELTS Practice',user:sess,nav:navDef.map(function(n){return{id:n[0],label:n[1],icon:n[2],href:n[3],active:n[0]==='glance'};})});
 function esc(x){return VM.esc(String(x==null?'':x));}
 function root(){return document.getElementById('vmContent');}
 function say(msg){VM.toast(msg,'err',4500);}
@@ -355,9 +355,10 @@ function itemsById(ids){var m={};state.items.forEach(function(i){m[i.id]=i;});re
 /* ───────── routing ───────── */
 function markNav(){qa('.vm-side a.vm-nav').forEach(function(a){a.classList.toggle('active',(a.getAttribute('href')||'')==='ielts.html#'+state.view);});}
 function route(){
- var h=(location.hash||'').replace('#','')||(teacher?'glance':'library');
- var ok=teacher?['glance','library','types','inclass','results','scripts']:['glance','library','types','inclass','scripts'];
- state.view=ok.indexOf(h)>=0?h:(teacher?'glance':'library');
+ var h=(location.hash||'').replace('#','')||'glance';
+ if(h==='results'&&!teacher)h='history';
+ var ok=teacher?['glance','library','types','inclass','results','scripts']:['glance','library','types','inclass','scripts','history'];
+ state.view=ok.indexOf(h)>=0?h:'glance';
  stopTimer();state.active=null;state.run=null;state.review=null;state.assignment=null;state.previewBack=null;
  markNav();
  if(!state.loaded)return load();
@@ -387,6 +388,7 @@ function render(){
  if(state.view==='inclass')return teacher?drawInclassTeacher():drawInclassStudent();
  if(state.view==='results'&&teacher)return drawResultsPage();
  if(state.view==='scripts')return drawScriptsPage();
+ if(state.view==='history'&&!teacher)return drawHistory();
  if(state.view==='glance')return teacher?drawGlanceTeacher():drawGlanceStudent();
  return drawLibrary();
 }
@@ -401,11 +403,24 @@ function typeStats(attempts){
  });
  return Object.keys(m).map(function(k){return m[k];}).sort(function(a,b){return b.n-a.n;});
 }
+function isTaskAttempt(a){return /^task type\b/i.test(a.title||(a.snapshot&&a.snapshot.title)||'');}
+function isFullAttempt(a){var n=((a.snapshot&&a.snapshot.sections)||[]).length;return !n||n>=(a.skill==='listening'?4:3);}   // a whole Reading (3 passages) or Listening (4 parts) sitting
+function modeOf(a){var t=a.title||'';return isTaskAttempt(a)?'Task type':/^IC\b/i.test(t)?'In-class':/^Free\b/i.test(t)?'Free practice':/^Mix\b/i.test(t)?'Mixed':/^Full\b/i.test(t)?'Full practice':'Practice';}
+function attemptTypes(a){var secs=(a.snapshot&&a.snapshot.sections)||[],qs=[],m={};secs.forEach(function(s){(s.questions||[]).forEach(function(q){qs.push(q);});});
+ (a.responses||[]).forEach(function(r,i){var q=qs[i];if(!q||r.correct===null||r.correct===undefined)return;var t=q.type||'short-answer',e=m[t]||(m[t]={type:t,ok:0,n:0});e.n++;if(r.correct)e.ok++;});
+ return Object.keys(m).map(function(k){return m[k];});}
+function taskTypeStats(attempts){
+ var m={};
+ attempts.slice().sort(function(a,b){return String(a.completedAt).localeCompare(String(b.completedAt));}).forEach(function(a){
+  attemptTypes(a).forEach(function(t){var k=a.skill+'|'+t.type,e=m[k]||(m[k]={skill:a.skill,type:t.type,sessions:0,ok:0,n:0,last:'',lastOk:0,lastN:0});e.sessions++;e.ok+=t.ok;e.n+=t.n;e.last=a.completedAt;e.lastOk=t.ok;e.lastN=t.n;});});
+ return Object.keys(m).map(function(k){return m[k];}).sort(function(a,b){return String(b.last).localeCompare(String(a.last));});
+}
+function pcColor(pc){return pc>=70?C_READ:(pc>=40?C_LIST:'#C23A2E');}
 function glanceView(box,attempts,opts){
  opts=opts||{};
  var st={skill:'all',view:'chart',hide:{}};
- var data=attempts.filter(function(a){return typeof a.score==='number'&&isFinite(a.score)&&!/^task type\b/i.test(a.title||(a.snapshot&&a.snapshot.title)||'');}).sort(function(a,b){return String(a.completedAt).localeCompare(String(b.completedAt));});
- box.innerHTML='<div class="il-panel gl-panel"><div class="il-toolbar"><div class="il-seg" id="glSkill"><button data-s="all" class="on">All skills</button><button data-s="reading">Reading</button><button data-s="listening">Listening</button></div><span class="il-spacer"></span><div class="il-seg" id="glView"><button data-v="chart" class="on">Chart</button><button data-v="table">Table</button></div></div><div id="glBody"></div></div><div class="il-panel" id="glTypes"></div>';
+ var data=attempts.filter(function(a){return typeof a.score==='number'&&isFinite(a.score)&&!isTaskAttempt(a)&&isFullAttempt(a);}).sort(function(a,b){return String(a.completedAt).localeCompare(String(b.completedAt));});
+ box.innerHTML='<div class="il-panel gl-panel"><h3 style="margin:0 0 4px">Full tests &amp; mixed sets</h3><p class="il-note" style="margin:0 0 8px">Scores of whole Reading (3 passages) and Listening (4 parts) sittings. Task-type practice is shown in the second section.</p><div class="il-toolbar"><div class="il-seg" id="glSkill"><button data-s="all" class="on">All skills</button><button data-s="reading">Reading</button><button data-s="listening">Listening</button></div><span class="il-spacer"></span><div class="il-seg" id="glView"><button data-v="chart" class="on">Chart</button><button data-v="table">Table</button></div></div><div id="glBody"></div></div><div class="il-panel" id="glTypes"></div>';
  function seg(id,key){qa('#'+id+' button').forEach(function(b){b.onclick=function(){st[key]=b.getAttribute(key==='skill'?'data-s':'data-v');qa('#'+id+' button').forEach(function(x){x.classList.toggle('on',x===b);});draw();};});}
  seg('glSkill','skill');seg('glView','view');
  function cur(){return data.filter(function(a){return st.skill==='all'||a.skill===st.skill;});}
@@ -415,7 +430,7 @@ function glanceView(box,attempts,opts){
   if(!data.length){body.innerHTML='<div class="il-empty">'+(opts.empty||'No practice yet. Complete a test to see your progress here.')+'</div>';document.getElementById('glTypes').innerHTML='';return;}
   var cards=['reading','listening'].filter(function(s){return st.skill==='all'||st.skill===s;}).map(function(s){var x=stats(s);return '<div class="gl-card" style="border-top-color:'+(s==='reading'?C_READ:C_LIST)+'"><div class="gl-card-h">'+(s==='reading'?'Reading':'Listening')+'</div><div class="gl-big">'+x.latest+'</div><div class="il-note">latest · avg '+x.avg+' · best '+x.best+' · '+x.n+' practice'+(x.n===1?'':'s')+'</div></div>';}).join('');
   if(st.view==='table'){
-   body.innerHTML='<div class="gl-cards">'+cards+'</div><div style="overflow:auto"><table class="vm-table"><thead><tr><th>Date</th><th>Test</th><th>Skill</th><th>Score</th><th>Correct</th><th>Time</th><th>Feedback</th></tr></thead><tbody>'+rows.slice().reverse().map(function(a){return '<tr><td>'+fmtDate(a.completedAt)+'</td><td>'+esc(a.title)+'</td><td><span class="il-dot" style="background:'+(a.skill==='reading'?C_READ:C_LIST)+'"></span>'+esc(a.skill)+'</td><td><b>'+a.score+'%</b></td><td>'+a.correct+'/'+a.gradedCount+'</td><td>'+Math.max(1,Math.round(a.durationSeconds/60))+' min</td><td>'+(docUrlOk(a.feedbackDocUrl)?'<a href="'+esc(a.feedbackDocUrl)+'" target="_blank" rel="noopener">Open doc</a>':'<span class="il-note">—</span>')+'</td></tr>';}).join('')+'</tbody></table></div>';
+   body.innerHTML='<div class="gl-cards">'+cards+'</div><div style="overflow:auto"><table class="vm-table"><thead><tr><th>Date</th><th>Test</th><th>Skill</th><th>Score</th><th>Correct</th><th>Time</th><th>Correct by task type</th><th>Feedback</th></tr></thead><tbody>'+rows.slice().reverse().map(function(a){return '<tr><td>'+fmtDate(a.completedAt)+'</td><td>'+esc(a.title)+'</td><td><span class="il-dot" style="background:'+(a.skill==='reading'?C_READ:C_LIST)+'"></span>'+esc(a.skill)+'</td><td><b>'+a.score+'%</b></td><td>'+a.correct+'/'+a.gradedCount+'</td><td>'+Math.max(1,Math.round(a.durationSeconds/60))+' min</td><td class="gl-bt">'+(attemptTypes(a).map(function(t){return '<span class="gl-chip" style="border-color:'+pcColor(Math.round(t.ok*100/t.n))+'">'+esc(typeName(t.type))+' <b>'+t.ok+'/'+t.n+'</b></span>';}).join('')||'<span class="il-note">—</span>')+'</td><td>'+(docUrlOk(a.feedbackDocUrl)?'<a href="'+esc(a.feedbackDocUrl)+'" target="_blank" rel="noopener">Open doc</a>':'<span class="il-note">—</span>')+'</td></tr>';}).join('')+'</tbody></table></div>';
   }else{
    var w=760,h=300,pl=40,pr=18,pt=16,pb=34,t0=new Date(rows[0]?rows[0].completedAt:Date.now()).getTime(),t1=new Date(rows.length?rows[rows.length-1].completedAt:Date.now()).getTime();
    function X(a,i){if(rows.length<2||t1===t0)return pl+(w-pl-pr)*(rows.length<2?0.5:i/(rows.length-1));return pl+(w-pl-pr)*((new Date(a.completedAt).getTime()-t0)/(t1-t0));}
@@ -430,15 +445,41 @@ function glanceView(box,attempts,opts){
    var tip=document.getElementById('glTip');
    qa('.gl-pt').forEach(function(c){c.onmouseenter=function(){tip.textContent=c.getAttribute('data-tip');tip.style.display='block';var wr=tip.parentNode.getBoundingClientRect(),cr=c.getBoundingClientRect();tip.style.left=Math.min(wr.width-220,Math.max(0,cr.left-wr.left-90))+'px';tip.style.top=(cr.top-wr.top-46)+'px';};c.onmouseleave=function(){tip.style.display='none';};});
   }
-  var ts=typeStats(rows.length?rows:[]).filter(function(t){return st.skill==='all'||t.skill===st.skill;});
-  document.getElementById('glTypes').innerHTML='<h3 style="margin-top:0">Accuracy by task type</h3>'+(ts.length?ts.map(function(t){var pc=Math.round(t.ok*100/t.n);return '<div class="il-bar"><span><i class="il-dot" style="background:'+(t.skill==='reading'?C_READ:C_LIST)+'"></i>'+esc(typeName(t.type))+(st.skill==='all'?' <span class="il-note">· '+(t.skill==='reading'?'Reading':'Listening')+'</span>':'')+'</span><div><i style="width:'+pc+'%;background:'+(pc>=70?C_READ:(pc>=40?C_LIST:'#C23A2E'))+'"></i></div><b>'+t.ok+'/'+t.n+'</b></div>';}).join(''):'<div class="il-note">Task-type accuracy appears after you complete tests with answer keys.</div>');
+  var tk=attempts.filter(function(a){return isTaskAttempt(a)&&(st.skill==='all'||a.skill===st.skill);}),ts=taskTypeStats(tk);
+  document.getElementById('glTypes').innerHTML='<h3 style="margin-top:0">Accuracy by task type</h3><p class="il-note" style="margin:0 0 8px">From your task-type practice only: how many questions you got right, how often you practised and when you last did.</p>'+(ts.length?'<div style="overflow:auto"><table class="vm-table gl-tt"><thead><tr><th>Task type</th><th>Skill</th><th>Correct</th><th class="gl-acc">Accuracy</th><th>Sessions</th><th>Last practised</th><th>Last session</th></tr></thead><tbody>'+ts.map(function(t){var pc=Math.round(t.ok*100/t.n),lp=t.lastN?Math.round(t.lastOk*100/t.lastN):0;return '<tr><td><b>'+esc(typeName(t.type))+'</b></td><td><i class="il-dot" style="background:'+(t.skill==='reading'?C_READ:C_LIST)+'"></i>'+(t.skill==='reading'?'Reading':'Listening')+'</td><td><b>'+t.ok+'/'+t.n+'</b></td><td class="gl-acc"><div class="il-bar gl-bar1"><div><i style="width:'+pc+'%;background:'+pcColor(pc)+'"></i></div><b>'+pc+'%</b></div></td><td>'+t.sessions+'</td><td>'+fmtDate(t.last)+'</td><td>'+t.lastOk+'/'+t.lastN+' <span class="il-note">('+lp+'%)</span></td></tr>';}).join('')+'</tbody></table></div>':'<div class="il-note">Practise a task type to see your accuracy here.</div>');
  }
  draw();
 }
 function drawGlanceStudent(){
  setTitle('Glance');
- root().innerHTML='<div class="ielts-wrap wide"><div class="ielts-hero"><h2>Your progress at a glance</h2><p>Scores across your practices: Reading in green, Listening in orange.</p></div><div id="glBox"></div></div>';
+ var done=state.attempts.slice().sort(function(a,b){return String(b.completedAt).localeCompare(String(a.completedAt));}),rec=done.slice(0,3),nm=String((sess&&(sess.fullName||sess.name))||'').split(' ').slice(-1)[0];
+ var cards=rec.map(function(a){var col=a.skill==='reading'?C_READ:C_LIST;return '<div class="gl-card" style="border-top-color:'+col+'"><div class="gl-card-h">'+esc(a.title||'Practice')+'</div><div class="gl-big">'+(typeof a.score==='number'?a.score+'%':'—')+'</div><div class="il-note">'+esc(modeOf(a))+' · '+(a.correct!=null?a.correct+'/'+a.gradedCount+' correct · ':'')+fmtDate(a.completedAt)+'</div></div>';}).join('');
+ root().innerHTML='<div class="ielts-wrap wide"><div class="ielts-hero"><h2>Welcome back'+(nm?', '+esc(nm):'')+'</h2><p>'+(rec.length?'Here is what you practised most recently and how you are doing.':'Complete a test to see your progress here.')+'</p></div>'+(rec.length?'<h3 class="il-sect-h">Recently completed</h3><div class="rc-grid">'+cards+'</div><div class="il-toolbar"><a class="vm-btn vm-btn-ghost" href="ielts.html#history">See all history</a><a class="vm-btn vm-btn-primary" href="ielts.html#library">Practise now</a></div>':'<div class="il-toolbar"><a class="vm-btn vm-btn-primary" href="ielts.html#library">Start practising</a></div>')+'<div id="glBox"></div></div>';
  glanceView(document.getElementById('glBox'),state.attempts,{});
+}
+function drawHistory(){
+ setTitle('History');
+ var rows=state.attempts.map(function(a){var ts=attemptTypes(a);return{a:a,date:String(a.completedAt||''),title:a.title||'',skill:a.skill||'',mode:modeOf(a),types:ts.map(function(t){return typeName(t.type);}).join(', '),ts:ts,score:typeof a.score==='number'?a.score:-1,key:String(a.contentId||a.title)};});
+ var seen={};rows.slice().sort(function(x,y){return x.date.localeCompare(y.date);}).forEach(function(r){seen[r.key]=(seen[r.key]||0)+1;r.nth=seen[r.key];});
+ var tests=Object.keys(seen).length,typesDone={};rows.forEach(function(r){r.ts.forEach(function(t){typesDone[t.type]=1;});});
+ var st={q:'',skill:'all',mode:'all',k:'date',d:-1};
+ var modes=['In-class','Free practice','Full practice','Mixed','Task type','Practice'].filter(function(m){return rows.some(function(r){return r.mode===m;});});
+ root().innerHTML='<div class="ielts-wrap wide"><div class="ielts-hero"><h2>Your practice history</h2><p>Every test you completed: which test, which task types, and how many times.</p></div>'+
+  '<div class="hs-sum"><div class="gl-card"><div class="gl-card-h">Attempts</div><div class="gl-big">'+rows.length+'</div></div><div class="gl-card"><div class="gl-card-h">Different tests</div><div class="gl-big">'+tests+'</div></div><div class="gl-card" style="border-top-color:'+C_READ+'"><div class="gl-card-h">Reading</div><div class="gl-big">'+rows.filter(function(r){return r.skill==="reading";}).length+'</div></div><div class="gl-card" style="border-top-color:'+C_LIST+'"><div class="gl-card-h">Listening</div><div class="gl-big">'+rows.filter(function(r){return r.skill==="listening";}).length+'</div></div><div class="gl-card"><div class="gl-card-h">Task types practised</div><div class="gl-big">'+Object.keys(typesDone).length+'</div></div></div>'+
+  '<div class="il-panel"><div class="il-toolbar"><input class="vm-input" id="hsQ" type="search" placeholder="Search test, task type…" style="max-width:280px"><select class="vm-select" id="hsSkill"><option value="all">All skills</option><option value="reading">Reading</option><option value="listening">Listening</option></select><select class="vm-select" id="hsMode"><option value="all">All kinds</option>'+modes.map(function(m){return '<option>'+m+'</option>';}).join('')+'</select><span class="il-spacer"></span><span class="il-note" id="hsCount"></span></div><div style="overflow:auto"><table class="vm-table"><thead><tr>'+[['date','Date'],['title','Test'],['skill','Skill'],['mode','Kind'],['types','Task types'],['nth','Try'],['score','Score'],['correct','Correct'],['time','Time']].map(function(c){return '<th class="hs-th" data-k="'+c[0]+'">'+c[1]+'<span class="hs-ar" data-a="'+c[0]+'"></span></th>';}).join('')+'</tr></thead><tbody id="hsBody"></tbody></table></div></div></div>';
+ function val(r,k){return k==='correct'?(r.a.gradedCount?r.a.correct/r.a.gradedCount:-1):k==='time'?(r.a.durationSeconds||0):r[k];}
+ function draw(){
+  var q=st.q.toLowerCase(),list=rows.filter(function(r){return (st.skill==='all'||r.skill===st.skill)&&(st.mode==='all'||r.mode===st.mode)&&(!q||(r.title+' '+r.types+' '+r.mode+' '+r.skill).toLowerCase().indexOf(q)>=0);});
+  list.sort(function(x,y){var a=val(x,st.k),b=val(y,st.k);return (typeof a==='string'?a.localeCompare(b):a-b)*st.d;});
+  document.getElementById('hsBody').innerHTML=list.length?list.map(function(r){var a=r.a;return '<tr><td>'+fmtDate(a.completedAt)+'</td><td>'+esc(r.title)+'</td><td><i class="il-dot" style="background:'+(r.skill==='reading'?C_READ:C_LIST)+'"></i>'+esc(r.skill)+'</td><td>'+esc(r.mode)+'</td><td class="gl-bt">'+(r.ts.map(function(t){return '<span class="gl-chip" style="border-color:'+pcColor(Math.round(t.ok*100/t.n))+'">'+esc(typeName(t.type))+' <b>'+t.ok+'/'+t.n+'</b></span>';}).join('')||'<span class="il-note">—</span>')+'</td><td>#'+r.nth+'</td><td><b>'+(r.score>=0?r.score+'%':'—')+'</b></td><td>'+(a.gradedCount?a.correct+'/'+a.gradedCount:'—')+'</td><td>'+Math.max(1,Math.round((a.durationSeconds||0)/60))+' min</td></tr>';}).join(''):'<tr><td colspan="9" class="il-note">Nothing matches.</td></tr>';
+  document.getElementById('hsCount').textContent=list.length+' of '+rows.length+' attempts';
+  qa('.hs-ar').forEach(function(s){s.textContent=s.getAttribute('data-a')===st.k?(st.d>0?' ▲':' ▼'):'';});
+ }
+ document.getElementById('hsQ').oninput=function(){st.q=this.value;draw();};
+ document.getElementById('hsSkill').onchange=function(){st.skill=this.value;draw();};
+ document.getElementById('hsMode').onchange=function(){st.mode=this.value;draw();};
+ qa('.hs-th').forEach(function(th){th.onclick=function(){var k=th.getAttribute('data-k');if(st.k===k)st.d=-st.d;else{st.k=k;st.d=(k==='title'||k==='skill'||k==='mode'||k==='types')?1:-1;}draw();};});
+ draw();
 }
 function drawGlanceTeacher(){
  setTitle('Glance');
@@ -754,9 +795,11 @@ function fetchItems(ids,opts){
  });
 }
 function openItems(ids,assignment,opts){
+ state.retScroll=window.pageYOffset||0;
+ try{if(EP.fs&&!state.fsOff&&!document.fullscreenElement&&document.documentElement.requestFullscreen){state.fsLeaving=false;document.documentElement.requestFullscreen().catch(function(){});}}catch(e){}   // still inside the click that started the test, so the browser allows it
 
  busy('Loading the test…');
- return fetchItems(ids,opts).then(function(x){unbusy();if(opts&&opts.title)x.title=opts.title;state.active=x;state.run=null;state.review=null;state.assignment=assignment||null;state.started=new Date().toISOString();render();window.scrollTo(0,0);}).catch(function(e){unbusy();say(e.message);qa('#tyGo').forEach(function(b){b.disabled=false;});});
+ return fetchItems(ids,opts).then(function(x){unbusy();if(opts&&opts.title)x.title=opts.title;state.active=x;state.run=null;state.review=null;state.assignment=assignment||null;state.started=new Date().toISOString();render();window.scrollTo(0,0);}).catch(function(e){unbusy();exitFS();say(e.message);qa('#tyGo').forEach(function(b){b.disabled=false;});});
 }
 
 /* ───────── In-class (teacher) ───────── */
@@ -1125,7 +1168,7 @@ function bindEP(){
 }
 function exitFS(){try{state.fsOff=false;if(document.fullscreenElement){state.fsLeaving=true;document.exitFullscreen();}}catch(e){}}
 document.addEventListener('fullscreenchange',function(){var f=document.getElementById('fsb');if(f)f.textContent=document.fullscreenElement?'⛶ Exit full screen':'⛶ Full screen';if(!document.fullscreenElement&&document.querySelector('.exam')&&!state.fsLeaving)state.fsOff=true;if(!document.fullscreenElement)state.fsLeaving=false;});
-document.addEventListener('pointerdown',function(){   // browsers only allow full screen after a click, so the first click inside a test switches it on
+document.addEventListener('pointerdown',function(e){if(e.target&&e.target.closest&&e.target.closest('#exit'))return;   // browsers only allow full screen after a click, so the first click inside a test switches it on
  if(EP.fs&&!state.fsOff&&!isPrev()&&document.querySelector('.exam')&&!document.fullscreenElement&&document.documentElement.requestFullscreen)document.documentElement.requestFullscreen().catch(function(){});
 },true);
 function renderPractice(){
@@ -1139,7 +1182,7 @@ function renderPractice(){
  }else{
   root().innerHTML='<div class="exam"><div class="exam-top"><button class="exam-btn" id="exit">'+(state.previewBack?'← Back to editor':'← Exit')+'</button><div class="exam-title">'+esc(titleItem(x))+'</div><div class="exam-clock" id="clock">0:00</div><div class="exam-tools" role="group" aria-label="Reading comfort"><button class="exam-btn" id="zOut" aria-label="Zoom out" title="Smaller text">A−</button><span class="exam-zval" id="zVal" aria-live="polite">100%</span><button class="exam-btn" id="zIn" aria-label="Zoom in" title="Larger text">A+</button><button class="exam-btn" id="thm" title="Change display mode: light, dark, high contrast">☀ Light</button><button class="exam-btn" id="fsb" title="Full screen: hides the browser bars for more room (Esc to leave)">⛶ Full screen</button></div><span class="il-spacer"></span><span class="exam-prog" id="prog"></span>'+(isPrev()?'<span class="exam-tag">Preview</span>':'')+'<button class="exam-btn" id="report">Report issue</button></div>'+(listen?'<div class="exam-audio" id="audioBar"></div>':'')+'<div class="exam-part" id="partBar"></div><div id="splitArea" class="exam-split'+(listen?' single':'')+'"></div><div class="exam-bottom" id="examNav"></div></div><div id="extra"></div>';
  }
- document.getElementById('exit').onclick=function(){var pb=state.previewBack;function out(){stopTimer();exitFS();if(pb){pb();return;}state.active=null;state.run=null;state.review=null;state.assignment=null;render();window.scrollTo(0,0);}if(!rv&&!isPrev()&&answeredCount())VM.confirm('Leave the test and discard your answers?',{danger:true,ok:'Leave'}).then(function(y){if(y)out();});else out();};
+ document.getElementById('exit').onclick=function(){var pb=state.previewBack;function out(){stopTimer();exitFS();if(pb){pb();return;}state.active=null;state.run=null;state.review=null;state.assignment=null;render();var ys=state.retScroll||0;state.retScroll=0;window.scrollTo(0,ys);setTimeout(function(){window.scrollTo(0,ys);},60);}if(!rv&&!isPrev()&&answeredCount())VM.confirm('Leave the test and discard your answers?',{danger:true,ok:'Leave'}).then(function(y){if(y)out();});else out();};
  document.getElementById('report').onclick=function(){VM.prompt('Which question number has a problem? (optional)',{title:'Report an issue',ok:'Next'}).then(function(n){if(n===null)return;VM.prompt('Describe the problem for your teacher:',{title:'Report an issue',multiline:true,ok:'Send'}).then(function(message){if(!message||!message.trim())return;call('ielts.report.create',{contentId:String(x.id||x._id).split(',')[0],contentTitle:titleItem(x),questionNumber:n,message:message,privateContent:false}).then(function(){VM.toast('Report sent to your teacher.','ok');}).catch(function(e){say(e.message);});});});};
  var split=document.getElementById('splitArea');
  function joinSub(i){var vs=qa('#splitArea input[data-q="'+i+'"][data-sub]').sort(function(a,b){return +a.getAttribute('data-sub')-+b.getAttribute('data-sub');}).map(function(x){return x.value.trim();});return vs.some(Boolean)?vs.join(' and ').replace(/^ and | and $/g,''):'';}
