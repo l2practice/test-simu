@@ -138,6 +138,19 @@ service cloud.firestore {
                             && getAfter(/databases/$(db)/documents/ieltsContent/$(id)).data.ownerUid == request.resource.data.ownerUid;
       allow delete: if false;
     }
+    // Audio-script edits proposed by students; the class teacher approves or rejects them.
+    match /ieltsScriptEdits/{id} {
+      allow read, delete: if signedIn() && (resource.data.uid == request.auth.uid
+                                           || (isTeacher() && resource.data.teacherUid == request.auth.uid));
+      allow create, update: if signedIn() && request.resource.data.uid == request.auth.uid
+                            && request.resource.data.teacherUid == profile().teacherUid
+                            && request.resource.data.text is string && request.resource.data.text.size() < 60001;
+    }
+    // Library index: small summaries (title, book, test, part, counts) grouped per book. Full tests stay protected above.
+    match /ieltsIndex/{id} {
+      allow read: if signedIn();
+      allow write: if signedIn();
+    }
     match /ieltsAttempts/{id} {
       allow read: if isMe(resource.data.uid) || owns(resource.data);
       allow create, update, delete: if false; // trusted grader in Apps Script writes attempts
