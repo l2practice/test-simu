@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi"><head><meta charset="UTF-8"><link rel="icon" type="image/svg+xml" href="favicon.svg?v=20261009c"><link rel="apple-touch-icon" href="apple-touch-icon.png?v=20261009c"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#0F6B4F"><title>Test Simulation · IELTS Practice</title><link rel="stylesheet" href="vm-theme.css?v=20261018k">
+<meta name="theme-color" content="#0F6B4F"><title>Test Simulation · IELTS Practice</title><link rel="stylesheet" href="vm-theme.css?v=20261018l">
 <style>
 #app{min-height:100vh}.ielts-wrap{max-width:1180px;margin:auto}.ielts-hero{background:linear-gradient(120deg,var(--vm-sand-2),var(--vm-primary-lt));color:var(--vm-ink);padding:24px;border-radius:var(--vm-r);margin-bottom:18px}.ielts-hero h2{margin:0 0 6px;font-family:var(--vm-font-display)}.ielts-hero p{margin:0;color:var(--vm-ink-2)}.il-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}.il-card,.il-panel{background:var(--vm-surface);border:1px solid var(--vm-border-2);border-radius:var(--vm-r);padding:18px;box-shadow:var(--vm-shadow-sm)}.il-card h3{margin:5px 0;font-family:var(--vm-font-display)}.il-meta{font-size:.78rem;color:var(--vm-ink-3);margin:6px 0 12px}.il-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}.il-practice{display:grid;grid-template-columns:minmax(300px,1fr) minmax(300px,1fr);gap:16px}.il-passage{white-space:pre-wrap;line-height:1.85;max-height:68vh;overflow:auto}.il-q{border-bottom:1px solid var(--vm-border-2);padding:12px 0}.il-q label{display:block;font-weight:650;margin-bottom:7px}.il-q input,.il-q select{width:100%}.il-badge{display:inline-block;border-radius:99px;padding:3px 9px;background:var(--vm-primary-lt);color:var(--vm-primary-dk);font-size:.7rem;font-weight:700}.il-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.il-empty{padding:35px;text-align:center;color:var(--vm-ink-3)}.il-editor{display:grid;grid-template-columns:1fr 1fr;gap:10px}.il-editor textarea{min-height:130px;font-size:.92rem}.il-section-editor{margin:14px 0;padding:14px;border:1px solid var(--vm-border-2);border-radius:16px;background:var(--vm-surface)}.il-section-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.il-section-grid.three{grid-template-columns:1fr 1fr 1fr}.il-section-grid textarea{width:100%;min-height:230px;resize:vertical;white-space:pre-wrap}.il-answer-key{margin-top:20px;padding-top:16px;border-top:3px solid var(--vm-primary-lt)}.il-ai-output{white-space:pre-wrap;line-height:1.7}.il-settings{max-width:720px;margin:18px auto}.il-settings label{display:block;margin:12px 0 5px;font-weight:650}.il-chart{width:100%;height:220px;border:1px solid var(--vm-border-2);border-radius:10px;background:var(--vm-surface);margin-top:10px}.il-note{font-size:.78rem;color:var(--vm-ink-3)}.il-error{color:var(--vm-danger);font-size:.84rem}.il-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 @media(max-width:720px){.il-practice,.il-editor,.il-section-grid,.il-section-grid.three{grid-template-columns:1fr}.il-passage{max-height:40vh}}
@@ -437,7 +437,9 @@ body:not(.exam-mode) .tk .tk-chips>*:hover{transform:translateY(-4px)}
 body:not(.exam-mode) .tk-act .vm-btn{transition:transform .22s cubic-bezier(.3,1.6,.5,1),background .2s,color .2s,box-shadow .2s}
 body:not(.exam-mode) .tk-act .vm-btn:hover:not(:disabled){transform:translateY(-4px)}
 body:not(.exam-mode) .tk-act .vm-btn:active:not(:disabled){transform:translateY(-1px)}
-</style></head><body><div id="app"></div><script src="vm-common.js?v=20261018k"></script><script>
+
+.sc-ta{min-height:46vh;width:100%;font-size:.95rem;line-height:1.6;resize:vertical}.sc-pend{background:#FFF3D1;border-radius:14px;padding:10px 14px;margin-bottom:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}.sc-q{margin-bottom:14px}.sc-qrow{padding:10px 0;border-top:1px solid var(--vm-border-2)}.sc-qrow:first-of-type{border-top:none}.sc-qhead{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}.sc-qtext{margin-top:8px;background:#F7F3EE;border-radius:12px;padding:12px 14px;max-height:40vh;overflow:auto;font-size:.9rem;line-height:1.55}
+</style></head><body><div id="app"></div><script src="vm-common.js?v=20261018l"></script><script>
 
 
 (function(){
@@ -781,24 +783,58 @@ function drawSMix(body,sk){
 var SCRIPT_CACHE={};
 function openScript(id,label){
  var m=document.createElement('div');m.className='sc-modal';m.setAttribute('role','dialog');m.setAttribute('aria-label','Audio script');
- m.innerHTML='<div class="sc-card"><div class="sc-head"><h3>'+esc(label||'Audio script')+'</h3><button class="vm-btn vm-btn-ghost vm-btn-sm" id="scCopy" disabled>Copy</button><button class="vm-btn vm-btn-primary vm-btn-sm" id="scClose">Close</button></div><div class="sc-body" id="scBody"><p class="il-note">Loading the script…</p></div></div>';
+ m.innerHTML='<div class="sc-card"><div class="sc-head"><h3>'+esc(label||'Audio script')+'</h3><button class="vm-btn vm-btn-ghost vm-btn-sm" id="scCopy" disabled>Copy</button><button class="vm-btn vm-btn-ghost vm-btn-sm" id="scEdit" disabled>Edit</button><button class="vm-btn vm-btn-primary vm-btn-sm" id="scClose">Close</button></div><div class="sc-body" id="scBody"><p class="il-note">Loading the script…</p></div></div>';
  document.body.appendChild(m);
+ var cur={script:'',mine:null};   // mine: the student's own edit that is still waiting for approval
  function close(){m.remove();document.removeEventListener('keydown',onk);}
- function onk(e){if(e.key==='Escape')close();}
+ function onk(e){if(e.key==='Escape'&&!document.getElementById('scTa'))close();}
  document.addEventListener('keydown',onk);
  m.onclick=function(e){if(e.target===m)close();};
  document.getElementById('scClose').onclick=close;
- function show(d){
-  var txt=String(d.script||'').trim(),body=document.getElementById('scBody');if(!body)return;
-  body.innerHTML=txt?txt.split(/\n{2,}/).map(function(p){return '<p>'+esc(p).replace(/\n/g,'<br>')+'</p>';}).join(''):'<p class="il-note">No audio script has been added for this part yet.</p>';
+ function shown(){return cur.mine!=null?cur.mine:String(cur.script||'').trim();}
+ function show(){
+  var txt=shown(),body=document.getElementById('scBody');if(!body)return;
+  var note=cur.mine!=null?'<div class="sc-pend"><b>Your edit</b> is waiting for your teacher to approve it. Only you see it until then. <button class="vm-btn vm-btn-ghost vm-btn-sm" id="scDisc">Discard my edit</button></div>':'';
+  body.innerHTML=note+(txt?txt.split(/\n{2,}/).map(function(p){return '<p>'+esc(p).replace(/\n/g,'<br>')+'</p>';}).join(''):'<p class="il-note">No audio script has been added for this part yet.</p>');
   var cp=document.getElementById('scCopy');cp.disabled=false;cp.onclick=function(){try{navigator.clipboard.writeText(txt);VM.toast('Script copied.','ok');}catch(e){say('Could not copy.');}};
+  var ed=document.getElementById('scEdit');ed.disabled=false;ed.textContent='Edit';ed.onclick=edit;
+  var dc=document.getElementById('scDisc');if(dc)dc.onclick=function(){call('ielts.script.discard',{id:id}).then(function(){cur.mine=null;show();VM.toast('Your edit was discarded.','ok');}).catch(function(e){say(e.message);});};
  }
- if(SCRIPT_CACHE[id])return show(SCRIPT_CACHE[id]);
- call('ielts.script.get',{id:id}).then(function(d){SCRIPT_CACHE[id]=d;show(d);}).catch(function(e){var b=document.getElementById('scBody');if(b)b.innerHTML='<p class="il-error">'+esc(e.message)+'</p>';});
+ function edit(){
+  var body=document.getElementById('scBody');
+  body.innerHTML='<p class="il-note">'+(teacher?'Your changes are saved for everyone straight away.':'Your changes are visible to you now. Your teacher must approve them before the whole class sees them.')+'</p><textarea id="scTa" class="vm-input sc-ta" spellcheck="true"></textarea><div class="il-row" style="margin-top:10px"><button class="vm-btn vm-btn-primary" id="scSave">'+(teacher?'Save':'Submit for approval')+'</button><button class="vm-btn vm-btn-ghost" id="scCancel">Cancel</button></div>';
+  var ta=document.getElementById('scTa');ta.value=shown();ta.focus();
+  document.getElementById('scEdit').disabled=true;document.getElementById('scCopy').disabled=true;
+  document.getElementById('scCancel').onclick=show;
+  document.getElementById('scSave').onclick=function(){
+   var b=this,t=ta.value.trim();b.disabled=true;
+   call('ielts.script.save',{id:id,text:t}).then(function(r){
+    if(teacher){cur.script=t;cur.mine=null;SCRIPT_CACHE[id]=Object.assign({},SCRIPT_CACHE[id]||{},{script:t});VM.toast('Script saved.','ok');}
+    else{cur.mine=t;VM.toast('Submitted. Your teacher will check it.','ok');}
+    show();
+   }).catch(function(e){b.disabled=false;say(e.message);});
+  };
+ }
+ function ready(d,mine){cur.script=d.script||'';cur.mine=(!teacher&&mine&&mine.text!=null)?mine.text:null;show();}
+ var mineP=teacher?Promise.resolve(null):call('ielts.script.mine',{id:id}).catch(function(){return null;});
+ if(SCRIPT_CACHE[id])return mineP.then(function(mn){ready(SCRIPT_CACHE[id],mn);});
+ Promise.all([call('ielts.script.get',{id:id}),mineP]).then(function(v){SCRIPT_CACHE[id]=v[0];ready(v[0],v[1]);}).catch(function(e){var b=document.getElementById('scBody');if(b)b.innerHTML='<p class="il-error">'+esc(e.message)+'</p>';});
+}
+function drawScriptEdits(host){
+ if(!teacher||!host)return;
+ call('ielts.script.pending').then(function(rows){
+  if(!rows||!rows.length){host.innerHTML='';return;}
+  host.innerHTML='<div class="il-panel sc-q"><h3 style="margin-top:0">Script edits waiting for your check <span class="il-count">'+rows.length+'</span></h3>'+rows.map(function(r,k){return '<div class="sc-qrow" data-k="'+k+'"><div class="sc-qhead"><div><b>'+esc(r.title||'Audio script')+'</b><div class="il-note">'+esc(r.studentName||'A student')+' · '+fmtDate(r.createdAt)+'</div></div><div class="il-row"><button class="vm-btn vm-btn-ghost vm-btn-sm" data-qv="'+k+'">View</button><button class="vm-btn vm-btn-primary vm-btn-sm" data-qa="'+k+'">Approve</button><button class="vm-btn vm-btn-ghost vm-btn-sm il-del" data-qr="'+k+'">Reject</button></div></div><div class="sc-qtext" id="qt'+k+'" hidden>'+esc(r.text||'').replace(/\n/g,'<br>')+'</div></div>';}).join('')+'</div>';
+  function act(k,approve,btn){btn.disabled=true;call('ielts.script.review',{docId:rows[k].docId,approve:approve}).then(function(){delete SCRIPT_CACHE[rows[k].contentId];VM.toast(approve?'Script updated for the class.':'Edit rejected.','ok');drawScriptEdits(host);}).catch(function(e){btn.disabled=false;say(e.message);});}
+  qa('[data-qv]').forEach(function(b){b.onclick=function(){var t=document.getElementById('qt'+b.getAttribute('data-qv'));t.hidden=!t.hidden;b.textContent=t.hidden?'View':'Hide';};});
+  qa('[data-qa]').forEach(function(b){b.onclick=function(){act(+b.getAttribute('data-qa'),true,b);};});
+  qa('[data-qr]').forEach(function(b){b.onclick=function(){act(+b.getAttribute('data-qr'),false,b);};});
+ }).catch(function(){host.innerHTML='';});
 }
 function drawScriptsPage(){
  setTitle('Audio Scripts');setSkillTheme('listening');
- root().innerHTML='<div class="ielts-wrap"><div class="ielts-hero"><h2>Audio scripts</h2><p>Read the script of any Listening part in the Library. Scripts are grouped in folders like the tests.</p></div><div id="scHost"><div id="libBody"></div></div><div id="extra"></div></div>';
+ root().innerHTML='<div class="ielts-wrap"><div class="ielts-hero"><h2>Audio scripts</h2><p>Read the script of any Listening part in the Library. Scripts are grouped in folders like the tests.</p></div><div id="scEdits"></div><div id="scHost"><div id="libBody"></div></div><div id="extra"></div></div>';
+ drawScriptEdits(document.getElementById('scEdits'));
  if(teacher)drawTests(state.items.filter(function(i){return i.skill==='listening'&&i.review!=='pending';}),{scriptMode:true});
  else drawSFull(document.getElementById('scHost'),'listening',{script:true,redraw:drawScriptsPage});
 }
