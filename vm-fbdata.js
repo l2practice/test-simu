@@ -1197,6 +1197,49 @@ async function ieltsScriptGet(p) {
   if (!current) return fail('SESSION_EXPIRED');
   return gas('ielts.script.get', { idToken:await current.getIdToken(), id:str(p.id) });
 }
+// Audio-script edits: a teacher saves straight into the answer key; a student's edit waits (collection ieltsScriptEdits) until the class teacher approves it.
+async function ieltsScriptWrite(id, text) {
+  const kr = fs.doc('ieltsAnswerKeys/' + id), ks = await kr.get();
+  if (!ks.exists) throw new Error('This part has no stored record to edit.');
+  const secs = (ks.data().sections || []).slice(); if (!secs.length) secs.push({});
+  secs[0] = Object.assign({}, secs[0], { script: text });
+  await kr.update({ sections: secs, updatedAt: nowIso() });
+}
+async function ieltsScriptSave(p) {
+  const u = await me(), id = str(p.id), text = String(p.text == null ? '' : p.text).replace(/\r/g, '').trim().slice(0, 60000);
+  const cs = await fs.doc('ieltsContent/' + id).get();
+  if (!cs.exists) return fail('Test not found.');
+  const d = cs.data();
+  if (u.role === 'teacher') {
+    if (!ieltsCanEdit(u, d)) return fail('You can edit the scripts of your own tests and your students’ tests.');
+    await ieltsScriptWrite(id, text);
+    return ok({ status: 'saved' });
+  }
+  await fs.doc('ieltsScriptEdits/' + id + '__' + u.uid).set({ contentId: id, uid: u.uid, teacherUid: u.teacherUid || '', studentName: u.fullName || '', title: d.title || '', text, status: 'pending', createdAt: nowIso() });
+  return ok({ status: 'pending' });
+}
+async function ieltsScriptMine(p) {
+  const u = await me(), s = await fs.doc('ieltsScriptEdits/' + str(p.id) + '__' + u.uid).get();
+  return ok(s.exists ? { text: s.data().text || '', createdAt: s.data().createdAt || '' } : null);
+}
+async function ieltsScriptDiscard(p) {
+  const u = await me(); await fs.doc('ieltsScriptEdits/' + str(p.id) + '__' + u.uid).delete(); return ok();
+}
+async function ieltsScriptPending() {
+  const u = await teacher(), s = await fs.collection('ieltsScriptEdits').where('teacherUid', '==', u.uid).get(), rows = [];
+  s.forEach(d => rows.push(Object.assign({ docId: d.id }, d.data())));
+  rows.sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
+  return ok(rows);
+}
+async function ieltsScriptReview(p) {
+  const u = await teacher(), ref = fs.doc('ieltsScriptEdits/' + str(p.docId)), s = await ref.get();
+  if (!s.exists) return fail('This edit no longer exists.');
+  const e = s.data();
+  if (e.teacherUid !== u.uid) return fail('This edit belongs to another teacher.');
+  if (p.approve) await ieltsScriptWrite(e.contentId, String(e.text || ''));
+  await ref.delete();
+  return ok({ contentId: e.contentId });
+}
 async function ieltsImportScript(p) {
   await me(); const current = auth.currentUser;
   if (!current) return fail('SESSION_EXPIRED');
@@ -1262,7 +1305,7 @@ const ACTIONS = {
   'ielts.attempt.save': ieltsAttemptSave, 'ielts.attempt.list': ieltsAttemptList,
   'ielts.report.create': ieltsReportCreate, 'ielts.report.list': ieltsReportList, 'ielts.report.update': ieltsReportUpdate,
   'ielts.audio.upload': ieltsAudioUpload, 'ielts.audio.attach': ieltsAudioAttach, 'ielts.audio.url': ieltsAudioUrl,
-  'ielts.importUrl': ieltsImportUrl, 'ielts.importScript': ieltsImportScript, 'ielts.script.get': ieltsScriptGet, 'ielts.images.backup': ieltsImagesBackup,
+  'ielts.importUrl': ieltsImportUrl, 'ielts.importScript': ieltsImportScript, 'ielts.script.get': ieltsScriptGet, 'ielts.script.save': ieltsScriptSave, 'ielts.script.mine': ieltsScriptMine, 'ielts.script.discard': ieltsScriptDiscard, 'ielts.script.pending': ieltsScriptPending, 'ielts.script.review': ieltsScriptReview, 'ielts.images.backup': ieltsImagesBackup,
   'vocab.today': vocabToday,
   'ping': async () => ok('pong')
 };
