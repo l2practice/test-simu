@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi"><head><meta charset="UTF-8"><link rel="icon" type="image/svg+xml" href="favicon.svg?v=20261009c"><link rel="apple-touch-icon" href="apple-touch-icon.png?v=20261009c"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#0F6B4F"><title>Test Simulation · IELTS Practice</title><link rel="stylesheet" href="vm-theme.css?v=20261019a">
+<meta name="theme-color" content="#0F6B4F"><title>Test Simulation · IELTS Practice</title><link rel="stylesheet" href="vm-theme.css?v=20261019b">
 <style>
 #app{min-height:100vh}.ielts-wrap{max-width:1180px;margin:auto}.ielts-hero{background:linear-gradient(120deg,var(--vm-sand-2),var(--vm-primary-lt));color:var(--vm-ink);padding:24px;border-radius:var(--vm-r);margin-bottom:18px}.ielts-hero h2{margin:0 0 6px;font-family:var(--vm-font-display)}.ielts-hero p{margin:0;color:var(--vm-ink-2)}.il-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}.il-card,.il-panel{background:var(--vm-surface);border:1px solid var(--vm-border-2);border-radius:var(--vm-r);padding:18px;box-shadow:var(--vm-shadow-sm)}.il-card h3{margin:5px 0;font-family:var(--vm-font-display)}.il-meta{font-size:.78rem;color:var(--vm-ink-3);margin:6px 0 12px}.il-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}.il-practice{display:grid;grid-template-columns:minmax(300px,1fr) minmax(300px,1fr);gap:16px}.il-passage{white-space:pre-wrap;line-height:1.85;max-height:68vh;overflow:auto}.il-q{border-bottom:1px solid var(--vm-border-2);padding:12px 0}.il-q label{display:block;font-weight:650;margin-bottom:7px}.il-q input,.il-q select{width:100%}.il-badge{display:inline-block;border-radius:99px;padding:3px 9px;background:var(--vm-primary-lt);color:var(--vm-primary-dk);font-size:.7rem;font-weight:700}.il-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.il-empty{padding:35px;text-align:center;color:var(--vm-ink-3)}.il-editor{display:grid;grid-template-columns:1fr 1fr;gap:10px}.il-editor textarea{min-height:130px;font-size:.92rem}.il-section-editor{margin:14px 0;padding:14px;border:1px solid var(--vm-border-2);border-radius:16px;background:var(--vm-surface)}.il-section-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.il-section-grid.three{grid-template-columns:1fr 1fr 1fr}.il-section-grid textarea{width:100%;min-height:230px;resize:vertical;white-space:pre-wrap}.il-answer-key{margin-top:20px;padding-top:16px;border-top:3px solid var(--vm-primary-lt)}.il-ai-output{white-space:pre-wrap;line-height:1.7}.il-settings{max-width:720px;margin:18px auto}.il-settings label{display:block;margin:12px 0 5px;font-weight:650}.il-chart{width:100%;height:220px;border:1px solid var(--vm-border-2);border-radius:10px;background:var(--vm-surface);margin-top:10px}.il-note{font-size:.78rem;color:var(--vm-ink-3)}.il-error{color:var(--vm-danger);font-size:.84rem}.il-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 @media(max-width:720px){.il-practice,.il-editor,.il-section-grid,.il-section-grid.three{grid-template-columns:1fr}.il-passage{max-height:40vh}}
@@ -441,7 +441,21 @@ body:not(.exam-mode) .tk-act .vm-btn:active:not(:disabled){transform:translateY(
 .sc-ta{min-height:46vh;width:100%;font-size:.95rem;line-height:1.6;resize:vertical}.sc-pend{background:#FFF3D1;border-radius:14px;padding:10px 14px;margin-bottom:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}.sc-q{margin-bottom:14px}.sc-qrow{padding:10px 0;border-top:1px solid var(--vm-border-2)}.sc-qrow:first-of-type{border-top:none}.sc-qhead{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}.sc-qtext{margin-top:8px;background:#F7F3EE;border-radius:12px;padding:12px 14px;max-height:40vh;overflow:auto;font-size:.9rem;line-height:1.55}
 
 .df-add{background:#C8F0D8;color:#0B5B3E;border-radius:4px;padding:0 2px;font-weight:600}.df-del{background:#FFD9D4;color:#A12D22;border-radius:4px;padding:0 2px;text-decoration:line-through}.df-bar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px;position:sticky;top:0;background:#F7F3EE;padding:4px 0}.df-flash{outline:3px solid #F08A3C;outline-offset:2px}.sc-qtext{max-height:55vh}
-</style></head><body><div id="app"></div><script src="vm-common.js?v=20261019a"></script><script>
+
+.dash-row{display:grid;grid-template-columns:1.05fr 1.7fr 1fr;gap:14px;margin:6px 0 16px}@media(max-width:980px){.dash-row{grid-template-columns:1fr}}
+.dash-h{font-weight:800;color:#3E3A4A;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center}.dash-link{font-size:.78rem;color:#F08A3C;text-decoration:none;font-weight:700}.dash-sub{color:#8A8795;font-size:.82rem;margin:-2px 0 10px}
+.dash-big{display:flex;align-items:center;gap:8px;margin:4px 0 12px}.dash-big b{font-size:2.6rem;line-height:1;letter-spacing:-.03em;color:#3E3A4A}.dash-big span{color:#8A8795;font-weight:600}
+.dash-dots{display:flex;gap:8px;margin-bottom:10px}.dd{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:.7rem;color:#8A8795;font-weight:700}.dd i{width:28px;height:28px;border-radius:50%;background:#EFEAF4;display:grid;place-items:center;font-style:normal;color:#fff;font-size:.8rem}.dd.on i{background:linear-gradient(160deg,#F7B58C,#F08A3C)}.dd.today i{box-shadow:0 0 0 3px #fff,0 0 0 5px #F7B58C}
+.dh-bars{display:flex;gap:10px;align-items:flex-end;height:150px;padding:6px 4px 0}.dh-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:6px}.dh-col span{font-size:.72rem;color:#8A8795;font-weight:700}.dh-col.today span{color:#3E3A4A}
+.dh-stack{width:100%;max-width:34px;display:flex;flex-direction:column;border-radius:10px;overflow:hidden;background:#F3F0F7;min-height:6px}.dh-stack i{display:block}.dh-stack .r{background:#7FD1B0}.dh-stack .l{background:#F7B98A}.dh-col:not(:has(.dh-stack i)) .dh-stack{height:6%!important}
+.dr-ring{width:150px;height:150px;display:block;margin:4px auto 8px}
+.pe-grid{display:grid;grid-template-columns:2fr 1fr;gap:14px}@media(max-width:980px){.pe-grid{grid-template-columns:1fr}}
+.pe-tab td,.pe-tab th{white-space:nowrap}.pe-me{background:#F2FBF7}.pe-rk{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:#EFEAF4;font-weight:800;font-size:.8rem;color:#5b5668}.pe-rk.r1{background:#FFE29A;color:#7a5a00}.pe-rk.r2{background:#E3E6EE;color:#4a5160}.pe-rk.r3{background:#F6CDB4;color:#7a3d18}
+.pe-wd{display:flex;gap:3px;margin-top:4px}.pe-wd i{width:12px;height:6px;border-radius:3px;background:#E9E4EF}.pe-wd i.on{background:#F08A3C}.pe-wd i.t{outline:1.5px solid #bbb}
+.pe-cmp{margin:10px 0}.pe-cl{font-weight:700;font-size:.84rem;margin-bottom:4px;color:#3E3A4A}.pe-line{display:grid;grid-template-columns:70px 1fr auto;gap:8px;align-items:center;font-size:.8rem;margin:3px 0}.pe-line>div{height:9px;background:#F1EDF5;border-radius:99px;overflow:hidden}.pe-line i{display:block;height:100%;border-radius:99px}
+.pe-feed{display:flex;flex-direction:column;gap:2px}.pe-item{display:flex;gap:12px;align-items:flex-start;padding:10px 4px;border-top:1px solid var(--vm-border-2)}.pe-item:first-child{border-top:none}.pe-av{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-weight:800;flex:0 0 auto}.pe-when{opacity:.7}
+.gl-chart{max-height:360px}
+</style></head><body><div id="app"></div><script src="vm-common.js?v=20261019b"></script><script>
 
 
 (function(){
@@ -451,7 +465,7 @@ var teacher=sess.role==='teacher';
 var state={items:[],attempts:[],classes:[],inclass:[],active:null,run:null,review:null,started:'',assignment:null,libSkill:'all',libMode:'tests',bookFilter:'',folders:[],sTab:'full',folderOpen:'',view:'glance',loaded:false,glanceClass:'',glanceStudent:''};
 var navDef=teacher
  ?[['glance','Glance','overview','ielts.html#glance'],['library','Library','reading','ielts.html#library'],['types','Task Types','assign','ielts.html#types'],['inclass','In-class','inclass','ielts.html#inclass'],['scripts','Audio Scripts','listening','ielts.html#scripts'],['results','Results','results','ielts.html#results'],['classes','Classes','classes','teacher.html#tab=classes'],['settings','Settings','edit','teacher.html#tab=settings']]
- :[['glance','Glance','overview','ielts.html#glance'],['library','IELTS Practice','reading','ielts.html#library'],['history','History','results','ielts.html#history'],['scripts','Audio Scripts','listening','ielts.html#scripts'],['settings','Settings','edit','student.html#tab=settings']];
+ :[['glance','Glance','overview','ielts.html#glance'],['library','IELTS Practice','reading','ielts.html#library'],['history','History','results','ielts.html#history'],['peer','Peer','classes','ielts.html#peer'],['scripts','Audio Scripts','listening','ielts.html#scripts'],['settings','Settings','edit','student.html#tab=settings']];
 VM.renderShell({mount:'app',eyebrow:'Test Simulation · IELTS',title:'IELTS Practice',user:sess,nav:navDef.map(function(n){return{id:n[0],label:n[1],icon:n[2],href:n[3],active:n[0]==='glance'};})});
 function esc(x){return VM.esc(String(x==null?'':x));}
 function root(){return document.getElementById('vmContent');}
@@ -501,7 +515,7 @@ function tbUpdate(){var p=document.getElementById('tbPill');if(!p)return;var b=d
 function route(){
  var h=(location.hash||'').replace('#','')||'glance';
  if(h==='results'&&!teacher)h='history';
- var ok=teacher?['glance','library','types','inclass','results','scripts']:['glance','library','types','inclass','scripts','history'];
+ var ok=teacher?['glance','library','types','inclass','results','scripts']:['glance','library','types','inclass','scripts','history','peer'];
  state.view=ok.indexOf(h)>=0?h:'glance';
  stopTimer();state.active=null;state.run=null;state.review=null;state.assignment=null;state.previewBack=null;
  markNav();
@@ -533,6 +547,7 @@ function render(){
  if(state.view==='results'&&teacher)return drawResultsPage();
  if(state.view==='scripts')return drawScriptsPage();
  if(state.view==='history'&&!teacher)return drawHistory();
+ if(state.view==='peer'&&!teacher)return drawPeer();
  if(state.view==='glance')return teacher?drawGlanceTeacher():drawGlanceStudent();
  return drawLibrary();
 }
@@ -579,12 +594,16 @@ function glanceView(box,attempts,opts){
    var w=760,h=300,pl=40,pr=18,pt=16,pb=34,t0=new Date(rows[0]?rows[0].completedAt:Date.now()).getTime(),t1=new Date(rows.length?rows[rows.length-1].completedAt:Date.now()).getTime();
    function X(a,i){if(rows.length<2||t1===t0)return pl+(w-pl-pr)*(rows.length<2?0.5:i/(rows.length-1));return pl+(w-pl-pr)*((new Date(a.completedAt).getTime()-t0)/(t1-t0));}
    function Y(v){return pt+(h-pt-pb)*(1-v/100);}
-   var grid='';[0,25,50,75,100].forEach(function(v){grid+='<line x1="'+pl+'" x2="'+(w-pr)+'" y1="'+Y(v)+'" y2="'+Y(v)+'" stroke="#DCE6EC" stroke-dasharray="'+(v?'3 4':'0')+'"/><text x="'+(pl-8)+'" y="'+(Y(v)+4)+'" text-anchor="end" font-size="11" fill="#5C7482">'+v+'</text>';});
+   var grid='';[0,25,50,75,100].forEach(function(v){grid+='<line x1="'+pl+'" x2="'+(w-pr)+'" y1="'+Y(v)+'" y2="'+Y(v)+'" stroke="#E7E2EC" stroke-dasharray="'+(v?'3 5':'0')+'"/><text x="'+(pl-8)+'" y="'+(Y(v)+4)+'" text-anchor="end" font-size="11" fill="#5C7482">'+v+'</text>';});
+   var defs='<defs>'+['reading','listening'].map(function(s){var c=s==='reading'?C_READ:C_LIST;return '<linearGradient id="gr_'+s+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+c+'" stop-opacity=".32"/><stop offset="1" stop-color="'+c+'" stop-opacity="0"/></linearGradient>';}).join('')+'</defs>';
+   function curve(p){if(p.length<2)return '';var d='M'+p[0].x.toFixed(1)+','+p[0].y.toFixed(1);for(var q=0;q<p.length-1;q++){var a0=p[q-1]||p[q],a1=p[q],a2=p[q+1],a3=p[q+2]||a2,lo=Math.min(a1.y,a2.y),hi=Math.max(a1.y,a2.y);
+     var c1x=a1.x+(a2.x-a0.x)/6,c1y=Math.max(lo,Math.min(hi,a1.y+(a2.y-a0.y)/6)),c2x=a2.x-(a3.x-a1.x)/6,c2y=Math.max(lo,Math.min(hi,a2.y-(a3.y-a1.y)/6));
+     d+=' C'+c1x.toFixed(1)+','+c1y.toFixed(1)+' '+c2x.toFixed(1)+','+c2y.toFixed(1)+' '+a2.x.toFixed(1)+','+a2.y.toFixed(1);}return d;}
    var series=['reading','listening'].filter(function(s){return (st.skill==='all'||st.skill===s)&&!st.hide[s];}).map(function(s){
-    var col=s==='reading'?C_READ:C_LIST,pts=rows.map(function(a,i){return a.skill===s?{x:X(a,i),y:Y(a.score),a:a}:null;}).filter(Boolean);
-    return (pts.length>1?'<polyline fill="none" stroke="'+col+'" stroke-width="3" stroke-linejoin="round" points="'+pts.map(function(p){return p.x+','+p.y;}).join(' ')+'"/>':'')+pts.map(function(p){return '<circle class="gl-pt" cx="'+p.x+'" cy="'+p.y+'" r="6" fill="#fff" stroke="'+col+'" stroke-width="3" data-tip="'+esc(p.a.title+' · '+p.a.score+'% · '+p.a.correct+'/'+p.a.gradedCount+' correct · '+fmtDate(p.a.completedAt))+'"/>';}).join('');}).join('');
-   var xl=rows.length?[0,Math.floor((rows.length-1)/2),rows.length-1].filter(function(v,i,arr){return arr.indexOf(v)===i;}).map(function(i){return '<text x="'+X(rows[i],i)+'" y="'+(h-10)+'" text-anchor="middle" font-size="11" fill="#5C7482">'+fmtDate(rows[i].completedAt)+'</text>';}).join(''):'';
-   body.innerHTML='<div class="gl-cards">'+cards+'</div><div class="gl-legend"><button class="gl-leg'+(st.hide.reading?' off':'')+'" data-l="reading"><i style="background:'+C_READ+'"></i>Reading</button><button class="gl-leg'+(st.hide.listening?' off':'')+'" data-l="listening"><i style="background:'+C_LIST+'"></i>Listening</button><span class="il-note">Hover a point for details · click a legend item to show/hide a line</span></div><div class="gl-chart-wrap"><svg viewBox="0 0 '+w+' '+h+'" class="gl-chart" role="img" aria-label="Practice score over time">'+grid+series+xl+'</svg><div class="gl-tip" id="glTip"></div></div>';
+    var col=s==='reading'?C_READ:C_LIST,pts=rows.map(function(a,i){return a.skill===s?{x:X(a,i),y:Y(a.score),a:a}:null;}).filter(Boolean),d=curve(pts),fl=pts[0],ls=pts[pts.length-1];
+    return (pts.length>1?'<path d="'+d+' L'+ls.x.toFixed(1)+','+Y(0)+' L'+fl.x.toFixed(1)+','+Y(0)+' Z" fill="url(#gr_'+s+')"/><path d="'+d+'" fill="none" stroke="'+col+'" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>':'')+pts.map(function(p){return '<circle class="gl-pt" cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="5" fill="#fff" stroke="'+col+'" stroke-width="2.5" data-tip="'+esc(p.a.title+' · '+p.a.score+'% · '+p.a.correct+'/'+p.a.gradedCount+' correct · '+fmtDate(p.a.completedAt))+'"/>';}).join('');}).join('');
+   var xl=rows.length?[0,Math.floor((rows.length-1)/2),rows.length-1].filter(function(v,i,arr){return arr.indexOf(v)===i;}).map(function(i,ix,arr){return '<text x="'+X(rows[i],i)+'" y="'+(h-10)+'" text-anchor="'+(arr.length>1&&ix===arr.length-1?'end':(ix===0&&arr.length>1?'start':'middle'))+'" font-size="11" fill="#5C7482">'+fmtDate(rows[i].completedAt)+'</text>';}).join(''):'';
+   body.innerHTML='<div class="gl-cards">'+cards+'</div><div class="gl-legend"><button class="gl-leg'+(st.hide.reading?' off':'')+'" data-l="reading"><i style="background:'+C_READ+'"></i>Reading</button><button class="gl-leg'+(st.hide.listening?' off':'')+'" data-l="listening"><i style="background:'+C_LIST+'"></i>Listening</button><span class="il-note">Hover a point for details · click a legend item to show/hide a line</span></div><div class="gl-chart-wrap"><svg viewBox="0 0 '+w+' '+h+'" class="gl-chart" role="img" aria-label="Practice score over time">'+defs+grid+series+xl+'</svg><div class="gl-tip" id="glTip"></div></div>';
    qa('.gl-leg').forEach(function(b){b.onclick=function(){var s=b.getAttribute('data-l');st.hide[s]=!st.hide[s];draw();};});
    var tip=document.getElementById('glTip');
    qa('.gl-pt').forEach(function(c){c.onmouseenter=function(){tip.textContent=c.getAttribute('data-tip');tip.style.display='block';var wr=tip.parentNode.getBoundingClientRect(),cr=c.getBoundingClientRect();tip.style.left=Math.min(wr.width-220,Math.max(0,cr.left-wr.left-90))+'px';tip.style.top=(cr.top-wr.top-46)+'px';};c.onmouseleave=function(){tip.style.display='none';};});
@@ -594,12 +613,70 @@ function glanceView(box,attempts,opts){
  }
  draw();
 }
+function dayKey(d){d=new Date(d);return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);}
+function weekKeys(){var n=new Date(),dow=(n.getDay()+6)%7,out=[];for(var k=0;k<7;k++){var d=new Date(n.getFullYear(),n.getMonth(),n.getDate()-dow+k);out.push(dayKey(d));}return out;}
+function streakOf(keys){   // keys: object or array of local day keys with practice; a streak stays alive until the end of the next day
+ var set={};(Array.isArray(keys)?keys:Object.keys(keys)).forEach(function(k){set[k]=1;});
+ var today=new Date(),d=new Date(today.getFullYear(),today.getMonth(),today.getDate()),did=!!set[dayKey(d)];if(!did)d.setDate(d.getDate()-1);
+ var cur=0;while(set[dayKey(d)]){cur++;d.setDate(d.getDate()-1);}
+ var all=Object.keys(set).sort(),best=0,run=0,prev=null;all.forEach(function(k){var t=new Date(k+'T00:00:00');if(prev&&Math.round((t-prev)/864e5)===1)run++;else run=1;if(run>best)best=run;prev=t;});
+ return{cur:cur,best:Math.max(best,cur),today:did};
+}
+function activityDays(attempts){var m={};attempts.forEach(function(a){if(!a.completedAt)return;var k=dayKey(a.completedAt),e=m[k]||(m[k]={n:0,min:0});e.n++;e.min+=Math.round((a.durationSeconds||0)/60);});return m;}
+function flameSvg(c){return '<svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path d="M12 2c1 3.5-1.5 5-3 7-1.6 2.1-2 3.6-1 6 .7 1.6 2.2 2.8 4 3 3.3.4 6-2 6-5.2 0-2.2-1-3.8-2.2-5.2.2 1.6-.4 2.6-1.3 3C14.6 8.8 14.8 5 12 2z" fill="'+(c||'#F08A3C')+'"/><path d="M12 22c-2.2-.2-3.6-1.7-3.4-3.6.2-1.6 1.4-2.4 2.3-3.6.4 1.1 1.5 1.5 2.3 2.4.9 1 .6 3.5-1.2 4.8z" fill="#FFD98A"/></svg>';}
+function fmtHM(min){var h=Math.floor(min/60),m=min%60;return h?h+' h '+(m<10?'0':'')+m+' min':m+' min';}
+function dashRow(attempts){
+ var days=activityDays(attempts),st=streakOf(days),wk=weekKeys(),tk=dayKey(new Date()),L=['M','T','W','T','F','S','S'];
+ var done=wk.filter(function(k){return days[k];}).length,goal=5,pc=Math.min(100,Math.round(done*100/goal));
+ var mins=wk.map(function(k){var r=0,l=0;attempts.forEach(function(a){if(a.completedAt&&dayKey(a.completedAt)===k){var m=Math.round((a.durationSeconds||0)/60);if(a.skill==='listening')l+=m;else r+=m;}});return{r:r,l:l};});
+ var tot=mins.reduce(function(s,x){return s+x.r+x.l;},0),mx=Math.max(30,Math.max.apply(null,mins.map(function(x){return x.r+x.l;})));
+ var msg=st.cur===0?'Practise today to start a new streak.':(st.today?'You practised today. Keep it going!':'Practise today to keep your '+st.cur+'-day streak alive.');
+ var ring='<svg viewBox="0 0 120 120" class="dr-ring"><circle cx="60" cy="60" r="48" fill="none" stroke="#EEE8F3" stroke-width="12"/><circle cx="60" cy="60" r="48" fill="none" stroke="url(#drg)" stroke-width="12" stroke-linecap="round" stroke-dasharray="'+(301.6*pc/100).toFixed(1)+' 301.6" transform="rotate(-90 60 60)"/><defs><linearGradient id="drg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F7A98B"/><stop offset="1" stop-color="#F08A3C"/></linearGradient></defs><text x="60" y="66" text-anchor="middle" font-size="26" font-weight="700" fill="#3E3A4A">'+pc+'%</text></svg>';
+ return '<div class="dash-row"><div class="il-panel dash-streak"><div class="dash-h">Streak</div><div class="dash-big">'+flameSvg(st.cur?'#F08A3C':'#C9C4CF')+'<b>'+st.cur+'</b><span>day'+(st.cur===1?'':'s')+'</span></div><div class="dash-dots">'+wk.map(function(k,i){return '<div class="dd'+(days[k]?' on':'')+(k===tk?' today':'')+'"><i>'+(days[k]?'✓':'')+'</i><span>'+L[i]+'</span></div>';}).join('')+'</div><div class="il-note">'+esc(msg)+'<br>Best streak: <b>'+st.best+'</b> day'+(st.best===1?'':'s')+'</div></div>'+
+  '<div class="il-panel dash-hours"><div class="dash-h">Hours spent <a class="dash-link" href="ielts.html#history">View all</a></div><div class="dash-sub">'+fmtHM(tot)+' this week</div><div class="dh-bars">'+mins.map(function(x,i){var t=x.r+x.l;return '<div class="dh-col'+(wk[i]===tk?' today':'')+'" title="'+fmtHM(t)+'"><div class="dh-stack" style="height:'+(t?Math.max(8,Math.round(t*100/mx)):0)+'%">'+(x.l?'<i class="l" style="flex:'+x.l+'"></i>':'')+(x.r?'<i class="r" style="flex:'+x.r+'"></i>':'')+'</div><span>'+L[i]+'</span></div>';}).join('')+'</div><div class="gl-legend"><span class="il-note"><i class="il-dot" style="background:#7FD1B0"></i> Reading &nbsp; <i class="il-dot" style="background:#F7B98A"></i> Listening</span></div></div>'+
+  '<div class="il-panel dash-ring"><div class="dash-h">My progress</div>'+ring+'<div class="il-note" style="text-align:center">'+done+' of '+goal+' practice days this week.<br>'+(pc>=100?'Goal reached. Great work!':'Good work! Let’s finish all your goals.')+'</div></div></div>';
+}
 function drawGlanceStudent(){
  setTitle('Glance');
  var done=state.attempts.slice().sort(function(a,b){return String(b.completedAt).localeCompare(String(a.completedAt));}),rec=done.slice(0,3),nm=String((sess&&(sess.fullName||sess.name))||'').trim();
  var cards=rec.map(function(a){var col=a.skill==='reading'?C_READ:C_LIST;return '<div class="gl-card" style="border-top-color:'+col+'"><div class="gl-card-h">'+esc(a.title||'Practice')+'</div><div class="gl-big">'+(typeof a.score==='number'?a.score+'%':'—')+'</div><div class="il-note">'+esc(modeOf(a))+' · '+(a.correct!=null?a.correct+'/'+a.gradedCount+' correct · ':'')+fmtDate(a.completedAt)+'</div></div>';}).join('');
- root().innerHTML='<div class="ielts-wrap wide"><div class="ielts-hero"><h2>Welcome back'+(nm?', '+esc(nm):'')+'</h2><p>'+(rec.length?'Here is what you practised most recently and how you are doing.':'Complete a test to see your progress here.')+'</p></div>'+(rec.length?'<h3 class="il-sect-h">Recently completed</h3><div class="rc-grid">'+cards+'</div><div class="il-toolbar"><a class="vm-btn vm-btn-ghost" href="ielts.html#history">See all history</a><a class="vm-btn vm-btn-primary" href="ielts.html#library">Practise now</a></div>':'<div class="il-toolbar"><a class="vm-btn vm-btn-primary" href="ielts.html#library">Start practising</a></div>')+'<div id="glBox"></div></div>';
+ root().innerHTML='<div class="ielts-wrap wide"><div class="ielts-hero"><h2>Welcome back'+(nm?', '+esc(nm):'')+'</h2><p>'+(rec.length?'Here is what you practised most recently and how you are doing.':'Complete a test to see your progress here.')+'</p></div>'+dashRow(state.attempts)+(rec.length?'<h3 class="il-sect-h">Recently completed</h3><div class="rc-grid">'+cards+'</div><div class="il-toolbar"><a class="vm-btn vm-btn-ghost" href="ielts.html#history">See all history</a><a class="vm-btn vm-btn-primary" href="ielts.html#library">Practise now</a></div>':'<div class="il-toolbar"><a class="vm-btn vm-btn-primary" href="ielts.html#library">Start practising</a></div>')+'<div id="glBox"></div></div>';
  glanceView(document.getElementById('glBox'),state.attempts,{});
+ syncActivity();
+}
+/* ───────── Peer comparison: what classmates practised and when ───────── */
+var ACT_SYNCED='';
+function syncActivity(){
+ if(teacher||!state.attempts||!state.attempts.length)return;
+ var list=state.attempts.slice().sort(function(a,b){return String(b.completedAt).localeCompare(String(a.completedAt));}),last=String(list[0].completedAt||'');
+ if(ACT_SYNCED===last)return;ACT_SYNCED=last;
+ var days=activityDays(state.attempts),keys=Object.keys(days).sort().slice(-90),dm={};keys.forEach(function(k){dm[k]=days[k];});
+ var sk=streakOf(days);
+ call('ielts.activity.sync',{recent:list.slice(0,30).map(function(a){return{t:a.completedAt,title:a.title||'',skill:a.skill||'',mode:modeOf(a),min:Math.round((a.durationSeconds||0)/60)};}),days:dm,streak:sk.cur,best:sk.best,total:state.attempts.length,lastAt:last}).catch(function(){ACT_SYNCED='';});
+}
+function agoText(iso){var s=(Date.now()-new Date(iso).getTime())/1000;if(!isFinite(s))return '';if(s<90)return 'just now';if(s<3600)return Math.round(s/60)+' min ago';if(s<86400)return Math.round(s/3600)+' h ago';if(s<172800)return 'yesterday';return Math.round(s/86400)+' days ago';}
+function drawPeer(){
+ setTitle('Peer');
+ root().innerHTML='<div class="ielts-wrap wide"><div class="ielts-hero"><h2>Practise with your class</h2><p>See what your classmates practised and when. Only the test, kind of practice, time and streak are shared, never scores.</p></div><div id="peBody"><div class="il-empty">Loading your class…</div></div></div>';
+ call('ielts.activity.list').then(function(rows){
+  rows=rows||[];
+  var own=activityDays(state.attempts),ownDoc={uid:'__me',me:true,name:(sess&&(sess.fullName||sess.name))||'You',days:own,total:state.attempts.length,recent:state.attempts.slice().sort(function(a,b){return String(b.completedAt).localeCompare(String(a.completedAt));}).slice(0,30).map(function(a){return{t:a.completedAt,title:a.title||'',skill:a.skill||'',mode:modeOf(a),min:Math.round((a.durationSeconds||0)/60)};})};
+  rows=rows.filter(function(r){return !r.mine;});rows.push(ownDoc);
+  var wk=weekKeys(),tk=dayKey(new Date());
+  rows.forEach(function(r){var d=r.days||{};r.wDays=wk.filter(function(k){return d[k];}).length;r.wTests=wk.reduce(function(s,k){return s+((d[k]&&d[k].n)||0);},0);r.wMin=wk.reduce(function(s,k){return s+((d[k]&&d[k].min)||0);},0);r.st=streakOf(d);r.lastT=(r.recent&&r.recent[0]&&r.recent[0].t)||'';});
+  var rank=rows.slice().sort(function(a,b){return b.wDays-a.wDays||b.wTests-a.wTests||b.wMin-a.wMin||b.st.cur-a.st.cur;});
+  var others=rows.filter(function(r){return !r.me;}),avg=function(f){return others.length?others.reduce(function(s,r){return s+r[f];},0)/others.length:0;};
+  var mine=ownDoc.wDays!==undefined?ownDoc:rows.filter(function(r){return r.me;})[0];
+  function bar(label,mv,av,unit){var mx=Math.max(mv,av,1);return '<div class="pe-cmp"><div class="pe-cl">'+label+'</div><div class="pe-line"><span>You</span><div><i style="width:'+Math.round(mv*100/mx)+'%;background:var(--il-a)"></i></div><b>'+Math.round(mv)+unit+'</b></div><div class="pe-line"><span>Class avg</span><div><i style="width:'+Math.round(av*100/mx)+'%;background:#C9C4DA"></i></div><b>'+Math.round(av*10)/10+unit+'</b></div></div>';}
+  var feed=[];rows.forEach(function(r){(r.recent||[]).forEach(function(a){feed.push({r:r,a:a});});});
+  feed.sort(function(x,y){return String(y.a.t).localeCompare(String(x.a.t));});feed=feed.slice(0,30);
+  var L=['M','T','W','T','F','S','S'];
+  document.getElementById('peBody').innerHTML=
+   '<div class="pe-grid"><div class="il-panel"><div class="dash-h">This week · class ranking</div>'+(others.length?'':'<div class="il-note" style="margin:6px 0 10px">Your classmates will appear here as they practise.</div>')+'<div style="overflow:auto"><table class="vm-table pe-tab"><thead><tr><th>#</th><th>Student</th><th>Days</th><th>Tests</th><th>Minutes</th><th>Streak</th><th>Last practised</th></tr></thead><tbody>'+rank.map(function(r,i){return '<tr class="'+(r.me?'pe-me':'')+'"><td><span class="pe-rk r'+(i<3?i+1:0)+'">'+(i+1)+'</span></td><td><b>'+esc(r.name||'Student')+'</b>'+(r.me?' <span class="il-badge">You</span>':'')+'<div class="pe-wd">'+wk.map(function(k,x){return '<i class="'+((r.days||{})[k]?'on':'')+(k===tk?' t':'')+'" title="'+L[x]+'"></i>';}).join('')+'</div></td><td>'+r.wDays+'/7</td><td>'+r.wTests+'</td><td>'+r.wMin+'</td><td>'+flameSvg(r.st.cur?'#F08A3C':'#C9C4CF').replace('width="30" height="30"','width="16" height="16"')+' <b>'+r.st.cur+'</b></td><td>'+(r.lastT?agoText(r.lastT):'<span class="il-note">—</span>')+'</td></tr>';}).join('')+'</tbody></table></div></div>'+
+   '<div class="il-panel"><div class="dash-h">You vs your class</div>'+bar('Practice days',mine.wDays,avg('wDays'),'')+bar('Tests completed',mine.wTests,avg('wTests'),'')+bar('Minutes practised',mine.wMin,avg('wMin'),' min')+'<div class="il-note" style="margin-top:8px">'+(others.length?(mine.wDays>=avg('wDays')?'You are ahead of the class average. Keep going!':'A short practice today will move you up.'):'Invite your classmates to practise too.')+'</div></div></div>'+
+   '<div class="il-panel" style="margin-top:14px"><div class="dash-h">Recent activity in your class</div>'+(feed.length?'<div class="pe-feed">'+feed.map(function(f){var c=f.a.skill==='reading'?C_READ:C_LIST;return '<div class="pe-item"><span class="pe-av" style="background:'+c+'22;color:'+c+'">'+esc(String(f.r.name||'?').trim().split(/\s+/).slice(-1)[0].charAt(0).toUpperCase())+'</span><div><b>'+(f.r.me?'You':esc(f.r.name||'A classmate'))+'</b> practised <b>'+esc(f.a.title||'a test')+'</b><div class="il-note"><i class="il-dot" style="background:'+c+'"></i>'+esc(f.a.skill==='listening'?'Listening':'Reading')+' · '+esc(f.a.mode||'Practice')+(f.a.min?' · '+f.a.min+' min':'')+' · '+agoText(f.a.t)+' <span class="pe-when">('+new Date(f.a.t).toLocaleString('en-GB',{weekday:'short',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})+')</span></div></div></div>';}).join('')+'</div>':'<div class="il-empty">No activity yet. Be the first to practise today.</div>')+'</div>';
+  syncActivity();
+ }).catch(function(e){document.getElementById('peBody').innerHTML='<div class="il-panel"><div class="il-empty">Peer view is not available yet. '+esc(e.message||'')+'</div></div>';});
 }
 function drawHistory(){
  setTitle('History');
