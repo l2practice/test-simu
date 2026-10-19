@@ -1198,6 +1198,23 @@ async function ieltsScriptGet(p) {
   return gas('ielts.script.get', { idToken:await current.getIdToken(), id:str(p.id) });
 }
 // Audio-script edits: a teacher saves straight into the answer key; a student's edit waits (collection ieltsScriptEdits) until the class teacher approves it.
+async function ieltsActivitySync(p) {
+  const u = await me(); if (u.role === 'teacher') return ok();
+  const clip = (v, n) => String(v == null ? '' : v).slice(0, n);
+  const days = {}; Object.keys(p.days || {}).slice(-90).forEach(k => { if (/^\d{4}-\d{2}-\d{2}$/.test(k)) days[k] = { n: Math.min(99, +p.days[k].n || 0), min: Math.min(1440, +p.days[k].min || 0) }; });
+  await fs.doc('ieltsActivity/' + u.uid).set({
+    uid: u.uid, classId: u.classId || '', teacherUid: u.teacherUid || '', name: u.fullName || '',
+    recent: (p.recent || []).slice(0, 30).map(a => ({ t: clip(a.t, 40), title: clip(a.title, 90), skill: a.skill === 'listening' ? 'listening' : 'reading', mode: clip(a.mode, 20), min: Math.min(600, +a.min || 0) })),
+    days, streak: +p.streak || 0, best: +p.best || 0, total: +p.total || 0, lastAt: clip(p.lastAt, 40), updatedAt: nowIso()
+  });
+  return ok();
+}
+async function ieltsActivityList(p) {
+  const u = await me(); let q;
+  if (u.role === 'teacher') q = fs.collection('ieltsActivity').where('teacherUid', '==', u.uid).where('classId', '==', str(p.classId));
+  else { if (!u.classId) return ok([]); q = fs.collection('ieltsActivity').where('classId', '==', u.classId); }
+  const s = await q.get(); return ok(docs(s).map(d => Object.assign(d, { mine: d.uid === u.uid })));
+}
 async function ieltsScriptWrite(id, text) {
   const kr = fs.doc('ieltsAnswerKeys/' + id), ks = await kr.get();
   if (!ks.exists) throw new Error('This part has no stored record to edit.');
@@ -1305,7 +1322,7 @@ const ACTIONS = {
   'ielts.attempt.save': ieltsAttemptSave, 'ielts.attempt.list': ieltsAttemptList,
   'ielts.report.create': ieltsReportCreate, 'ielts.report.list': ieltsReportList, 'ielts.report.update': ieltsReportUpdate,
   'ielts.audio.upload': ieltsAudioUpload, 'ielts.audio.attach': ieltsAudioAttach, 'ielts.audio.url': ieltsAudioUrl,
-  'ielts.importUrl': ieltsImportUrl, 'ielts.importScript': ieltsImportScript, 'ielts.script.get': ieltsScriptGet, 'ielts.script.save': ieltsScriptSave, 'ielts.script.mine': ieltsScriptMine, 'ielts.script.discard': ieltsScriptDiscard, 'ielts.script.pending': ieltsScriptPending, 'ielts.script.review': ieltsScriptReview, 'ielts.images.backup': ieltsImagesBackup,
+  'ielts.importUrl': ieltsImportUrl, 'ielts.importScript': ieltsImportScript, 'ielts.script.get': ieltsScriptGet, 'ielts.activity.sync': ieltsActivitySync, 'ielts.activity.list': ieltsActivityList, 'ielts.script.save': ieltsScriptSave, 'ielts.script.mine': ieltsScriptMine, 'ielts.script.discard': ieltsScriptDiscard, 'ielts.script.pending': ieltsScriptPending, 'ielts.script.review': ieltsScriptReview, 'ielts.images.backup': ieltsImagesBackup,
   'vocab.today': vocabToday,
   'ping': async () => ok('pong')
 };
