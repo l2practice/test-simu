@@ -146,6 +146,14 @@ service cloud.firestore {
                             && request.resource.data.teacherUid == profile().teacherUid
                             && request.resource.data.text is string && request.resource.data.text.size() < 60001;
     }
+    // Practice activity shared inside a class (peer comparison): what was practised and when, never scores.
+    match /ieltsActivity/{id} {
+      allow read: if signedIn() && (resource.data.classId == profile().classId
+                                    || (isTeacher() && resource.data.teacherUid == request.auth.uid));
+      allow create, update: if signedIn() && id == request.auth.uid && request.resource.data.uid == request.auth.uid
+                            && request.resource.data.classId == profile().classId;
+      allow delete: if false;
+    }
     // Library index: small summaries (title, book, test, part, counts) grouped per book. Full tests stay protected above.
     match /ieltsIndex/{id} {
       allow read: if signedIn();
