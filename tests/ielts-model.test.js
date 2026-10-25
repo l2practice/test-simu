@@ -27,30 +27,41 @@ const publicListening = appContext.window.FB._helpers.publicIelts(listeningModel
 assert.equal('script' in publicListening.sections[0], false, 'published scripts stay hidden before a student submits');
 assert.equal(listeningModel.sections[1].questions[0].type, 'plan-map-diagram-labelling');
 assert.equal(clean({ ...base, skill: 'video' }).skill, 'reading');
-assert.throws(() => clean({ ...base, title: '' }), /tiêu đề/);
-assert.throws(() => clean({ ...base, sections: [{ text: '', questions: [] }] }), /nội dung/);
+assert.throws(() => clean({ ...base, title: '' }), /Enter a title/);
+assert.throws(() => clean({ ...base, sections: [{ text: '', questions: [] }] }), /needs text, a script or questions/);
 assert.throws(() => clean({ ...base, sections: [{ text: 'Text', questions: [{ type: 'essay', prompt: 'Explain' }] }] }), /task type/);
 
 let requestedUrl = '';
-let importHtml = '<html><title>Reading · Urban Gardens</title><main><h2>Passage 1</h2><p>' + 'Passage text about urban gardens and community food access. '.repeat(5) + '</p><p>1. Choose the correct letter about the garden?</p><p>A. North side</p><p>B. South side</p><h2>Answer Key</h2><p>1. A</p></main><audio src="do-not-fetch.mp3"></audio></html>';
+const passage = 'Passage text about urban gardens and community food access. '.repeat(5);
+let importHtml = '<html><title>Reading · Urban Gardens</title><body><div class="entry-content"><h1>Urban Gardens</h1><h3>READING PASSAGE 1</h3><p>' + passage + '</p><h3>Questions 1-1</h3><p>Choose the correct letter, A or B.</p><p>1 Which side has the garden?</p><p>A North side</p><p>B South side</p><h2>Answer</h2><h5>Passage 1</h5><p>1 A</p></div><audio src="do-not-fetch.mp3"></audio></body></html>';
+const cache = {};
 const gasContext = { console, UrlFetchApp: { fetch(url, opts) {
   requestedUrl = url;
   return { getResponseCode: () => 200, getHeaders: () => ({ 'Content-Length': '120' }),
     getContentText: () => importHtml };
-} }, vmfbIeltsVerifiedUser: token => token ? { success:true, user:{role:'teacher'} } : {success:false, error:'missing token'} };
+} }, CacheService: { getScriptCache: () => ({ get: k => cache[k] || null, put: (k, v) => { cache[k] = v; } }) },
+  vmfbIeltsVerifiedUser: token => token ? { success:true, uid:'t1', user:{role:'teacher'} } : {success:false, error:'missing token'} };
 vm.runInNewContext(fs.readFileSync('gas/Code.gs', 'utf8'), gasContext, { filename: 'Code.gs' });
 const imported = gasContext.ieltsImportUrl({ url: 'https://ieltstrainingonline.com/reading/urban-gardens', idToken:'valid' });
 assert.equal(imported.success, true);
 assert.equal(requestedUrl, 'https://ieltstrainingonline.com/reading/urban-gardens');
-assert.equal(imported.data.sections[0].questions.length, 1);
-assert.equal(imported.data.sections[0].questions[0].type, 'multiple-choice');
-assert.deepEqual(Array.from(imported.data.sections[0].questions[0].options), ['North side', 'South side']);
-assert.deepEqual(Array.from(imported.data.sections[0].questions[0].answers), ['A']);
-assert.match(imported.data.warning, /Chờ kiểm tra/);
-importHtml = '<html><title>Listening Test</title><main><h2>Section 1</h2><p>' + 'Audio transcript about a museum and visitor services. '.repeat(5) + '</p><p>1. Complete the sentence: The museum opens at ___.</p></main></html>';
+const sec = imported.data.sections[0];
+assert.equal(imported.data.skill, 'reading');
+assert.equal(sec.part, '1');
+assert.ok(sec.text.includes('urban gardens'), 'passage text kept');
+assert.ok(sec.questionsText.includes('1 Which side has the garden?') && sec.questionsText.includes('B South side'), 'question group kept with its options');
+assert.equal(sec.answersText, '1 A');
+assert.equal(sec.audio, undefined, 'reading pages never carry audio');
+assert.match(imported.data.warning, /Compare every passage/);
+assert.doesNotMatch(imported.data.warning, /No answer key/);
+
+importHtml = '<html><title>Listening Test</title><body><div class="entry-content"><h3>PART 1</h3><h3>Questions 1-1</h3><p>Complete the sentence below.</p><p>1 The museum opens at ____.</p></div></body></html>';
 const listening = gasContext.ieltsImportUrl({ url: 'https://ieltstrainingonline.com/listening/museum', idToken:'valid' });
 assert.equal(listening.data.skill, 'listening');
-assert.equal(listening.data.sections[0].questions[0].type, 'sentence-completion');
+assert.ok(listening.data.sections[0].questionsText.includes('The museum opens at'));
+assert.match(listening.data.warning, /No answer key/);
+assert.equal(gasContext.ieltsGuessTaskType_('Complete the sentences below', 'reading'), 'sentence-completion');
+
 assert.equal(gasContext.ieltsImportUrl({ url: 'http://ieltstrainingonline.com/reading', idToken:'valid' }).success, false);
 assert.equal(gasContext.ieltsImportUrl({ url: 'https://ieltstrainingonline.com@evil.example/reading', idToken:'valid' }).success, false);
 assert.equal(gasContext.ieltsImportUrl({ url: 'https://ieltstrainingonline.com.evil.example/reading', idToken:'valid' }).success, false);
