@@ -1828,7 +1828,7 @@ function submitNow(){
  flushTiming();
  var answers=flat.map(function(f,i){return r.answers[i]||'';});
  qa('.exam-submit').forEach(function(b){b.disabled=true;});
- call('ielts.attempt.save',{contentIds:String(x.id||x._id).split(','),title:state.assignment&&state.assignment.title?state.assignment.title:titleItem(x),assignmentId:state.assignment?state.assignment.id:'',taskType:x.taskType||'',answers:answers,startedAt:state.started}).then(function(a){
+ call('ielts.attempt.save',{contentIds:String(x.id||x._id).split(','),title:state.assignment&&state.assignment.title?state.assignment.title:titleItem(x),assignmentId:state.assignment?state.assignment.id:'',taskType:x.taskType||'',taskTypes:x.taskType?(x.ttSet||[x.taskType]):[],answers:answers,startedAt:state.started}).then(function(a){
   stopTimer();state.attempts.push(a);
   var tel=buildTelemetry(x,r,flat);
   r.answers=(a.responses||[]).map(function(z){return z.answer;});

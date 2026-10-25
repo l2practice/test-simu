@@ -1120,7 +1120,7 @@ async function ieltsAttemptSave(p) {
   const current = auth.currentUser;
   if (!current) return fail('SESSION_EXPIRED');
   const idToken = await current.getIdToken();
-  return gas('ielts.gradeAttempt', { idToken, apiKey:CFG.config.apiKey, contentIds:Array.isArray(p.contentIds)?p.contentIds:[p.contentId], assignmentId:str(p.assignmentId), title:str(p.title).slice(0,160), answers:Array.isArray(p.answers)?p.answers:[], startedAt:str(p.startedAt) });
+  return gas('ielts.gradeAttempt', { idToken, apiKey:CFG.config.apiKey, contentIds:Array.isArray(p.contentIds)?p.contentIds:[p.contentId], assignmentId:str(p.assignmentId), taskType:str(p.taskType), taskTypes:Array.isArray(p.taskTypes)?p.taskTypes.map(str).slice(0,4):[], title:str(p.title).slice(0,160), answers:Array.isArray(p.answers)?p.answers:[], startedAt:str(p.startedAt) });
 }
 async function ieltsAttemptList(p) {
   const u = await me(); let q;

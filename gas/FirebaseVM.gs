@@ -157,6 +157,8 @@ function vmfbIeltsGradeAttempt(p) {
   var uid = verified.uid, user = verified.user;
   if (!user || user.archived || user.role !== 'student') return { success:false, error:'Only active students can submit answers.' };
   var taskType = String(p.taskType || '');
+  // task-type practice grades only the questions of that type (same filter the client used to build the exam)
+  var ttSet = taskType ? (Array.isArray(p.taskTypes) && p.taskTypes.length ? p.taskTypes.map(String) : [taskType]) : [];
   var ids = Array.isArray(p.contentIds) ? p.contentIds.slice(0, taskType ? 12 : 4) : [];
   ids = ids.filter(function(id){ return /^[A-Za-z0-9_-]{1,128}$/.test(String(id)); });
   if (!ids.length) return { success:false, error:'No test selected.' };
@@ -192,7 +194,7 @@ function vmfbIeltsGradeAttempt(p) {
       var copy = JSON.parse(JSON.stringify(sec));
       copy.script = (((keys[di].sections || [])[si] || {}).script) || copy.script || '';
       (copy.questions || []).forEach(function(q,qi){ var kv = (((keys[di].sections || [])[si] || {}).answers || [])[qi]; q.__accepted = Array.isArray(kv) ? kv : ((kv && kv.a) || []); });
-      if (taskType) { copy.questions = (copy.questions || []).filter(function(q){ return q.type === taskType; }); if (!copy.questions.length) return; }
+      if (taskType) { copy.questions = (copy.questions || []).filter(function(q){ return ttSet.indexOf(q.type) >= 0; }); if (!copy.questions.length) return; }
       sections.push(copy);
     });
   });
