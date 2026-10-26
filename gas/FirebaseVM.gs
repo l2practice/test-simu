@@ -227,7 +227,7 @@ function vmfbIeltsGradeAttempt(p) {
 }
 
 // Audio script of one Library item. Scripts live in ieltsAnswerKeys (never in the public content doc).
-// Teachers always read it; a student reads it only for an item they have already submitted.
+// Any signed-in user can read the script of a published, approved Library item (the Audio Scripts page).
 function vmfbIeltsScriptGet(p) {
   p = p || {};
   var verified = vmfbIeltsVerifiedUser(p.idToken);
@@ -242,8 +242,6 @@ function vmfbIeltsScriptGet(p) {
     if (doc.archived || doc.review === 'pending' || doc.status !== 'published') {
       if (doc.ownerUid !== uid) return { success:false, error:'You do not have access to this test.' };
     }
-    var done = fsQuery('ieltsAttempts', [['uid', 'EQUAL', uid]], 500).some(function(a){ return String(a.contentId || '').split(',').indexOf(id) >= 0; });
-    if (!done && doc.ownerUid !== uid) return { success:false, error:'Submit this part once to see its audio script.' };
   }
   var key = fsGet('ieltsAnswerKeys/' + id);
   var script = '';
