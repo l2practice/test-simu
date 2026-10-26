@@ -1888,7 +1888,7 @@ function aiSettings(){
 function aiKeys(){var g=VM.geminiKey&&VM.geminiKey.get();if(g)return{provider:'gemini',key:g};var q=VM.groqKey&&VM.groqKey.get();if(q)return{provider:'groq',key:q};var k={};try{k=JSON.parse(localStorage.getItem('testsimu_ai_keys')||'{}');}catch(e){}return k&&k.key?k:null;}
 function callAI(keys,prompt){
  if(keys.provider==='groq')return fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+keys.key},body:JSON.stringify({model:'llama-3.3-70b-versatile',messages:[{role:'user',content:prompt}],temperature:0.3})}).then(function(r){if(!r.ok)throw new Error('AI provider error ('+r.status+'). Check your key in AI settings.');return r.json();}).then(function(d){return d.choices[0].message.content;});
- var models=['gemini-2.5-flash','gemini-3.5-flash','gemini-3.5-flash-lite'],last=null;
+ var models=['gemini-3.8-flash','gemini-3.5-flash','gemini-3.5-flash-lite','gemini-2.5-flash'],last=null;
  function next(i){if(i>=models.length)return Promise.reject(last||new Error('The AI did not respond.'));
   return fetch('https://generativelanguage.googleapis.com/v1beta/models/'+models[i]+':generateContent?key='+encodeURIComponent(keys.key),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.3}})}).then(function(r){
    if(r.status===400||r.status===401||r.status===403)throw Object.assign(new Error('The AI key is not valid ('+r.status+'). Check it in AI settings.'),{fatal:true});
@@ -1942,6 +1942,9 @@ function aiProv(id){return VM.AI_PROVIDERS.filter(function(p){return p.id===id;}
 function aiHave(){return VM.AI_PROVIDERS.filter(function(p){return VM.aiKey.get(p.id);});}
 function aiModelOf(id){return VM.aiKey.model(id)||(aiProv(id)||{}).model;}
 function aiHttpError(label,status,body){
+ var e=aiHttpError_(label,status,body);e.status=status;return e;
+}
+function aiHttpError_(label,status,body){
  var msg='';try{var j=JSON.parse(body);msg=(j.error&&(j.error.message||j.error))||j.message||'';}catch(e){}
  if(status===401||status===403)return new Error('The '+label+' key was rejected ('+status+'). Check it in Settings.');
  if(status===429)return new Error(label+' says the rate or quota limit is reached (429). Wait a minute, or use another provider.');
@@ -1950,7 +1953,11 @@ function aiHttpError(label,status,body){
 function aiComplete(pid,prompt){
  var P=aiProv(pid),key=VM.aiKey.get(pid),model=aiModelOf(pid),label=P.label,url,opts;
  function post(u,o){return fetch(u,o).catch(function(){throw new Error('Could not reach '+label+'. Check your connection; if it keeps happening this provider may block requests from a web page, so try another provider.');}).then(function(r){return r.text().then(function(t){if(!r.ok)throw aiHttpError(label,r.status,t);try{return JSON.parse(t);}catch(e){throw new Error(label+' returned an unreadable reply.');}});});}
- if(pid==='gemini')return post('https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(model)+':generateContent?key='+encodeURIComponent(key),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.8,maxOutputTokens:16000,responseMimeType:'application/json'}})}).then(function(d){return ((d.candidates||[])[0]&&d.candidates[0].content.parts||[]).map(function(p){return p.text||'';}).join('');});
+ if(pid==='gemini'){   // model names retire often: if one is gone (404), try the next
+  var gm=[model,'gemini-3.8-flash','gemini-3.5-flash','gemini-3.5-flash-lite'].filter(function(m,i,a){return m&&a.indexOf(m)===i;});
+  var tryG=function(i){return post('https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(gm[i])+':generateContent?key='+encodeURIComponent(key),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.8,maxOutputTokens:16000,responseMimeType:'application/json'}})}).then(function(d){return ((d.candidates||[])[0]&&d.candidates[0].content.parts||[]).map(function(p){return p.text||'';}).join('');}).catch(function(e){if(e.status===404&&i+1<gm.length)return tryG(i+1);throw e;});};
+  return tryG(0);
+ }
  if(pid==='claude')return post('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:model,max_tokens:8000,temperature:0.8,messages:[{role:'user',content:prompt}]})}).then(function(d){return (d.content||[]).map(function(p){return p.text||'';}).join('');});
  url={groq:'https://api.groq.com/openai/v1/chat/completions',deepseek:'https://api.deepseek.com/chat/completions',grok:'https://api.x.ai/v1/chat/completions'}[pid];
  opts={method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model:model,messages:[{role:'user',content:prompt}],temperature:0.8,max_tokens:8000})};
