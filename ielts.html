@@ -57,7 +57,7 @@ mark.hl{border-radius:3px;padding:0 1px;color:inherit}mark.hl-yellow{background:
 .il-seg{display:inline-flex;background:#fff;border:1.5px solid var(--vm-border);border-radius:99px;padding:3px}.il-seg button{border:none;background:none;padding:6px 16px;border-radius:99px;font-weight:700;color:var(--vm-ink-2);cursor:pointer;font-family:inherit;font-size:.85rem}.il-seg button.on{background:linear-gradient(135deg,var(--il-a),var(--il-a2));color:#fff}
 .gl-panel{margin-bottom:14px}.gl-chip{display:inline-block;border:1.5px solid;border-radius:99px;padding:1px 9px;margin:2px 4px 2px 0;font-size:.76rem;white-space:nowrap}.gl-tt td,.gl-tt th{white-space:nowrap}.gl-acc{min-width:170px}.gl-bar1{display:grid;grid-template-columns:1fr auto;margin:0}.gl-bt{min-width:220px}.hs-sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:6px 0 14px}.hs-sum .gl-card{padding:10px 14px}.hs-th{cursor:pointer;user-select:none}.hs-th:hover{text-decoration:underline}.rc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-bottom:14px}.gl-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:6px 0 14px}.gl-card{border:1px solid var(--vm-border);border-top:5px solid;border-radius:14px;padding:12px 16px;background:#fff}.gl-card-h{font-weight:800;color:var(--vm-ink-2);font-size:.85rem}.gl-big{font-size:2rem;font-weight:800;color:var(--vm-ink);line-height:1.2}
 .gl-legend{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:6px}.gl-leg{display:inline-flex;gap:6px;align-items:center;border:1.5px solid var(--vm-border);background:#fff;border-radius:99px;padding:4px 12px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--vm-ink)}.gl-leg i{width:12px;height:12px;border-radius:50%;display:inline-block}.gl-leg.off{opacity:.4;text-decoration:line-through}
-.gl-chart-wrap{position:relative}.gl-chart{width:100%;height:auto;max-height:340px}.gl-pt{cursor:pointer}.gl-pt:hover{stroke-width:5}.gl-tip{display:none;position:absolute;background:var(--vm-ink);color:#fff;font-size:.78rem;padding:7px 10px;border-radius:10px;max-width:260px;pointer-events:none;z-index:5}
+.gl-area{animation:glFade .7s ease both}.gl-line{filter:drop-shadow(0 5px 6px rgba(10,63,48,.16))}@keyframes glFade{from{opacity:0}to{opacity:1}}#glType{max-width:100%}.gl-chart-wrap{position:relative}.gl-chart{width:100%;height:auto;max-height:340px}.gl-pt{cursor:pointer}.gl-pt:hover{stroke-width:5}.gl-tip{display:none;position:absolute;background:var(--vm-ink);color:#fff;font-size:.78rem;padding:7px 10px;border-radius:10px;max-width:260px;pointer-events:none;z-index:5}
 .il-dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
 .il-glance-grid{display:grid;grid-template-columns:minmax(260px,.8fr) 2fr;gap:14px;margin-bottom:14px;align-items:start}@media(max-width:980px){.il-glance-grid{grid-template-columns:1fr}}
 .il-feed{display:grid;gap:10px;max-height:420px;overflow:auto}.il-feed-row{display:flex;gap:10px;align-items:flex-start;font-size:.88rem}.il-feed-row>div{flex:1}.il-feed-t{white-space:nowrap}.il-feed-ic{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-weight:800;color:#fff;flex:0 0 auto}.il-feed-ic.ok{background:#2E9E5B}.il-feed-ic.new{background:var(--il-b)}.il-sect-h{margin:18px 0 8px}
@@ -576,41 +576,92 @@ function taskTypeStats(attempts){
  return Object.keys(m).map(function(k){return m[k];}).sort(function(a,b){return String(b.last).localeCompare(String(a.last));});
 }
 function pcColor(pc){return pc>=70?C_READ:(pc>=40?C_LIST:'#C23A2E');}
+/* Monotone cubic (Fritsch–Carlson) → SVG Béziers: smooth like a spline but never overshoots the scores */
+function monoPath(p){
+ var n=p.length,i;if(n<2)return '';
+ var dx=[],m=[],t=[];
+ for(i=0;i<n-1;i++){dx[i]=p[i+1].x-p[i].x;m[i]=dx[i]?(p[i+1].y-p[i].y)/dx[i]:0;}
+ t[0]=m[0];t[n-1]=m[n-2];
+ for(i=1;i<n-1;i++)t[i]=(m[i-1]*m[i]<=0)?0:(m[i-1]+m[i])/2;
+ for(i=0;i<n-1;i++){if(m[i]===0){t[i]=0;t[i+1]=0;continue;}var a=t[i]/m[i],b=t[i+1]/m[i],s=a*a+b*b;if(s>9){var k=3/Math.sqrt(s);t[i]=k*a*m[i];t[i+1]=k*b*m[i];}}
+ var d='M'+p[0].x.toFixed(1)+','+p[0].y.toFixed(1);
+ for(i=0;i<n-1;i++){var h=dx[i]/3;d+=' C'+(p[i].x+h).toFixed(1)+','+(p[i].y+t[i]*h).toFixed(1)+' '+(p[i+1].x-h).toFixed(1)+','+(p[i+1].y-t[i+1]*h).toFixed(1)+' '+p[i+1].x.toFixed(1)+','+p[i+1].y.toFixed(1);}
+ return d;
+}
+/* One row per attempt for the chart. mode 'full': whole Reading/Listening sittings. mode 'type': every attempt that contained the chosen task type, scored on that type's questions only. */
+function glanceRows(attempts,st){
+ var out=[];
+ attempts.forEach(function(a){
+  if(st.skill!=='all'&&a.skill!==st.skill)return;
+  if(st.mode==='full'){
+   if(typeof a.score!=='number'||!isFinite(a.score)||isTaskAttempt(a)||!isFullAttempt(a))return;
+   out.push({a:a,skill:a.skill,score:a.score,ok:a.correct,n:a.gradedCount,tip:(a.title||'Practice')+' · '+a.score+'% · '+a.correct+'/'+a.gradedCount+' correct · '+fmtDate(a.completedAt)});
+  }else{
+   if(!st.type)return;
+   var t=attemptTypes(a).filter(function(x){return x.type===st.type;})[0];if(!t||!t.n)return;
+   var pc=Math.round(t.ok*100/t.n);
+   out.push({a:a,skill:a.skill,score:pc,ok:t.ok,n:t.n,tip:(a.title||'Practice')+' · '+typeName(st.type)+' '+t.ok+'/'+t.n+' ('+pc+'%) · '+fmtDate(a.completedAt)});
+  }
+ });
+ return out.sort(function(x,y){return String(x.a.completedAt).localeCompare(String(y.a.completedAt));});
+}
 function glanceView(box,attempts,opts){
  opts=opts||{};
- var st={skill:'all',view:'chart',hide:{}};
- var data=attempts.filter(function(a){return typeof a.score==='number'&&isFinite(a.score)&&!isTaskAttempt(a)&&isFullAttempt(a);}).sort(function(a,b){return String(a.completedAt).localeCompare(String(b.completedAt));});
- box.innerHTML='<div class="il-panel gl-panel"><h3 style="margin:0 0 4px">Full tests &amp; mixed sets</h3><p class="il-note" style="margin:0 0 8px">Scores of whole Reading (3 passages) and Listening (4 parts) sittings. Task-type practice is shown in the second section.</p><div class="il-toolbar"><div class="il-seg" id="glSkill"><button data-s="all" class="on">All skills</button><button data-s="reading">Reading</button><button data-s="listening">Listening</button></div><span class="il-spacer"></span><div class="il-seg" id="glView"><button data-v="chart" class="on">Chart</button><button data-v="table">Table</button></div></div><div id="glBody"></div></div><div class="il-panel" id="glTypes"></div>';
- function seg(id,key){qa('#'+id+' button').forEach(function(b){b.onclick=function(){st[key]=b.getAttribute(key==='skill'?'data-s':'data-v');qa('#'+id+' button').forEach(function(x){x.classList.toggle('on',x===b);});draw();};});}
- seg('glSkill','skill');seg('glView','view');
- function cur(){return data.filter(function(a){return st.skill==='all'||a.skill===st.skill;});}
- function stats(skill){var r=data.filter(function(a){return a.skill===skill;});if(!r.length)return{n:0,latest:'—',avg:'—',best:'—'};var sc=r.map(function(a){return a.score;});return{n:r.length,latest:sc[sc.length-1]+'%',avg:Math.round(sc.reduce(function(x,y){return x+y;},0)/sc.length)+'%',best:Math.max.apply(null,sc)+'%'};}
+ var st={skill:'all',mode:'full',type:'',view:'chart',hide:{}},gid='g'+Math.random().toString(36).slice(2,7);
+ box.innerHTML='<div class="il-panel gl-panel"><h3 style="margin:0 0 4px">Score progress</h3><p class="il-note" style="margin:0 0 8px" id="glHint"></p><div class="il-toolbar"><div class="il-seg" id="glSkill"><button data-s="all" class="on">Reading + Listening</button><button data-s="reading">Reading</button><button data-s="listening">Listening</button></div><div class="il-seg" id="glMode"><button data-m="full" class="on">Full tests</button><button data-m="type">Task type</button></div><select class="vm-select" id="glType" style="display:none;width:auto;min-width:210px" aria-label="Task type"></select><span class="il-spacer"></span><div class="il-seg" id="glView"><button data-v="chart" class="on">Chart</button><button data-v="table">Table</button></div></div><div id="glBody"></div></div><div class="il-panel" id="glTypes"></div>';
+ function seg(id,attr,key){qa('#'+id+' button').forEach(function(b){b.onclick=function(){st[key]=b.getAttribute(attr);qa('#'+id+' button').forEach(function(x){x.classList.toggle('on',x===b);});draw();};});}
+ seg('glSkill','data-s','skill');seg('glMode','data-m','mode');seg('glView','data-v','view');
+ document.getElementById('glType').onchange=function(){st.type=this.value;draw();};
+ function typeOptions(){   // task types the student has met, in the chosen skill(s), most practised first
+  var m={};attempts.forEach(function(a){if(st.skill!=='all'&&a.skill!==st.skill)return;attemptTypes(a).forEach(function(t){if(t.n)m[t.type]=(m[t.type]||0)+1;});});
+  return Object.keys(m).sort(function(a,b){return m[b]-m[a]||typeName(a).localeCompare(typeName(b));}).map(function(k){return{type:k,n:m[k]};});
+ }
+ function statCards(rows){
+  return ['reading','listening'].filter(function(s){return st.skill==='all'||st.skill===s;}).map(function(s){
+   var r=rows.filter(function(x){return x.skill===s;}),col=s==='reading'?C_READ:C_LIST,nm=s==='reading'?'Reading':'Listening';
+   if(!r.length)return '<div class="gl-card" style="border-top-color:'+col+'"><div class="gl-card-h">'+nm+'</div><div class="gl-big">—</div><div class="il-note">nothing to show yet</div></div>';
+   var sc=r.map(function(x){return x.score;});
+   return '<div class="gl-card" style="border-top-color:'+col+'"><div class="gl-card-h">'+nm+'</div><div class="gl-big">'+sc[sc.length-1]+'%</div><div class="il-note">latest · avg '+Math.round(sc.reduce(function(x,y){return x+y;},0)/sc.length)+'% · best '+Math.max.apply(null,sc)+'% · '+r.length+' time'+(r.length===1?'':'s')+'</div></div>';}).join('');
+ }
  function draw(){
-  var body=document.getElementById('glBody'),rows=cur();
-  if(!data.length){body.innerHTML='<div class="il-empty">'+(opts.empty||'No practice yet. Complete a test to see your progress here.')+'</div>';document.getElementById('glTypes').innerHTML='';return;}
-  var cards=['reading','listening'].filter(function(s){return st.skill==='all'||st.skill===s;}).map(function(s){var x=stats(s);return '<div class="gl-card" style="border-top-color:'+(s==='reading'?C_READ:C_LIST)+'"><div class="gl-card-h">'+(s==='reading'?'Reading':'Listening')+'</div><div class="gl-big">'+x.latest+'</div><div class="il-note">latest · avg '+x.avg+' · best '+x.best+' · '+x.n+' practice'+(x.n===1?'':'s')+'</div></div>';}).join('');
+  var body=document.getElementById('glBody'),sel=document.getElementById('glType'),hint=document.getElementById('glHint');
+  if(!attempts.length){body.innerHTML='<div class="il-empty">'+(opts.empty||'No practice yet. Complete a test to see your progress here.')+'</div>';document.getElementById('glTypes').innerHTML='';sel.style.display='none';return;}
+  var typeMode=st.mode==='type',opts2=typeOptions();
+  if(st.type&&!opts2.some(function(o){return o.type===st.type;}))st.type='';
+  sel.style.display=typeMode?'':'none';
+  if(typeMode)sel.innerHTML='<option value="">Choose a task type…</option>'+opts2.map(function(o){return '<option value="'+esc(o.type)+'"'+(o.type===st.type?' selected':'')+'>'+esc(typeName(o.type))+' · '+o.n+' attempt'+(o.n===1?'':'s')+'</option>';}).join('');
+  hint.textContent=typeMode?'Pick a task type: every attempt that included it is listed, scored on that type’s questions only.':'Scores of whole Reading (3 passages) and Listening (4 parts) sittings.';
+  var rows=glanceRows(attempts,st);
+  if(typeMode&&!st.type){body.innerHTML='<div class="il-empty">'+(opts2.length?'Choose a task type above to see your scores on it.':'No task-type results yet. Complete a test first.')+'</div>';drawTypes();return;}
+  if(!rows.length){body.innerHTML='<div class="il-empty">'+(typeMode?'No attempts with this task type for the chosen skill.':(opts.empty||'No full test in this skill yet. Complete a whole Reading or Listening test to see it here.'))+'</div>';drawTypes();return;}
+  var cards=statCards(rows);
   if(st.view==='table'){
-   body.innerHTML='<div class="gl-cards">'+cards+'</div><div style="overflow:auto"><table class="vm-table"><thead><tr><th>Date</th><th>Test</th><th>Skill</th><th>Score</th><th>Correct</th><th>Time</th><th>Correct by task type</th><th>Feedback</th></tr></thead><tbody>'+rows.slice().reverse().map(function(a){return '<tr><td>'+fmtDate(a.completedAt)+'</td><td>'+esc(a.title)+'</td><td><span class="il-dot" style="background:'+(a.skill==='reading'?C_READ:C_LIST)+'"></span>'+esc(a.skill)+'</td><td><b>'+a.score+'%</b></td><td>'+a.correct+'/'+a.gradedCount+'</td><td>'+Math.max(1,Math.round(a.durationSeconds/60))+' min</td><td class="gl-bt">'+(attemptTypes(a).map(function(t){return '<span class="gl-chip" style="border-color:'+pcColor(Math.round(t.ok*100/t.n))+'">'+esc(typeName(t.type))+' <b>'+t.ok+'/'+t.n+'</b></span>';}).join('')||'<span class="il-note">—</span>')+'</td><td>'+(docUrlOk(a.feedbackDocUrl)?'<a href="'+esc(a.feedbackDocUrl)+'" target="_blank" rel="noopener">Open doc</a>':'<span class="il-note">—</span>')+'</td></tr>';}).join('')+'</tbody></table></div>';
+   body.innerHTML='<div class="gl-cards">'+cards+'</div><div style="overflow:auto"><table class="vm-table"><thead><tr><th>Date</th><th>Test</th><th>Skill</th><th>'+(typeMode?'Score on '+esc(typeName(st.type)):'Score')+'</th><th>Correct</th><th>Time</th>'+(typeMode?'<th>Kind</th>':'<th>Correct by task type</th><th>Feedback</th>')+'</tr></thead><tbody>'+rows.slice().reverse().map(function(r){var a=r.a;return '<tr><td>'+fmtDate(a.completedAt)+'</td><td>'+esc(a.title)+'</td><td><span class="il-dot" style="background:'+(a.skill==='reading'?C_READ:C_LIST)+'"></span>'+esc(a.skill)+'</td><td><b>'+r.score+'%</b></td><td>'+r.ok+'/'+r.n+'</td><td>'+Math.max(1,Math.round(a.durationSeconds/60))+' min</td>'+(typeMode?'<td>'+esc(modeOf(a))+'</td>':'<td class="gl-bt">'+(attemptTypes(a).map(function(t){return '<span class="gl-chip" style="border-color:'+pcColor(Math.round(t.ok*100/t.n))+'">'+esc(typeName(t.type))+' <b>'+t.ok+'/'+t.n+'</b></span>';}).join('')||'<span class="il-note">—</span>')+'</td><td>'+(docUrlOk(a.feedbackDocUrl)?'<a href="'+esc(a.feedbackDocUrl)+'" target="_blank" rel="noopener">Open doc</a>':'<span class="il-note">—</span>')+'</td>')+'</tr>';}).join('')+'</tbody></table></div>';
   }else{
-   var w=760,h=300,pl=40,pr=18,pt=16,pb=34,t0=new Date(rows[0]?rows[0].completedAt:Date.now()).getTime(),t1=new Date(rows.length?rows[rows.length-1].completedAt:Date.now()).getTime();
-   function X(a,i){if(rows.length<2||t1===t0)return pl+(w-pl-pr)*(rows.length<2?0.5:i/(rows.length-1));return pl+(w-pl-pr)*((new Date(a.completedAt).getTime()-t0)/(t1-t0));}
+   var w=760,h=300,pl=40,pr=22,pt=18,pb=34,N=rows.length;
+   function X(i){return pl+(w-pl-pr)*(N<2?0.5:i/(N-1));}
    function Y(v){return pt+(h-pt-pb)*(1-v/100);}
    var grid='';[0,25,50,75,100].forEach(function(v){grid+='<line x1="'+pl+'" x2="'+(w-pr)+'" y1="'+Y(v)+'" y2="'+Y(v)+'" stroke="#E7E2EC" stroke-dasharray="'+(v?'3 5':'0')+'"/><text x="'+(pl-8)+'" y="'+(Y(v)+4)+'" text-anchor="end" font-size="11" fill="#5C7482">'+v+'</text>';});
-   var defs='<defs>'+['reading','listening'].map(function(s){var c=s==='reading'?C_READ:C_LIST;return '<linearGradient id="gr_'+s+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+c+'" stop-opacity=".32"/><stop offset="1" stop-color="'+c+'" stop-opacity="0"/></linearGradient>';}).join('')+'</defs>';
-   function curve(p){if(p.length<2)return '';var d='M'+p[0].x.toFixed(1)+','+p[0].y.toFixed(1);for(var q=0;q<p.length-1;q++){var a0=p[q-1]||p[q],a1=p[q],a2=p[q+1],a3=p[q+2]||a2,lo=Math.min(a1.y,a2.y),hi=Math.max(a1.y,a2.y);
-     var c1x=a1.x+(a2.x-a0.x)/6,c1y=Math.max(lo,Math.min(hi,a1.y+(a2.y-a0.y)/6)),c2x=a2.x-(a3.x-a1.x)/6,c2y=Math.max(lo,Math.min(hi,a2.y-(a3.y-a1.y)/6));
-     d+=' C'+c1x.toFixed(1)+','+c1y.toFixed(1)+' '+c2x.toFixed(1)+','+c2y.toFixed(1)+' '+a2.x.toFixed(1)+','+a2.y.toFixed(1);}return d;}
-   var series=['reading','listening'].filter(function(s){return (st.skill==='all'||st.skill===s)&&!st.hide[s];}).map(function(s){
-    var col=s==='reading'?C_READ:C_LIST,pts=rows.map(function(a,i){return a.skill===s?{x:X(a,i),y:Y(a.score),a:a}:null;}).filter(Boolean),d=curve(pts),fl=pts[0],ls=pts[pts.length-1];
-    return (pts.length>1?'<path d="'+d+' L'+ls.x.toFixed(1)+','+Y(0)+' L'+fl.x.toFixed(1)+','+Y(0)+' Z" fill="url(#gr_'+s+')"/><path d="'+d+'" fill="none" stroke="'+col+'" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>':'')+pts.map(function(p){return '<circle class="gl-pt" cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="5" fill="#fff" stroke="'+col+'" stroke-width="2.5" data-tip="'+esc(p.a.title+' · '+p.a.score+'% · '+p.a.correct+'/'+p.a.gradedCount+' correct · '+fmtDate(p.a.completedAt))+'"/>';}).join('');}).join('');
-   var xl=rows.length?[0,Math.floor((rows.length-1)/2),rows.length-1].filter(function(v,i,arr){return arr.indexOf(v)===i;}).map(function(i,ix,arr){return '<text x="'+X(rows[i],i)+'" y="'+(h-10)+'" text-anchor="'+(arr.length>1&&ix===arr.length-1?'end':(ix===0&&arr.length>1?'start':'middle'))+'" font-size="11" fill="#5C7482">'+fmtDate(rows[i].completedAt)+'</text>';}).join(''):'';
-   body.innerHTML='<div class="gl-cards">'+cards+'</div><div class="gl-legend"><button class="gl-leg'+(st.hide.reading?' off':'')+'" data-l="reading"><i style="background:'+C_READ+'"></i>Reading</button><button class="gl-leg'+(st.hide.listening?' off':'')+'" data-l="listening"><i style="background:'+C_LIST+'"></i>Listening</button><span class="il-note">Hover a point for details · click a legend item to show/hide a line</span></div><div class="gl-chart-wrap"><svg viewBox="0 0 '+w+' '+h+'" class="gl-chart" role="img" aria-label="Practice score over time">'+defs+grid+series+xl+'</svg><div class="gl-tip" id="glTip"></div></div>';
+   var skills=['reading','listening'].filter(function(s){return (st.skill==='all'||st.skill===s)&&!st.hide[s]&&rows.some(function(r){return r.skill===s;});});
+   var defs='<defs>'+['reading','listening'].map(function(s){var c=s==='reading'?C_READ:C_LIST;return '<linearGradient id="'+gid+s+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+c+'" stop-opacity=".38"/><stop offset=".6" stop-color="'+c+'" stop-opacity=".10"/><stop offset="1" stop-color="'+c+'" stop-opacity="0"/></linearGradient>';}).join('')+'</defs>';
+   var series=skills.map(function(s){
+    var col=s==='reading'?C_READ:C_LIST,pts=[];rows.forEach(function(r,i){if(r.skill===s)pts.push({x:X(i),y:Y(r.score),r:r});});
+    var d=monoPath(pts),fl=pts[0],ls=pts[pts.length-1];
+    var area=pts.length>1?'<path class="gl-area" d="'+d+' L'+ls.x.toFixed(1)+','+Y(0)+' L'+fl.x.toFixed(1)+','+Y(0)+' Z" fill="url(#'+gid+s+')"/><path class="gl-line" d="'+d+'" fill="none" stroke="'+col+'" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>':'';
+    return area+pts.map(function(p){return '<circle class="gl-pt" cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="5" fill="#fff" stroke="'+col+'" stroke-width="2.5" data-tip="'+esc(p.r.tip)+'"/>';}).join('');}).join('');
+   var ticks=N<=5?rows.map(function(r,i){return i;}):[0,1,2,3,4].map(function(k){return Math.round(k*(N-1)/4);}).filter(function(v,i,a){return a.indexOf(v)===i;});
+   var xl=ticks.map(function(i,ix){return '<text x="'+X(i)+'" y="'+(h-10)+'" text-anchor="'+(N>1&&ix===ticks.length-1?'end':(ix===0&&N>1?'start':'middle'))+'" font-size="11" fill="#5C7482">'+fmtDate(rows[i].a.completedAt)+'</text>';}).join('');
+   var legend=['reading','listening'].filter(function(s){return (st.skill==='all'||st.skill===s)&&rows.some(function(r){return r.skill===s;});}).map(function(s){return '<button class="gl-leg'+(st.hide[s]?' off':'')+'" data-l="'+s+'"><i style="background:'+(s==='reading'?C_READ:C_LIST)+'"></i>'+(s==='reading'?'Reading':'Listening')+'</button>';}).join('');
+   body.innerHTML='<div class="gl-cards">'+cards+'</div><div class="gl-legend">'+legend+'<span class="il-note">'+(typeMode?esc(typeName(st.type))+' · ':'')+'Hover a point for details'+(N<2?' · one more attempt draws the line':'')+'</span></div><div class="gl-chart-wrap"><svg viewBox="0 0 '+w+' '+h+'" class="gl-chart" role="img" aria-label="Score over time">'+defs+grid+series+xl+'</svg><div class="gl-tip" id="glTip"></div></div>';
    qa('.gl-leg').forEach(function(b){b.onclick=function(){var s=b.getAttribute('data-l');st.hide[s]=!st.hide[s];draw();};});
    var tip=document.getElementById('glTip');
    qa('.gl-pt').forEach(function(c){c.onmouseenter=function(){tip.textContent=c.getAttribute('data-tip');tip.style.display='block';var wr=tip.parentNode.getBoundingClientRect(),cr=c.getBoundingClientRect();tip.style.left=Math.min(wr.width-220,Math.max(0,cr.left-wr.left-90))+'px';tip.style.top=(cr.top-wr.top-46)+'px';};c.onmouseleave=function(){tip.style.display='none';};});
   }
+  drawTypes();
+ }
+ function drawTypes(){
   var tk=attempts.filter(function(a){return isTaskAttempt(a)&&(st.skill==='all'||a.skill===st.skill);}),ts=taskTypeStats(tk);
-  document.getElementById('glTypes').innerHTML='<h3 style="margin-top:0">Accuracy by task type</h3><p class="il-note" style="margin:0 0 8px">From your task-type practice only: how many questions you got right, how often you practised and when you last did.</p>'+(ts.length?'<div style="overflow:auto"><table class="vm-table gl-tt"><thead><tr><th>Task type</th><th>Skill</th><th>Correct</th><th class="gl-acc">Accuracy</th><th>Sessions</th><th>Last practised</th><th>Last session</th></tr></thead><tbody>'+ts.map(function(t){var pc=Math.round(t.ok*100/t.n),lp=t.lastN?Math.round(t.lastOk*100/t.lastN):0;return '<tr><td><b>'+esc(typeName(t.type))+'</b></td><td><i class="il-dot" style="background:'+(t.skill==='reading'?C_READ:C_LIST)+'"></i>'+(t.skill==='reading'?'Reading':'Listening')+'</td><td><b>'+t.ok+'/'+t.n+'</b></td><td class="gl-acc"><div class="il-bar gl-bar1"><div><i style="width:'+pc+'%;background:'+pcColor(pc)+'"></i></div><b>'+pc+'%</b></div></td><td>'+t.sessions+'</td><td>'+fmtDate(t.last)+'</td><td>'+t.lastOk+'/'+t.lastN+' <span class="il-note">('+lp+'%)</span></td></tr>';}).join('')+'</tbody></table></div>':'<div class="il-note">Practise a task type to see your accuracy here.</div>');
+  document.getElementById('glTypes').innerHTML='<h3 style="margin-top:0">Accuracy by task type</h3><p class="il-note" style="margin:0 0 8px">From task-type practice only: how many questions were right, how often practised and when last.</p>'+(ts.length?'<div style="overflow:auto"><table class="vm-table gl-tt"><thead><tr><th>Task type</th><th>Skill</th><th>Correct</th><th class="gl-acc">Accuracy</th><th>Sessions</th><th>Last practised</th><th>Last session</th></tr></thead><tbody>'+ts.map(function(t){var pc=Math.round(t.ok*100/t.n),lp=t.lastN?Math.round(t.lastOk*100/t.lastN):0;return '<tr><td><b>'+esc(typeName(t.type))+'</b></td><td><i class="il-dot" style="background:'+(t.skill==='reading'?C_READ:C_LIST)+'"></i>'+(t.skill==='reading'?'Reading':'Listening')+'</td><td><b>'+t.ok+'/'+t.n+'</b></td><td class="gl-acc"><div class="il-bar gl-bar1"><div><i style="width:'+pc+'%;background:'+pcColor(pc)+'"></i></div><b>'+pc+'%</b></div></td><td>'+t.sessions+'</td><td>'+fmtDate(t.last)+'</td><td>'+t.lastOk+'/'+t.lastN+' <span class="il-note">('+lp+'%)</span></td></tr>';}).join('')+'</tbody></table></div>':'<div class="il-note">Practise a task type to see accuracy here.</div>');
  }
  draw();
 }
