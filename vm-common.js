@@ -234,6 +234,34 @@
     set: function (k) { localStorage.setItem('vm_groq_key', k || ''); },
   };
 
+  /* ── AI providers for AI Tests (keys stay in this browser, sent only to the provider) ── */
+  VM.AI_PROVIDERS = [
+    { id:'gemini',   label:'Gemini',   ph:'AIza…',   link:'https://aistudio.google.com/apikey',    model:'gemini-2.5-flash' },
+    { id:'groq',     label:'Groq',     ph:'gsk_…',   link:'https://console.groq.com/keys',         model:'llama-3.3-70b-versatile' },
+    { id:'deepseek', label:'DeepSeek', ph:'sk-…',    link:'https://platform.deepseek.com/api_keys', model:'deepseek-chat' },
+    { id:'grok',     label:'Grok (xAI)', ph:'xai-…', link:'https://console.x.ai',                  model:'grok-4' },
+    { id:'claude',   label:'Claude',   ph:'sk-ant-…', link:'https://console.anthropic.com/settings/keys', model:'claude-sonnet-5-5' },
+  ];
+  VM.aiKey = {
+    get: function (p) {
+      if (p === 'gemini') return VM.geminiKey.get();
+      if (p === 'groq') return VM.groqKey.get();
+      try { return localStorage.getItem('vm_' + p + '_key') || ''; } catch (e) { return ''; }
+    },
+    set: function (p, k) {
+      if (p === 'gemini') return VM.geminiKey.set(k);
+      if (p === 'groq') return VM.groqKey.set(k);
+      try { localStorage.setItem('vm_' + p + '_key', k || ''); } catch (e) {}
+    },
+    model: function (p, m) {   // optional per-provider model override
+      var k = 'vm_' + p + '_model';
+      try { if (m !== undefined) { localStorage.setItem(k, m || ''); return m; } return localStorage.getItem(k) || ''; } catch (e) { return ''; }
+    },
+    pref: function (p) {       // provider last used for AI Tests
+      try { if (p !== undefined) { localStorage.setItem('vm_ai_pref', p || ''); return p; } return localStorage.getItem('vm_ai_pref') || ''; } catch (e) { return ''; }
+    },
+  };
+
   // Groq banner HTML helper — shown when all Gemini models fail and no Groq key saved
   VM.groqBanner = function(containerId, onSave) {
     var saved = VM.groqKey.get();

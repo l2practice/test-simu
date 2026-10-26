@@ -2388,7 +2388,30 @@ function renderTeacherSettings(){
                    '<span style="color:var(--vm-ink-3)">No key</span>')+
         '</div>'+
       '</div>'+
+    '</div>'+
+
+    // ── AI Tests providers (DeepSeek / Grok / Claude; Gemini + Groq keys are above) ──
+    '<div class="vm-card" style="padding:22px 24px;margin-bottom:16px">'+
+      '<h3 style="font-family:var(--vm-font-display);font-size:1rem;font-weight:700;margin:0 0 6px">🤖 AI Tests · more AI providers</h3>'+
+      '<p style="font-size:.8rem;color:var(--vm-ink-3);margin:0 0 14px">Used by the AI Tests tab in IELTS Practice. Keys stay in this browser and are sent only to the provider. Gemini and Groq use the keys above.</p>'+
+      VM.AI_PROVIDERS.filter(function(p){return p.id!=='gemini'&&p.id!=='groq';}).map(function(p){
+        var v=VM.aiKey.get(p.id);
+        return '<div class="vm-field" style="margin-top:8px">'+
+          '<label class="vm-label" style="display:flex;align-items:center;justify-content:space-between"><span>'+VM.esc(p.label)+' API Key</span><a href="'+p.link+'" target="_blank" rel="noopener" style="font-size:.75rem;color:var(--vm-primary);font-weight:600">Get key →</a></label>'+
+          '<div style="display:flex;gap:8px"><input class="vm-input" id="tsAi_'+p.id+'" type="password" placeholder="'+p.ph+'" value="'+VM.esc(v)+'" autocomplete="off" style="flex:1;font-family:monospace">'+
+          '<button class="vm-btn vm-btn-primary" data-aisave="'+p.id+'" style="padding:10px 16px;white-space:nowrap">Save key</button>'+
+          (v?'<button class="vm-btn vm-btn-ghost" data-aiclear="'+p.id+'" style="padding:10px 12px;color:var(--vm-danger)">✕</button>':'')+'</div>'+
+          '<div style="font-size:.75rem;margin-top:5px">'+(v?'<span style="color:var(--vm-ok)">✓ Key saved</span>':'<span style="color:var(--vm-ink-3)">No key</span>')+'</div></div>';
+      }).join('')+
     '</div>';
+
+  // AI Tests provider keys (save / clear, then redraw so the status line updates)
+  Array.prototype.forEach.call(document.querySelectorAll('[data-aisave]'), function(b){
+    b.onclick=function(){var id=b.getAttribute('data-aisave'),k=(document.getElementById('tsAi_'+id).value||'').trim();VM.aiKey.set(id,k);VM.toast(k?'Key saved!':'Key cleared.','ok');renderTeacherSettings();};
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('[data-aiclear]'), function(b){
+    b.onclick=function(){VM.aiKey.set(b.getAttribute('data-aiclear'),'');VM.toast('Key cleared.','ok');renderTeacherSettings();};
+  });
 
   // Change password
   document.getElementById('tsPwBtn').onclick = function(){
