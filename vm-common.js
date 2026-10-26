@@ -236,7 +236,7 @@
 
   /* ── AI providers for AI Tests (keys stay in this browser, sent only to the provider) ── */
   VM.AI_PROVIDERS = [
-    { id:'gemini',   label:'Gemini',   ph:'AIza…',   link:'https://aistudio.google.com/apikey',    model:'gemini-2.5-flash' },
+    { id:'gemini',   label:'Gemini',   ph:'AIza…',   link:'https://aistudio.google.com/apikey',    model:'gemini-3.8-flash' },
     { id:'groq',     label:'Groq',     ph:'gsk_…',   link:'https://console.groq.com/keys',         model:'llama-3.3-70b-versatile' },
     { id:'deepseek', label:'DeepSeek', ph:'sk-…',    link:'https://platform.deepseek.com/api_keys', model:'deepseek-chat' },
     { id:'grok',     label:'Grok (xAI)', ph:'xai-…', link:'https://console.x.ai',                  model:'grok-4' },
