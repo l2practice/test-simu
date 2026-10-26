@@ -464,7 +464,7 @@ var sess=VM.session.require(); if(!sess) return;
 var teacher=sess.role==='teacher';
 var state={items:[],attempts:[],classes:[],inclass:[],active:null,run:null,review:null,started:'',assignment:null,libSkill:'all',libMode:'tests',bookFilter:'',folders:[],sTab:'full',folderOpen:'',view:'glance',loaded:false,glanceClass:'',glanceStudent:''};
 var navDef=teacher
- ?[['glance','Glance','overview','ielts.html#glance'],['library','Library','reading','ielts.html#library'],['types','Task Types','assign','ielts.html#types'],['inclass','In-class','inclass','ielts.html#inclass'],['scripts','Audio Scripts','listening','ielts.html#scripts'],['results','Results','results','ielts.html#results'],['classes','Classes','classes','teacher.html#tab=classes'],['settings','Settings','edit','teacher.html#tab=settings']]
+ ?[['glance','Glance','overview','ielts.html#glance'],['library','Library','reading','ielts.html#library'],['types','Task Types','assign','ielts.html#types'],['aitests','AI Tests','assign','ielts.html#aitests'],['inclass','In-class','inclass','ielts.html#inclass'],['scripts','Audio Scripts','listening','ielts.html#scripts'],['results','Results','results','ielts.html#results'],['classes','Classes','classes','teacher.html#tab=classes'],['settings','Settings','edit','teacher.html#tab=settings']]
  :[['glance','Glance','overview','ielts.html#glance'],['peer','Peer','classes','ielts.html#peer'],['history','History','results','ielts.html#history'],['library','IELTS Practice','reading','ielts.html#library'],['scripts','Audio Scripts','listening','ielts.html#scripts'],['settings','Settings','edit','student.html#tab=settings']];
 VM.renderShell({mount:'app',eyebrow:'Test Simulation · IELTS',title:'IELTS Practice',user:sess,nav:navDef.map(function(n){return{id:n[0],label:n[1],icon:n[2],href:n[3],active:n[0]==='glance'};})});
 function esc(x){return VM.esc(String(x==null?'':x));}
@@ -515,7 +515,7 @@ function tbUpdate(){var p=document.getElementById('tbPill');if(!p)return;var b=d
 function route(){
  var h=(location.hash||'').replace('#','')||'glance';
  if(h==='results'&&!teacher)h='history';
- var ok=teacher?['glance','library','types','inclass','results','scripts']:['glance','library','types','inclass','scripts','history','peer'];
+ var ok=teacher?['glance','library','types','aitests','inclass','results','scripts']:['glance','library','types','inclass','scripts','history','peer'];
  state.view=ok.indexOf(h)>=0?h:'glance';
  stopTimer();state.active=null;state.run=null;state.review=null;state.assignment=null;state.previewBack=null;
  markNav();
@@ -543,6 +543,7 @@ function render(){
  if(state.active)return renderPractice();
  setExam(false);
  if(state.view==='types')return drawTypesPage();
+ if(state.view==='aitests'&&teacher)return drawAiTests();
  if(state.view==='inclass')return teacher?drawInclassTeacher():drawInclassStudent();
  if(state.view==='results'&&teacher)return drawResultsPage();
  if(state.view==='scripts')return drawScriptsPage();
@@ -1935,6 +1936,130 @@ function runAnalysis(){
 
 
 
+/* ───────── AI Tests (teacher): the AI writes a similar test from a Library test; the result opens in the normal editor (Preview → Finish) ─────────
+   Keys stay in this browser (Settings) and go straight to the chosen provider. Reading only: a Listening test also needs audio. */
+function aiProv(id){return VM.AI_PROVIDERS.filter(function(p){return p.id===id;})[0]||null;}
+function aiHave(){return VM.AI_PROVIDERS.filter(function(p){return VM.aiKey.get(p.id);});}
+function aiModelOf(id){return VM.aiKey.model(id)||(aiProv(id)||{}).model;}
+function aiHttpError(label,status,body){
+ var msg='';try{var j=JSON.parse(body);msg=(j.error&&(j.error.message||j.error))||j.message||'';}catch(e){}
+ if(status===401||status===403)return new Error('The '+label+' key was rejected ('+status+'). Check it in Settings.');
+ if(status===429)return new Error(label+' says the rate or quota limit is reached (429). Wait a minute, or use another provider.');
+ return new Error(label+' error ('+status+')'+(msg?': '+String(msg).slice(0,160):'')+'.');
+}
+function aiComplete(pid,prompt){
+ var P=aiProv(pid),key=VM.aiKey.get(pid),model=aiModelOf(pid),label=P.label,url,opts;
+ function post(u,o){return fetch(u,o).catch(function(){throw new Error('Could not reach '+label+'. Check your connection; if it keeps happening this provider may block requests from a web page, so try another provider.');}).then(function(r){return r.text().then(function(t){if(!r.ok)throw aiHttpError(label,r.status,t);try{return JSON.parse(t);}catch(e){throw new Error(label+' returned an unreadable reply.');}});});}
+ if(pid==='gemini')return post('https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(model)+':generateContent?key='+encodeURIComponent(key),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.8,maxOutputTokens:16000,responseMimeType:'application/json'}})}).then(function(d){return ((d.candidates||[])[0]&&d.candidates[0].content.parts||[]).map(function(p){return p.text||'';}).join('');});
+ if(pid==='claude')return post('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:model,max_tokens:8000,temperature:0.8,messages:[{role:'user',content:prompt}]})}).then(function(d){return (d.content||[]).map(function(p){return p.text||'';}).join('');});
+ url={groq:'https://api.groq.com/openai/v1/chat/completions',deepseek:'https://api.deepseek.com/chat/completions',grok:'https://api.x.ai/v1/chat/completions'}[pid];
+ opts={method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model:model,messages:[{role:'user',content:prompt}],temperature:0.8,max_tokens:8000})};
+ return post(url,opts).then(function(d){return ((d.choices||[])[0]&&d.choices[0].message.content)||'';});
+}
+function aiText(v){return Array.isArray(v)?v.map(function(x){return typeof x==='string'?x:JSON.stringify(x);}).join('\n'):(v&&typeof v==='object'?Object.keys(v).map(function(k){return k+' '+v[k];}).join('\n'):String(v==null?'':v));}
+function aiParse(t){
+ t=String(t||'').replace(/^﻿/,'').trim();var m=/```(?:json)?\s*([\s\S]*?)```/i.exec(t);if(m)t=m[1].trim();
+ var a=t.indexOf('{'),b=t.lastIndexOf('}');
+ if(a<0||b<=a)throw new Error('The AI did not return a test. Try again, or choose another provider.');
+ var o;try{o=JSON.parse(t.slice(a,b+1));}catch(e){throw new Error('The AI reply was cut off or is not valid JSON. Try again, or use a model with a longer output.');}
+ var r={title:aiText(o.title).trim(),passage:aiText(o.passage).trim(),questions:aiText(o.questions).trim(),answers:aiText(o.answers).trim()};
+ if(r.passage.length<200||!r.questions)throw new Error('The AI reply is missing the passage or the questions. Try again.');
+ return r;
+}
+function aiPromptFor(src,o){
+ var topic=o.mode==='new'?'Write the passage on a COMPLETELY NEW topic that has nothing to do with the original topic (different subject area, not a retelling). Keep the same genre, register, structure and approximate length.':'Keep the SAME topic and the same structure and ideas in the same order, but rewrite the passage in new words: new sentences, different examples and details, no copied sentences.';
+ var diff={easier:'EASIER than the original: more common vocabulary, shorter sentences, answers stated more directly, weaker distractors.',same:'the SAME difficulty as the original: similar vocabulary level, similar paraphrasing distance, similar distractors.',harder:'HARDER than the original: more academic vocabulary, longer and denser sentences, more paraphrase and stronger distractors.'}[o.diff]||'';
+ return 'You are an expert IELTS Academic Reading test writer. Create a NEW practice passage with questions based on the ORIGINAL below.\n\n'+
+ 'TOPIC RULE: '+topic+'\nDIFFICULTY: '+diff+'\n\n'+
+ 'QUESTIONS RULES:\n- Keep exactly the same question groups, the same task types in the same order, the same number of questions and the same question numbers as the original.\n- Keep each group heading ("Questions 14-19") and the instruction wording (word limits, "Choose ONE WORD ONLY", etc.) exactly as in the original.\n- Make the answer logic follow the original: for each question, test the same skill (e.g. a heading for a paragraph, a True/False/Not Given judgement, a one-word completion) but about the NEW passage. Do not reuse the original sentences or answers.\n- Match the original layout: numbered items, blanks as ________, option lists (A, B, C… or the list of headings i, ii, iii…) written the same way. If the original has lettered paragraphs (A, B, C…), write the new passage with the same lettered paragraphs, each letter on its own line before its paragraph.\n- Every answer must be supported by the new passage. Gap-fill answers must appear in the passage exactly as written and obey the word limit.\n- Length of the new passage: within 10% of the original ('+src.words+' words).\n- Write original text. Do not quote the original passage or any published source.\n\n'+
+ 'OUTPUT: return ONLY one JSON object, no markdown, with these string fields:\n{"title": "short title of the new passage", "passage": "the passage, paragraphs separated by a blank line", "questions": "all question groups in the same plain-text format as the original questions below", "answers": "one answer per line, formatted as: <number> <answer>. Accepted alternatives separated by a slash. Headings as lowercase roman numerals, True/False/Not Given as TRUE/FALSE/NOT GIVEN, letters as capital letters."}\n\n'+
+ '=== ORIGINAL PASSAGE ===\n'+src.passage+'\n\n=== ORIGINAL QUESTIONS ===\n'+src.questions+'\n\n=== ORIGINAL ANSWERS ===\n'+(src.answers||'(not available; infer the logic from the questions)');
+}
+function aiWords(t){return (String(t).match(/\S+/g)||[]).length;}
+function aiSource(item){
+ return call('ielts.content.get',{id:item.id}).then(function(x){
+  var s=(x.sections||[])[0]||{},qs=s.questions||[];
+  return{part:String(x.part||item.part),passage:String(s.text||'').slice(0,12000),words:aiWords(s.text||''),
+   questions:fixCellBreaks(s.questionsText||serializeQuestions(qs)).slice(0,12000),
+   answers:qs.map(function(q,i){var a=(q.answers||[]).filter(Boolean);return a.length?((q.number||i+1)+' '+a.join(' / ')):'';}).filter(Boolean).join('\n'),
+   types:qs.map(function(q){return q.type;}),n:qs.length};
+ });
+}
+function aiCheck(src,res){
+ var w=[],qs=parseQuestions(res.questions),am=parseAnswers(res.answers);
+ if(src.n&&qs.length!==src.n)w.push('has '+qs.length+' questions (the original has '+src.n+')');
+ else if(src.types.join()!==qs.map(function(q){return q.type;}).join())w.push('some question types differ from the original');
+ var miss=qs.filter(function(q){return !(am[q.number]&&am[q.number].length);}).map(function(q){return q.number;});
+ if(miss.length)w.push('no answer for Q'+miss.join(', Q'));
+ return w;
+}
+function aiKeyOverlay(done){
+ var have=aiHave(),sel=VM.aiKey.pref()||(have[0]&&have[0].id)||'gemini';
+ var box=document.createElement('div');box.className='il-busy';box.id='aiKeyBox';
+ box.innerHTML='<div class="il-busy-card" style="max-width:440px;text-align:left;width:92%"><h3 style="margin:0 0 6px">Add an AI key to continue</h3><p class="il-note" style="margin:0 0 12px">AI Tests needs your own API key from one provider. It is saved only in this browser and sent only to that provider. You can also manage keys in Settings.</p><label class="vm-label">Provider</label><select class="vm-select" id="akProv">'+VM.AI_PROVIDERS.map(function(p){return '<option value="'+p.id+'"'+(p.id===sel?' selected':'')+'>'+esc(p.label)+'</option>';}).join('')+'</select><label class="vm-label" style="margin-top:10px;display:flex;justify-content:space-between"><span>API key</span><a id="akLink" target="_blank" rel="noopener" style="font-weight:600">Get a key →</a></label><input class="vm-input" id="akKey" type="password" autocomplete="off"><div id="akErr" class="il-error"></div><div class="il-row" style="margin-top:12px"><button class="vm-btn vm-btn-primary" id="akSave">Save and continue</button><button class="vm-btn vm-btn-ghost" id="akCancel">Cancel</button></div></div>';
+ document.body.appendChild(box);
+ function sync(){var p=aiProv(document.getElementById('akProv').value);document.getElementById('akKey').placeholder=p.ph;document.getElementById('akKey').value=VM.aiKey.get(p.id);document.getElementById('akLink').href=p.link;}
+ document.getElementById('akProv').onchange=sync;sync();
+ document.getElementById('akCancel').onclick=function(){box.remove();};
+ document.getElementById('akSave').onclick=function(){var id=document.getElementById('akProv').value,k=document.getElementById('akKey').value.trim();if(!k)return document.getElementById('akErr').textContent='Paste your key first.';VM.aiKey.set(id,k);VM.aiKey.pref(id);state.ai.provider=id;box.remove();VM.toast(aiProv(id).label+' key saved.','ok');done(id);};
+}
+function drawAiTests(){
+ setTitle('AI Tests');
+ var st=state.ai=state.ai||{book:'',test:'',parts:{},mode:'same',diff:'same',saveBook:'AI',saveTest:'',folder:'',provider:''};
+ var items=state.items.filter(function(i){return i.skill==='reading'&&i.review!=='pending';});
+ var books=[];items.forEach(function(i){if(books.indexOf(i.book)<0)books.push(i.book);});
+ books.sort(function(a,b){return bookNum(b)-bookNum(a)||String(a).localeCompare(String(b));});
+ if(books.indexOf(st.book)<0)st.book=books[0]||'';
+ function testsOf(b){var t=[];items.forEach(function(i){if(i.book===b&&t.indexOf(String(i.test))<0)t.push(String(i.test));});return t.sort(function(a,b){return (parseInt(a,10)||0)-(parseInt(b,10)||0);});}
+ var tests=testsOf(st.book);if(tests.indexOf(String(st.test))<0){st.test=tests[0]||'';st.parts={};}
+ var parts=items.filter(function(i){return i.book===st.book&&String(i.test)===String(st.test);}).sort(function(a,b){return (parseInt(a.part,10)||0)-(parseInt(b.part,10)||0);});
+ if(!Object.keys(st.parts).some(function(k){return st.parts[k]&&parts.some(function(p){return p.id===k;});})){st.parts={};parts.forEach(function(p){st.parts[p.id]=true;});}
+ if(!st.saveTest){var mx=0;state.items.forEach(function(i){if(i.book===st.saveBook){var n=parseInt(i.test,10)||0;if(n>mx)mx=n;}});st.saveTest=String(mx+1);}
+ var have=aiHave();if(!st.provider||!VM.aiKey.get(st.provider))st.provider=(have.filter(function(p){return p.id===VM.aiKey.pref();})[0]||have[0]||{}).id||'';
+ var folders=folderNames(state.items).filter(function(n){return n!==CAM_FOLDER&&n!==OTHER_FOLDER;});
+ function radio(name,val,label,sub){return '<label class="il-opt"><input type="radio" name="'+name+'" value="'+val+'"'+(st[name]===val?' checked':'')+'> <span><b>'+label+'</b>'+(sub?'<span class="il-note" style="display:block">'+sub+'</span>':'')+'</span></label>';}
+ root().innerHTML='<div class="ielts-wrap"><div class="ielts-hero"><h2>AI Tests</h2><p>Pick a Reading test from the Library. The AI writes a similar one with the same question types and logic. You preview and edit it, then save it to your own folder.</p></div>'+
+  (items.length?'<div class="il-panel"><h3 style="margin-top:0">1 · Original test</h3><div class="il-meta-grid"><div><label class="vm-label">Book</label><select class="vm-select" id="aiBook">'+books.map(function(b){return '<option'+(b===st.book?' selected':'')+'>'+esc(b)+'</option>';}).join('')+'</select></div><div><label class="vm-label">Test</label><select class="vm-select" id="aiTest">'+tests.map(function(t){return '<option'+(t===String(st.test)?' selected':'')+'>'+esc(t)+'</option>';}).join('')+'</select></div></div><div class="il-students" style="margin-top:8px">'+parts.map(function(p){return '<label class="il-opt"><input type="checkbox" data-aip="'+esc(p.id)+'"'+(st.parts[p.id]?' checked':'')+'> Passage '+esc(p.part)+'</label>';}).join('')+'</div></div>'+
+  '<div class="il-panel"><h3 style="margin-top:0">2 · What should the AI write?</h3><div class="il-opts">'+radio('mode','same','Same topic','Rewrite the passage and questions on the original topic.')+radio('mode','new','New topic','A different, unrelated topic. Question types and logic stay the same as the original.')+'</div><h3>Difficulty</h3><div class="il-opts">'+radio('diff','easier','Easier than the original')+radio('diff','same','Same as the original')+radio('diff','harder','Harder than the original')+'</div></div>'+
+  '<div class="il-panel"><h3 style="margin-top:0">3 · AI and where to save</h3><div class="il-meta-grid"><div><label class="vm-label">AI provider</label><select class="vm-select" id="aiProv">'+VM.AI_PROVIDERS.map(function(p){return '<option value="'+p.id+'"'+(p.id===st.provider?' selected':'')+'>'+esc(p.label)+(VM.aiKey.get(p.id)?'':' (no key)')+'</option>';}).join('')+'</select><div class="il-note"><a href="teacher.html#tab=settings">Manage keys in Settings</a></div></div><div><label class="vm-label">Model</label><input class="vm-input" id="aiModel" value="'+esc(aiModelOf(st.provider||'gemini'))+'"></div><div><label class="vm-label">Folder in Library</label><select class="vm-select" id="aiFolder"><option value="">Automatic</option>'+folders.map(function(n){return '<option'+(n===st.folder?' selected':'')+'>'+esc(n)+'</option>';}).join('')+'<option value="__new">＋ New folder…</option></select></div><div><label class="vm-label">Book name</label><input class="vm-input" id="aiSaveBook" value="'+esc(st.saveBook)+'" maxlength="30"></div><div><label class="vm-label">Test number</label><input class="vm-input" id="aiSaveTest" value="'+esc(st.saveTest)+'" maxlength="30"></div></div></div>'+
+  '<div class="il-row" style="margin:14px 0"><button class="vm-btn vm-btn-primary" id="aiGo">✨ Generate</button><span class="il-note">One AI request per passage. You can edit everything before saving.</span></div>'
+  :'<div class="il-empty">The Library has no Reading tests yet. Add a test first, then come back.</div>')+'</div>';
+ if(!items.length)return;
+ document.getElementById('aiBook').onchange=function(){st.book=this.value;st.test='';st.parts={};drawAiTests();};
+ document.getElementById('aiTest').onchange=function(){st.test=this.value;st.parts={};drawAiTests();};
+ qa('[data-aip]').forEach(function(c){c.onchange=function(){st.parts[c.getAttribute('data-aip')]=c.checked;};});
+ qa('input[name=mode],input[name=diff]').forEach(function(r){r.onchange=function(){st[r.name]=r.value;};});
+ document.getElementById('aiProv').onchange=function(){st.provider=this.value;VM.aiKey.pref(this.value);drawAiTests();};
+ document.getElementById('aiModel').onchange=function(){if(st.provider)VM.aiKey.model(st.provider,this.value.trim()===(aiProv(st.provider)||{}).model?'':this.value.trim());};
+ document.getElementById('aiSaveBook').onchange=function(){st.saveBook=this.value.trim()||'AI';st.saveTest='';drawAiTests();};
+ document.getElementById('aiSaveTest').onchange=function(){st.saveTest=this.value.trim();};
+ document.getElementById('aiFolder').onchange=function(){var el=this;if(el.value!=='__new'){st.folder=el.value;return;}
+  VM.prompt('Name of the new folder (for example “AI Tests”).',{title:'Create folder',placeholder:'Folder name',ok:'Create'}).then(function(v){if(!v||!v.trim()){el.value=st.folder;return;}
+   call('ielts.folder.create',{name:v}).then(function(r){state.folders=state.folders.concat([r.name]);st.folder=r.name;drawAiTests();}).catch(function(e){say(e.message);el.value=st.folder;});});};
+ document.getElementById('aiGo').onclick=function(){aiGenerate(parts);};
+}
+function aiGenerate(parts){
+ var st=state.ai,chosen=parts.filter(function(p){return st.parts[p.id];});
+ if(!chosen.length)return say('Choose at least one passage of the original test.');
+ if(!st.saveTest)return say('Enter a test number to save under.');
+ if(!st.provider||!VM.aiKey.get(st.provider))return aiKeyOverlay(function(){drawAiTests();aiGenerate(parts);});
+ var pid=st.provider,label=aiProv(pid).label,secs=[],warns=[],t0=Date.now();
+ busy('Reading the original…');
+ function step(k){
+  if(k>=chosen.length)return Promise.resolve();
+  var b=document.querySelector('#ilBusy b');if(b)b.textContent='Asking '+label+' to write Passage '+chosen[k].part+' ('+(k+1)+'/'+chosen.length+')…';
+  return aiSource(chosen[k]).then(function(src){return aiComplete(pid,aiPromptFor(src,st)).then(aiParse).then(function(res){
+   var w=aiCheck(src,res);if(w.length)warns.push('Passage '+src.part+' '+w.join('; '));
+   secs.push({part:src.part,title:res.title,text:res.passage,questionsText:res.questions,answersText:res.answers});});}).then(function(){return step(k+1);});
+ }
+ step(0).then(function(){
+  unbusy();
+  editorDialog({skill:'reading',book:st.saveBook,test:st.saveTest,folder:st.folder,imported:secs,aiGenerated:true});
+  if(warns.length)say('Check before saving: '+warns.join(' · '));
+  VM.toast('Generated in '+Math.round((Date.now()-t0)/1000)+' s. Check the passage, questions and answers, then click Finish.','warn',8000);
+ }).catch(function(e){unbusy();say(e.message||'The AI request failed.');});
+}
+
 /* ───────── Editor: one row of frames per Passage / Part ─────────
    Reading row:   1 Passage text | 2 Questions | 3 Answers
    Listening row: 1 Questions | 2 Audio (file or link, optional) | 3 Answers | 4 Script (optional)          */
@@ -1997,8 +2122,8 @@ function editorDialog(init){
  function build(){
   var dis=ex?' disabled':'',disBT=(ex&&!teacher)?' disabled':'',nxt=nextPart();   // a teacher checking a test can still rename its book and test
   root().innerHTML='<div class="ielts-wrap wide"><div class="il-toolbar il-sticky"><button class="vm-btn vm-btn-ghost" id="edBack">← Back</button><strong class="il-title">'+(ex?'Edit test in Library':'Add test to Library')+'</strong><span class="il-spacer"></span>'+(ex&&ex.canEdit?'<button class="vm-btn vm-btn-ghost" id="edArchive">Remove from Library</button>':'')+'<button class="vm-btn vm-btn-ghost" id="edPreview">Preview as student</button>'+'<button class="vm-btn vm-btn-primary" id="edDone">'+(ex&&teacher&&ex.review==='pending'?'Approve &amp; finish':'Finish')+'</button></div>'+
-   '<div class="il-panel"><div class="il-meta-grid"><div><label class="vm-label">Skill *</label><select class="vm-select" id="edSkill"'+dis+'><option value="reading">Reading</option><option value="listening">Listening</option></select></div><div><label class="vm-label">Book *</label><select class="vm-select" id="edBook"'+disBT+'><option value="">— Select —</option>'+optHtml(bookList(),book)+'<option value="__add">+ Add book…</option></select></div><div><label class="vm-label">Test *</label><select class="vm-select" id="edTest"'+disBT+'><option value="">— Select —</option>'+optHtml(testList(),test)+'<option value="__add">+ Add test…</option></select></div>'+(teacher?'<div><label class="vm-label">Folder</label><select class="vm-select" id="edFolder"'+dis+'><option value="">Automatic ('+CAM_FOLDER+' for Cambridge books)</option>'+folderNames(state.items).filter(function(n){return n!==CAM_FOLDER&&n!==OTHER_FOLDER;}).map(function(n){return '<option'+(ex&&ex.folder===n?' selected':'')+'>'+esc(n)+'</option>';}).join('')+'</select></div>':'')+'</div>'+(skill==='listening'?'<div class="il-row" style="margin-top:10px;gap:8px;flex-wrap:wrap"><input class="vm-input" id="edScrUrl" style="flex:1;min-width:260px" placeholder="Audio script page URL (a different page from the test, optional)" aria-label="Audio script page URL"><button type="button" class="vm-btn vm-btn-ghost vm-btn-sm" id="edScrGo">Fetch scripts</button></div>':'')+'<div class="il-note" style="margin-top:8px">Each '+partWord(skill)+' is saved as its own item in the Library. Book, Test and the '+partWord(skill)+' number are required.'+(init.sourceUrl||ex&&ex.sourceUrl?' Source: '+esc(init.sourceUrl||ex.sourceUrl):'')+'</div></div>'+
-   (init.imported&&init.imported.length?'<div class="il-warn"><b>Check before you finish.</b> This content was imported from a website. The importer can miss or misread items, so compare every passage, question, option and answer with the original page.</div>':'')+'<div class="il-warn il-warn-soft">'+(teacher?'Tests you finish are approved immediately, so please check the content carefully.':'Your teacher will check this test before anyone can practise it. Please make sure the passage, questions and answers match the original.')+'</div>'+'<div id="edRows">'+ed.rows.map(function(r,i){return rowHtml(i);}).join('')+'</div>'+
+   '<div class="il-panel"><div class="il-meta-grid"><div><label class="vm-label">Skill *</label><select class="vm-select" id="edSkill"'+dis+'><option value="reading">Reading</option><option value="listening">Listening</option></select></div><div><label class="vm-label">Book *</label><select class="vm-select" id="edBook"'+disBT+'><option value="">— Select —</option>'+optHtml(bookList(),book)+'<option value="__add">+ Add book…</option></select></div><div><label class="vm-label">Test *</label><select class="vm-select" id="edTest"'+disBT+'><option value="">— Select —</option>'+optHtml(testList(),test)+'<option value="__add">+ Add test…</option></select></div>'+(teacher?'<div><label class="vm-label">Folder</label><select class="vm-select" id="edFolder"'+dis+'><option value="">Automatic ('+CAM_FOLDER+' for Cambridge books)</option>'+folderNames(state.items).filter(function(n){return n!==CAM_FOLDER&&n!==OTHER_FOLDER;}).map(function(n){return '<option'+((ex&&ex.folder===n)||(!ex&&init.folder===n)?' selected':'')+'>'+esc(n)+'</option>';}).join('')+'</select></div>':'')+'</div>'+(skill==='listening'?'<div class="il-row" style="margin-top:10px;gap:8px;flex-wrap:wrap"><input class="vm-input" id="edScrUrl" style="flex:1;min-width:260px" placeholder="Audio script page URL (a different page from the test, optional)" aria-label="Audio script page URL"><button type="button" class="vm-btn vm-btn-ghost vm-btn-sm" id="edScrGo">Fetch scripts</button></div>':'')+'<div class="il-note" style="margin-top:8px">Each '+partWord(skill)+' is saved as its own item in the Library. Book, Test and the '+partWord(skill)+' number are required.'+(init.sourceUrl||ex&&ex.sourceUrl?' Source: '+esc(init.sourceUrl||ex.sourceUrl):'')+'</div></div>'+
+   (init.imported&&init.imported.length?'<div class="il-warn"><b>Check before you finish.</b> '+(init.aiGenerated?'This test was written by AI. AI can make mistakes in answers and wording, so read every passage, question and answer key before you finish.':'This content was imported from a website. The importer can miss or misread items, so compare every passage, question, option and answer with the original page.')+'</div>':'')+'<div class="il-warn il-warn-soft">'+(teacher?'Tests you finish are approved immediately, so please check the content carefully.':'Your teacher will check this test before anyone can practise it. Please make sure the passage, questions and answers match the original.')+'</div>'+'<div id="edRows">'+ed.rows.map(function(r,i){return rowHtml(i);}).join('')+'</div>'+
    (ex?'':'<div class="il-row" style="margin:6px 0 16px"><button class="vm-btn vm-btn-ghost" id="edAdd"'+(nxt?'':' disabled')+'>＋ Add '+(nxt?partWord(skill)+' '+nxt:'another '+partWord(skill).toLowerCase())+'</button><span class="il-note">'+(nxt?'':'All '+maxParts()+' '+partWord(skill).toLowerCase()+'s are used or already in the Library.')+'</span></div>')+
    '<div id="edError" class="il-error"></div></div>';
   document.getElementById('edSkill').value=skill;
