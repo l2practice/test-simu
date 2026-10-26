@@ -226,6 +226,30 @@ function vmfbIeltsGradeAttempt(p) {
   return { success:true, data:Object.assign({id:id}, doc) };
 }
 
+// Audio script of one Library item. Scripts live in ieltsAnswerKeys (never in the public content doc).
+// Any signed-in user can read the script of a published, approved Library item (the Audio Scripts page).
+function vmfbIeltsScriptGet(p) {
+  p = p || {};
+  var verified = vmfbIeltsVerifiedUser(p.idToken);
+  if (!verified.success) return verified;
+  var id = String(p.id || '');
+  if (!/^[A-Za-z0-9_-]{1,128}$/.test(id)) return { success:false, error:'Invalid test.' };
+  var uid = verified.uid, user = verified.user;
+  var doc = fsGet('ieltsContent/' + id);
+  if (!doc) return { success:false, error:'Test not found.' };
+  var isTeacher = user.role === 'teacher';
+  if (!isTeacher) {
+    if (doc.archived || doc.review === 'pending' || doc.status !== 'published') {
+      if (doc.ownerUid !== uid) return { success:false, error:'You do not have access to this test.' };
+    }
+  }
+  var key = fsGet('ieltsAnswerKeys/' + id);
+  var script = '';
+  ((key && key.sections) || []).forEach(function(s){ if (s && s.script) script += (script ? '\n\n' : '') + s.script; });
+  if (!script) (doc.sections || []).forEach(function(s){ if (s && s.script) script += (script ? '\n\n' : '') + s.script; });
+  return { success:true, data:{ id:id, script:script } };
+}
+
 function itk(path) { return 'https://identitytoolkit.googleapis.com/v1/projects/' + VMFB.PROJECT_ID + path; }
 // Firebase không nhận mật khẩu dưới 6 ký tự. Đệm y hệt vm-fbdata.js.
 function vmfbPw(p) { p = String(p == null ? '' : p).trim(); return p.length >= 6 ? p : (p + '______').slice(0, 6); }
