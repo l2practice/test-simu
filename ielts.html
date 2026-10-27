@@ -2450,11 +2450,11 @@ function trendHtml(d){if(d===null||d===undefined)return '<span class="il-note">�
 function teacherResults(){
  var ex=document.getElementById('extra'),rs=state.rs=state.rs||{classId:'',skill:'all',period:'30',what:'full',type:'',view:'students',student:'',lesson:'',sort:'avg',dir:-1};
  state.rsCache=state.rsCache||{};
- ex.innerHTML='<div class="il-panel" style="margin-top:16px"><h3 style="margin:0 0 8px">Class results</h3><div class="il-toolbar"><select class="vm-select" id="rzClass"><option value="">Select a class</option>'+state.classes.map(function(c){return '<option value="'+esc(c.classId)+'"'+(c.classId===rs.classId?' selected':'')+'>'+esc(c.className)+'</option>';}).join('')+'</select><select class="vm-select" id="rzSkill"><option value="all">Reading + Listening</option><option value="reading">Reading</option><option value="listening">Listening</option></select><select class="vm-select" id="rzPeriod" aria-label="Period">'+RS_PERIODS.map(function(o){return '<option value="'+o[0]+'"'+(o[0]===rs.period?' selected':'')+'>'+o[1]+'</option>';}).join('')+'</select><span class="il-spacer"></span><span class="il-note" id="rzRank"></span><button class="vm-btn vm-btn-ghost vm-btn-sm" id="rzPub" title="Compute every student’s rank and publish it to them (each student sees only their own rank)">Update student ranks</button><div class="il-seg" id="rzView"><button data-v="students">Students</button><button data-v="types">Task types</button><button data-v="attempts">Attempts</button></div></div><div id="rzBody"></div></div>';
+ ex.innerHTML='<div class="il-panel" style="margin-top:16px"><h3 style="margin:0 0 8px">Class results</h3><div class="il-toolbar"><select class="vm-select" id="rzClass"><option value="">Select a class</option>'+state.classes.map(function(c){return '<option value="'+esc(c.classId)+'"'+(c.classId===rs.classId?' selected':'')+'>'+esc(c.className)+'</option>';}).join('')+'</select><select class="vm-select" id="rzSkill"><option value="all">Reading + Listening</option><option value="reading">Reading</option><option value="listening">Listening</option></select><select class="vm-select" id="rzPeriod" aria-label="Period">'+RS_PERIODS.map(function(o){return '<option value="'+o[0]+'"'+(o[0]===rs.period?' selected':'')+'>'+o[1]+'</option>';}).join('')+'</select><span class="il-spacer"></span><span class="il-note" id="rzRank"></span><button class="vm-btn vm-btn-ghost vm-btn-sm" id="rzPub" title="Compute every student’s rank and publish it to them (each student sees only their own rank)">Update student ranks</button><div class="il-seg" id="rzView"><button data-v="students">Students</button><button data-v="types">Task types</button><button data-v="classes">Classes</button><button data-v="attempts">Attempts</button></div></div><div id="rzBody"></div></div>';
  document.getElementById('rzSkill').value=rs.skill;
- function setSeg(){qa('#rzView button').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-v')===rs.view);});}
+ function setSeg(){qa('#rzView button').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-v')===rs.view);});var cs=document.getElementById('rzClass'),pb=document.getElementById('rzPub'),rk=document.getElementById('rzRank');if(cs)cs.style.display=rs.view==='classes'?'none':'';if(pb)pb.style.display=rs.view==='classes'?'none':'';if(rk)rk.style.display=rs.view==='classes'?'none':'';}
  setSeg();
- qa('#rzView button').forEach(function(b){b.onclick=function(){rs.view=b.getAttribute('data-v');setSeg();render();};});
+ qa('#rzView button').forEach(function(b){b.onclick=function(){rs.view=b.getAttribute('data-v');setSeg();if(rs.view!=='classes'&&!data)load();else render();};});
  document.getElementById('rzSkill').onchange=function(){rs.skill=this.value;rs.type='';render();};
  document.getElementById('rzClass').onchange=function(){rs.classId=this.value;rs.student='';load();};
  document.getElementById('rzPeriod').onchange=function(){rs.period=this.value;load();};
@@ -2471,6 +2471,7 @@ function teacherResults(){
  document.getElementById('rzPub').onclick=function(){if(!rs.classId)return say('Choose a class first.');pubRanks(true);};
  function load(){
   var body=document.getElementById('rzBody');
+  if(rs.view==='classes')return render();
   if(!rs.classId){data=null;body.innerHTML='<div class="il-empty">Choose a class to see its results.</div>';return;}
   var key=rs.classId+'|'+rs.period,hit=state.rsCache[key];
   if(hit&&Date.now()-hit.t<120000){data=hit;render();return pubRanks(false);}
@@ -2481,13 +2482,109 @@ function teacherResults(){
   }).catch(function(e){body.innerHTML='<div class="il-empty">'+esc(e.message)+'</div>';});
  }
  function render(){
-  if(!data)return;
   var box=document.getElementById('rzBody');
+  if(rs.view==='classes')return drawResClasses(box,rs,render);
+  if(!data)return;
   if(rs.view==='types')return drawResTypes(box,data,rs,render);
   if(rs.view==='attempts')return drawResAttempts(box,data,rs);
   return drawResStudents(box,data,rs,render);
  }
  load();
+}
+/* ───────── Class vs class ───────── */
+var CMP_COLORS=['#1E8A5E','#F08A3C','#3B82C4','#9B59B6','#C23A2E','#C28A00','#2A9D8F','#B5651D'];
+function rsFetch(cid,period){
+ state.rsCache=state.rsCache||{};
+ var key=cid+'|'+period,hit=state.rsCache[key];
+ if(hit&&Date.now()-hit.t<120000)return Promise.resolve(hit);
+ var since=+period?new Date(Date.now()-(+period)*86400000).toISOString():'';
+ return Promise.all([call('ielts.attempt.list',{classId:cid,since:since}),call('class.roster',{classId:cid})]).then(function(v){return state.rsCache[key]={att:v[0]||[],roster:v[1]||[],t:Date.now()};});
+}
+function weekStart(v){var d=new Date(v);d.setHours(0,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7));return d.getTime();}
+/* class average per week: mean of each student's weekly mean, so every student counts once */
+function weeklyClassAvg(att,st){
+ var byW={};
+ att.forEach(function(a){var w=weekStart(a.completedAt);(byW[w]=byW[w]||[]).push(a);});
+ var out={};
+ Object.keys(byW).forEach(function(w){var v=classBaseline(byW[w],st),ns=Object.keys(groupBy(byW[w].filter(function(a){return glanceRows([a],st).length;}),'studentId')).length;if(v!==null)out[w]={v:v,n:ns};});
+ return out;
+}
+function drawResClasses(box,rs,redraw){
+ var all=state.classes||[];
+ if(!rs.cmp||!rs.cmp.length)rs.cmp=all.slice(0,6).map(function(c){return c.classId;});
+ rs.cmp=rs.cmp.filter(function(id){return all.some(function(c){return c.classId===id;});});
+ var colorOf={};rs.cmp.forEach(function(id,i){colorOf[id]=CMP_COLORS[i%CMP_COLORS.length];});
+ box.innerHTML='<div class="il-note" style="margin:0 0 6px">Choose the classes to compare (up to 8).</div><div class="il-students rc-chips">'+all.map(function(c){var on=rs.cmp.indexOf(c.classId)>=0;return '<label class="il-opt"><input type="checkbox" data-c="'+esc(c.classId)+'"'+(on?' checked':'')+'> '+(on?'<i class="il-dot" style="background:'+colorOf[c.classId]+'"></i>':'')+esc(c.className)+'</label>';}).join('')+'</div><div id="rcBody"><div class="il-empty">Loading…</div></div>';
+ qa('.rc-chips input').forEach(function(i){i.onchange=function(){var id=i.getAttribute('data-c'),k=rs.cmp.indexOf(id);if(i.checked&&k<0){if(rs.cmp.length>=8){i.checked=false;return say('Compare up to 8 classes at a time.');}rs.cmp.push(id);}else if(!i.checked&&k>=0)rs.cmp.splice(k,1);redraw();};});
+ var body=document.getElementById('rcBody');
+ if(rs.cmp.length<1){body.innerHTML='<div class="il-empty">Tick at least one class.</div>';return;}
+ Promise.all(rs.cmp.map(function(id){return rsFetch(id,rs.period);})).then(function(ds){
+  var cls=rs.cmp.map(function(id,i){var c=all.filter(function(x){return x.classId===id;})[0]||{};return{id:id,name:c.className||id,color:colorOf[id],d:ds[i]};});
+  // task types seen in any class (for the Task type option)
+  var tm={};cls.forEach(function(c){c.d.att.forEach(function(a){if(rs.skill!=='all'&&a.skill!==rs.skill)return;attemptTypes(a).forEach(function(t){if(t.n)tm[t.type]=(tm[t.type]||0)+1;});});});
+  var topts=Object.keys(tm).sort(function(a,b){return tm[b]-tm[a];});
+  if(rs.type&&topts.indexOf(rs.type)<0)rs.type='';
+  var typeMode=rs.what==='type',need=typeMode&&!rs.type;
+  var st={skill:rs.skill,mode:rs.what,type:rs.type};
+  cls.forEach(function(c){c.S=resStats(c.d.att,c.d.roster,{skill:rs.skill,what:rs.what,type:rs.type}).cls;});
+  var best=cls.filter(function(c){return c.S.avg!==null;}).sort(function(a,b){return b.S.avg-a.S.avg;});
+  var head='<div class="il-toolbar" style="margin-top:10px"><div class="il-seg" id="rcWhat"><button data-w="full">Full tests</button><button data-w="type">Task type</button></div><select class="vm-select" id="rcType" style="'+(typeMode?'':'display:none;')+'width:auto;min-width:210px" aria-label="Task type"><option value="">Choose a task type…</option>'+topts.map(function(t){return '<option value="'+esc(t)+'"'+(t===rs.type?' selected':'')+'>'+esc(typeName(t))+'</option>';}).join('')+'</select></div>';
+  var main='';
+  if(need)main='<div class="il-empty">Choose a task type to compare the classes on it.</div>';
+  else{
+   main='<div style="overflow:auto"><table class="vm-table rs-tab"><thead><tr><th>#</th><th>Class</th><th>Students</th><th>Participation</th><th>Attempts</th><th class="gl-acc">Average</th><th>Reading</th><th>Listening</th><th>Best</th></tr></thead><tbody>'+
+    cls.slice().sort(function(a,b){return (b.S.avg===null?-1:b.S.avg)-(a.S.avg===null?-1:a.S.avg);}).map(function(c){var S=c.S,rk=best.indexOf(c)+1;return '<tr><td>'+(rk?'<span class="pe-rk r'+(rk<=3?rk:0)+'">'+rk+'</span>':'<span class="il-note">—</span>')+'</td><td><i class="il-dot" style="background:'+c.color+'"></i><b>'+esc(c.name)+'</b></td><td>'+S.students+'</td><td>'+S.active+'/'+S.students+' <span class="il-note">('+(S.students?Math.round(S.active*100/S.students):0)+'%)</span></td><td>'+S.attempts+'</td><td class="gl-acc">'+(S.avg===null?'<span class="il-note">No attempts</span>':'<div class="rs-bar"><div class="rs-track"><i style="width:'+Math.round(S.avg)+'%;background:'+c.color+'"></i></div><b>'+Math.round(S.avg)+'%</b></div>')+'</td><td>'+pctTxt(S.avgR)+'</td><td>'+pctTxt(S.avgL)+'</td><td>'+pctTxt(S.best)+'</td></tr>';}).join('')+'</tbody></table></div><p class="il-note" style="margin:6px 0 0">Class average = mean of each student’s average'+(typeMode?' (task type: correct ÷ total questions)':'')+'. Compare it with participation: a class where few students practised can look better than it is.</p>'+
+    '<h4 class="il-sect-h" style="margin-top:18px">Average by skill</h4><div id="rcBars" class="gl-chart-wrap"></div>'+
+    '<h4 class="il-sect-h" style="margin-top:18px">Class average by week</h4><div id="rcTrend" class="gl-chart-wrap"></div>';
+  }
+  main+='<h4 class="il-sect-h" style="margin-top:18px">Task types by class</h4><div id="rcHeat"></div>';
+  body.innerHTML=head+main;
+  qa('#rcWhat button').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-w')===rs.what);b.onclick=function(){rs.what=b.getAttribute('data-w');redraw();};});
+  var ts=document.getElementById('rcType');if(ts)ts.onchange=function(){rs.type=this.value;redraw();};
+  if(!need){cmpBars(document.getElementById('rcBars'),cls);cmpTrend(document.getElementById('rcTrend'),cls,st);}
+  cmpHeat(document.getElementById('rcHeat'),cls,rs);
+ }).catch(function(e){body.innerHTML='<div class="il-empty">'+esc(e.message)+'</div>';});
+}
+function cmpBars(el,cls){
+ var gid='b'+Math.random().toString(36).slice(2,6),per=96,w=Math.max(Math.round(el.clientWidth||600),cls.length*per+60),h=270,pl=34,pr=10,pt=26,pb=44;
+ var series=[['avg','Overall','#5B6B8C'],['avgR','Reading',C_READ],['avgL','Listening',C_LIST]];
+ function Y(v){return pt+(h-pt-pb)*(1-v/100);}
+ var grid='';[0,25,50,75,100].forEach(function(v){grid+='<line x1="'+pl+'" x2="'+(w-pr)+'" y1="'+Y(v)+'" y2="'+Y(v)+'" stroke="#E7E2EC" stroke-dasharray="'+(v?'3 5':'0')+'"/><text x="'+(pl-6)+'" y="'+(Y(v)+4)+'" text-anchor="end" font-size="11" fill="#5C7482">'+v+'</text>';});
+ var defs='<defs>'+series.map(function(s,i){return '<linearGradient id="'+gid+i+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+s[2]+'"/><stop offset="1" stop-color="'+s[2]+'" stop-opacity=".55"/></linearGradient>';}).join('')+'</defs>';
+ var cw=(w-pl-pr)/cls.length,bw=Math.min(22,(cw-18)/3),bars=cls.map(function(c,ci){
+  var cx=pl+cw*ci+cw/2,x0=cx-bw*1.5-3;
+  return series.map(function(s,si){var v=c.S[s[0]];if(v===null||v===undefined)return '';var x=x0+si*(bw+3),y=Y(v);
+   return '<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+Math.max(1,Y(0)-y).toFixed(1)+'" rx="5" fill="url(#'+gid+si+')"><title>'+esc(c.name)+' · '+s[1]+' '+Math.round(v)+'%</title></rect><text x="'+(x+bw/2).toFixed(1)+'" y="'+(y-5).toFixed(1)+'" text-anchor="middle" font-size="10.5" font-weight="800" fill="'+s[2]+'">'+Math.round(v)+'</text>';}).join('')+
+   '<text x="'+cx.toFixed(1)+'" y="'+(h-24)+'" text-anchor="middle" font-size="12" font-weight="700" fill="#2B3A33">'+esc(String(c.name).slice(0,Math.max(8,Math.floor(cw/7))))+'</text><circle cx="'+cx.toFixed(1)+'" cy="'+(h-9)+'" r="4" fill="'+c.color+'"/>';}).join('');
+ el.innerHTML='<div class="gl-legend">'+series.map(function(s){return '<span class="il-note"><i class="il-dot" style="background:'+s[2]+'"></i> '+s[1]+'</span>';}).join(' &nbsp; ')+'</div><div style="overflow-x:auto"><svg viewBox="0 0 '+w+' '+h+'" width="'+w+'" height="'+h+'" role="img" aria-label="Average by skill">'+defs+grid+bars+'</svg></div>';
+}
+function cmpTrend(el,cls,st){
+ var per=cls.map(function(c){return{c:c,w:weeklyClassAvg(c.d.att,st)};}),weeks={};
+ per.forEach(function(p){Object.keys(p.w).forEach(function(k){weeks[k]=1;});});
+ var ws=Object.keys(weeks).map(Number).sort(function(a,b){return a-b;});
+ if(!ws.length){el.innerHTML='<div class="il-empty">No results in this period.</div>';return;}
+ var w=Math.max(300,Math.round(el.clientWidth||700)),h=w<500?250:290,pl=34,pr=18,pt=18,pb=34,N=ws.length;
+ function X(i){return pl+(w-pl-pr)*(N<2?0.5:i/(N-1));}
+ function Y(v){return pt+(h-pt-pb)*(1-v/100);}
+ var grid='';[0,25,50,75,100].forEach(function(v){grid+='<line x1="'+pl+'" x2="'+(w-pr)+'" y1="'+Y(v)+'" y2="'+Y(v)+'" stroke="#E7E2EC" stroke-dasharray="'+(v?'3 5':'0')+'"/><text x="'+(pl-6)+'" y="'+(Y(v)+4)+'" text-anchor="end" font-size="11" fill="#5C7482">'+v+'</text>';});
+ var gid='t'+Math.random().toString(36).slice(2,6);
+ var defs='<defs>'+per.map(function(p,i){return '<linearGradient id="'+gid+i+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+p.c.color+'" stop-opacity=".22"/><stop offset="1" stop-color="'+p.c.color+'" stop-opacity="0"/></linearGradient>';}).join('')+'</defs>';
+ var lines=per.map(function(p,pi){
+  var pts=[];ws.forEach(function(k,i){var e=p.w[k];if(e)pts.push({x:X(i),y:Y(e.v),e:e,k:k});});
+  var d=monoPath(pts);
+  return (pts.length>1?'<path class="gl-area" d="'+d+' L'+pts[pts.length-1].x.toFixed(1)+','+Y(0)+' L'+pts[0].x.toFixed(1)+','+Y(0)+' Z" fill="url(#'+gid+pi+')"/><path class="gl-line" d="'+d+'" fill="none" stroke="'+p.c.color+'" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>':'')+
+   pts.map(function(q){return '<circle class="gl-pt" cx="'+q.x.toFixed(1)+'" cy="'+q.y.toFixed(1)+'" r="4.5" fill="#fff" stroke="'+p.c.color+'" stroke-width="2.5" data-tip="'+esc(p.c.name+' · week of '+fmtDate(q.k)+' · average '+Math.round(q.e.v)+'% · '+q.e.n+' student'+(q.e.n===1?'':'s'))+'"/>';}).join('');}).join('');
+ var tc=Math.max(2,Math.min(5,Math.floor((w-pl-pr)/110))),ticks=N<=tc?ws.map(function(_,i){return i;}):Array.apply(null,Array(tc)).map(function(_,k){return Math.round(k*(N-1)/(tc-1));}).filter(function(v,i,a){return a.indexOf(v)===i;});
+ var xl=ticks.map(function(i,ix){var t=fmtDate(ws[i]);if(w<500)t=t.replace(/\s\d{4}$/,'');return '<text x="'+X(i)+'" y="'+(h-9)+'" text-anchor="'+(N>1&&ix===ticks.length-1?'end':(ix===0&&N>1?'start':'middle'))+'" font-size="11" fill="#5C7482">'+t+'</text>';}).join('');
+ el.innerHTML='<div class="gl-legend">'+cls.map(function(c){return '<span class="gl-leg" style="cursor:default"><i style="background:'+c.color+'"></i>'+esc(c.name)+'</span>';}).join('')+'<span class="il-note">Each point is one week · tap or hover for details</span></div><div class="gl-chart-wrap"><svg viewBox="0 0 '+w+' '+h+'" width="'+w+'" height="'+h+'" class="gl-chart" role="img" aria-label="Class average by week">'+defs+grid+lines+xl+'</svg><div class="gl-tip"></div></div>';
+ bindChartTips(el);
+}
+function cmpHeat(el,cls,rs){
+ var Ms=cls.map(function(c){return resTypeMatrix(c.d.att,c.d.roster,rs);}),tot={};
+ Ms.forEach(function(M){Object.keys(M.cls).forEach(function(t){tot[t]=(tot[t]||0)+M.cls[t].n;});});
+ var types=Object.keys(tot).sort(function(a,b){return tot[b]-tot[a];});
+ if(!types.length){el.innerHTML='<div class="il-empty">No task-type results in this period.</div>';return;}
+ el.innerHTML='<p class="il-note" style="margin:0 0 6px">Each cell is correct ÷ total questions of that task type for the whole class. Faded cells rest on one attempt only.</p><div style="overflow:auto"><table class="vm-table rs-heat"><thead><tr><th class="rs-sticky">Task type</th>'+cls.map(function(c){return '<th><i class="il-dot" style="background:'+c.color+'"></i>'+esc(c.name)+'</th>';}).join('')+'</tr></thead><tbody>'+types.map(function(t){return '<tr><td class="rs-sticky"><b>'+esc(typeName(t))+'</b></td>'+Ms.map(function(M,i){var e=M.cls[t];if(!e)return '<td class="rs-hc rs-empty">—</td>';var pc=Math.round(e.ok*100/e.n);return '<td class="rs-hc'+(e.at<2?' rs-few':'')+'" style="cursor:default;'+heatStyle(pc)+'" title="'+esc(cls[i].name)+' · '+esc(typeName(t))+': '+e.ok+'/'+e.n+' correct in '+e.at+' attempt'+(e.at===1?'':'s')+'">'+pc+'%</td>';}).join('')+'</tr>';}).join('')+'</tbody></table></div>';
 }
 function resCard(label,val,sub,col){return '<div class="gl-card"'+(col?' style="border-top-color:'+col+'"':'')+'><div class="gl-card-h">'+label+'</div><div class="gl-big">'+val+'</div><div class="il-note">'+sub+'</div></div>';}
 function pctTxt(v){return v===null||v===undefined?'—':Math.round(v)+'%';}
