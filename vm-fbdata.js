@@ -1209,6 +1209,36 @@ async function ieltsActivitySync(p) {
   });
   return ok();
 }
+// Class ranks (see firestore.rules → ieltsRanks): published by the class teacher, read by each student for their own document only.
+async function ieltsRankPublish(p) {
+  const t = await teacher(), cls = str(p.classId);
+  const cs = await fs.doc('classes/' + cls).get();
+  if (!cs.exists || cs.data().teacherUid !== t.uid) return fail('You can only publish ranks for your own class.');
+  const num = v => { v = Math.round(+v); return isFinite(v) ? v : 0; };
+  const uids = Object.keys(p.ranks || {}).filter(id => /^[A-Za-z0-9_-]{1,128}$/.test(id)).slice(0, 300);
+  let n = 0;
+  for (let i = 0; i < uids.length; i += 15) {
+    await Promise.all(uids.slice(i, i + 15).map(async uid => {
+      const us = await fs.doc('users/' + uid).get();
+      if (!us.exists || us.data().teacherUid !== t.uid || us.data().classId !== cls) return;
+      const sets = {};
+      Object.keys(p.ranks[uid] || {}).forEach(k => {
+        if (!/^(0|7|14|21|30)_(all|reading|listening)$/.test(k)) return;
+        const e = p.ranks[uid][k] || {}, f = e.full, types = {};
+        Object.keys(e.types || {}).slice(0, 20).forEach(ty => { if (/^[a-z0-9-]{1,60}$/.test(ty)) { const x = e.types[ty] || {}; types[ty] = { r: num(x.r), of: num(x.of), v: num(x.v) }; } });
+        sets[k] = { full: f ? { r: num(f.r), of: num(f.of), v: num(f.v) } : null, types };
+      });
+      await fs.doc('ieltsRanks/' + uid).set({ uid, classId: cls, teacherUid: t.uid, sets, updatedAt: nowIso() });
+      n++;
+    }));
+  }
+  return ok({ published: n });
+}
+async function ieltsRankGet() {
+  const u = await me(); if (u.role === 'teacher') return ok(null);
+  const s = await fs.doc('ieltsRanks/' + u.uid).get();
+  return ok(s.exists ? s.data() : null);
+}
 async function ieltsActivityList(p) {
   const u = await me(); let q;
   if (u.role === 'teacher') q = fs.collection('ieltsActivity').where('teacherUid', '==', u.uid).where('classId', '==', str(p.classId));
@@ -1322,7 +1352,7 @@ const ACTIONS = {
   'ielts.attempt.save': ieltsAttemptSave, 'ielts.attempt.list': ieltsAttemptList,
   'ielts.report.create': ieltsReportCreate, 'ielts.report.list': ieltsReportList, 'ielts.report.update': ieltsReportUpdate,
   'ielts.audio.upload': ieltsAudioUpload, 'ielts.audio.attach': ieltsAudioAttach, 'ielts.audio.url': ieltsAudioUrl,
-  'ielts.importUrl': ieltsImportUrl, 'ielts.importScript': ieltsImportScript, 'ielts.script.get': ieltsScriptGet, 'ielts.activity.sync': ieltsActivitySync, 'ielts.activity.list': ieltsActivityList, 'ielts.script.save': ieltsScriptSave, 'ielts.script.mine': ieltsScriptMine, 'ielts.script.discard': ieltsScriptDiscard, 'ielts.script.pending': ieltsScriptPending, 'ielts.script.review': ieltsScriptReview, 'ielts.images.backup': ieltsImagesBackup,
+  'ielts.rank.publish': ieltsRankPublish, 'ielts.rank.get': ieltsRankGet, 'ielts.importUrl': ieltsImportUrl, 'ielts.importScript': ieltsImportScript, 'ielts.script.get': ieltsScriptGet, 'ielts.activity.sync': ieltsActivitySync, 'ielts.activity.list': ieltsActivityList, 'ielts.script.save': ieltsScriptSave, 'ielts.script.mine': ieltsScriptMine, 'ielts.script.discard': ieltsScriptDiscard, 'ielts.script.pending': ieltsScriptPending, 'ielts.script.review': ieltsScriptReview, 'ielts.images.backup': ieltsImagesBackup,
   'vocab.today': vocabToday,
   'ping': async () => ok('pong')
 };
