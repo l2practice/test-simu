@@ -455,10 +455,10 @@ body:not(.exam-mode) .tk-act .vm-btn:active:not(:disabled){transform:translateY(
 .pe-cmp{margin:10px 0}.pe-cl{font-weight:700;font-size:.84rem;margin-bottom:4px;color:#3E3A4A}.pe-line{display:grid;grid-template-columns:70px 1fr auto;gap:8px;align-items:center;font-size:.8rem;margin:3px 0}.pe-line>div{height:9px;background:#F1EDF5;border-radius:99px;overflow:hidden}.pe-line i{display:block;height:100%;border-radius:99px}
 .pe-feed{display:flex;flex-direction:column;gap:2px}.pe-item{display:flex;gap:12px;align-items:flex-start;padding:10px 4px;border-top:1px solid var(--vm-border-2)}.pe-item:first-child{border-top:none}.pe-av{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-weight:800;flex:0 0 auto}.pe-when{opacity:.7}
 .gl-chart{max-height:360px}
-.rs-filters{margin-bottom:8px}.rs-filters .vm-select{min-width:175px}.rs-date-label{display:flex;align-items:center;gap:6px;font-size:.8rem;color:var(--vm-ink-2);white-space:nowrap}.rs-date-label .vm-input{width:150px}.rs-nav{padding-bottom:10px;border-bottom:1px solid var(--vm-border-2)}
+.rs-filters{margin-bottom:8px}.rs-filters .vm-select{min-width:175px}.rs-date-label{display:flex;align-items:center;gap:6px;font-size:.8rem;color:var(--vm-ink-2);white-space:nowrap}.rs-date-label .vm-input{width:200px;min-width:200px}.rs-nav{padding-bottom:10px;border-bottom:1px solid var(--vm-border-2)}
 .rs-actions{position:relative}.rs-actions>summary{cursor:pointer;list-style:none;border:1px solid var(--vm-border);border-radius:10px;padding:7px 12px;background:#fff;font-weight:700;color:var(--vm-ink-2)}.rs-actions>summary::-webkit-details-marker{display:none}.rs-action-menu{position:absolute;right:0;top:calc(100% + 6px);z-index:20;display:grid;gap:7px;min-width:190px;padding:10px;background:#fff;border:1px solid var(--vm-border-2);border-radius:12px;box-shadow:0 10px 24px rgba(10,63,48,.16)}
 .rs-summary{grid-template-columns:repeat(4,minmax(0,1fr));margin-top:12px}.rs-summary .gl-card{min-width:0}.rs-progress{margin-bottom:14px}.rs-table-tools{justify-content:space-between;margin:14px 0 6px}.rs-table-tools .vm-input{max-width:280px}.rs-tab th{white-space:nowrap}.rs-tab td{vertical-align:middle}
-@media(max-width:820px){.rs-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.rs-nav{align-items:flex-start}.rs-nav .il-seg{flex-wrap:wrap;border-radius:14px}.rs-filters .vm-select{flex:1;min-width:140px}.rs-date-label{flex:1}.rs-date-label .vm-input{flex:1;min-width:120px}}
+@media(max-width:820px){.rs-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.rs-nav{align-items:flex-start}.rs-nav .il-seg{flex-wrap:wrap;border-radius:14px}.rs-filters .vm-select{flex:1;min-width:140px}.rs-date-label{flex:1}.rs-date-label .vm-input{flex:1;min-width:190px}}
 @media(max-width:480px){.rs-summary{grid-template-columns:1fr 1fr}.rs-summary .gl-card{padding:10px}.rs-summary .gl-big{font-size:1.55rem}.rs-nav .il-seg button{padding:6px 10px;font-size:.78rem}}
 </style></head><body><div id="app"></div><script src="vm-common.js?v=20261019e"></script><script>
 
@@ -593,13 +593,13 @@ function monoPath(p){
  for(i=0;i<n-1;i++){var h=dx[i]/3;d+=' C'+(p[i].x+h).toFixed(1)+','+(p[i].y+t[i]*h).toFixed(1)+' '+(p[i+1].x-h).toFixed(1)+','+(p[i+1].y-t[i+1]*h).toFixed(1)+' '+p[i+1].x.toFixed(1)+','+p[i+1].y.toFixed(1);}
  return d;
 }
-/* One row per attempt for the chart. mode 'full': whole Reading/Listening sittings. mode 'type': every attempt that contained the chosen task type, scored on that type's questions only. */
+/* One row per attempt for the chart. mode 'full' is scored Reading/Listening sittings; class results can include shorter scored test attempts with includePartials. mode 'type' scores only the selected task type. */
 function glanceRows(attempts,st){
  var out=[];
  attempts.forEach(function(a){
   if(st.skill!=='all'&&a.skill!==st.skill)return;
   if(st.mode==='full'){
-   if(typeof a.score!=='number'||!isFinite(a.score)||isTaskAttempt(a)||!isFullAttempt(a))return;
+   if(typeof a.score!=='number'||!isFinite(a.score)||isTaskAttempt(a)||(!st.includePartials&&!isFullAttempt(a)))return;
    out.push({a:a,skill:a.skill,score:a.score,ok:a.correct,n:a.gradedCount,tip:(a.title||'Practice')+' · '+a.score+'% · '+a.correct+'/'+a.gradedCount+' correct · '+fmtStamp(a.completedAt)+' · '+fmtDurationSeconds(a.durationSeconds)});
   }else{
    if(!st.type)return;
@@ -636,10 +636,10 @@ function glanceView(box,attempts,opts){
   if(st.type&&!opts2.some(function(o){return o.type===st.type;}))st.type='';
   sel.style.display=typeMode?'':'none';
   if(typeMode)sel.innerHTML='<option value="">Choose a task type…</option>'+opts2.map(function(o){return '<option value="'+esc(o.type)+'"'+(o.type===st.type?' selected':'')+'>'+esc(typeName(o.type))+' · '+o.n+' attempt'+(o.n===1?'':'s')+'</option>';}).join('');
-  hint.textContent=typeMode?'Pick a task type: every attempt that included it is listed, scored on that type’s questions only.':'Scores of whole Reading (3 passages) and Listening (4 parts) sittings.';
+  hint.textContent=typeMode?'Pick a task type: every attempt that included it is listed, scored on that type’s questions only.':'Scores from scored Reading and Listening test attempts; task-type-only practice is shown separately.';
   var rows=glanceRows(attempts,st);
   if(typeMode&&!st.type){body.innerHTML='<div class="il-empty">'+(opts2.length?'Choose a task type above to see your scores on it.':'No task-type results yet. Complete a test first.')+'</div>';drawTypes();return;}
-  if(!rows.length){body.innerHTML='<div class="il-empty">'+(typeMode?'No attempts with this task type for the chosen skill.':(opts.empty||'No full test in this skill yet. Complete a whole Reading or Listening test to see it here.'))+'</div>';drawTypes();return;}
+  if(!rows.length){body.innerHTML='<div class="il-empty">'+(typeMode?'No attempts with this task type for the chosen skill.':(opts.empty||'No scored test attempts in this skill and date range yet.'))+'</div>';drawTypes();return;}
   var cards=statCards(rows);
   if(st.view==='table'){
    body.innerHTML='<div class="gl-cards">'+cards+'</div><div style="overflow:auto"><table class="vm-table"><thead><tr><th>Date</th><th>Test</th><th>Skill</th><th>'+(typeMode?'Score on '+esc(typeName(st.type)):'Score')+'</th><th>Correct</th><th>Time</th>'+(typeMode?'<th>Kind</th>':'<th>Correct by task type</th><th>Feedback</th>')+'</tr></thead><tbody>'+rows.slice().reverse().map(function(r){var a=r.a;return '<tr><td>'+fmtDate(a.completedAt)+'</td><td>'+esc(a.title)+'</td><td><span class="il-dot" style="background:'+(a.skill==='reading'?C_READ:C_LIST)+'"></span>'+esc(a.skill)+'</td><td><b>'+r.score+'%</b></td><td>'+r.ok+'/'+r.n+'</td><td>'+Math.max(1,Math.round(a.durationSeconds/60))+' min</td>'+(typeMode?'<td>'+esc(modeOf(a))+'</td>':'<td class="gl-bt">'+(attemptTypes(a).map(function(t){return '<span class="gl-chip" style="border-color:'+pcColor(Math.round(t.ok*100/t.n))+'">'+esc(typeName(t.type))+' <b>'+t.ok+'/'+t.n+'</b></span>';}).join('')||'<span class="il-note">—</span>')+'</td><td>'+(docUrlOk(a.feedbackDocUrl)?'<a href="'+esc(a.feedbackDocUrl)+'" target="_blank" rel="noopener">Open doc</a>':'<span class="il-note">—</span>')+'</td>')+'</tr>';}).join('')+'</tbody></table></div>';
@@ -2440,7 +2440,7 @@ function classBaseline(peers,st){   // class average for the current skill / vie
  return st.mode==='type'?(n?ok*100/n:null):meanOf(vals);
 }
 function resStats(att,roster,rs){
- var st={skill:rs.skill,mode:rs.what,type:rs.type},names={},by=groupBy(att,'studentId');
+ var st={skill:rs.skill,mode:rs.what,type:rs.type,includePartials:!!rs.includePartials},names={},by=groupBy(att,'studentId');
  roster.forEach(function(s){names[s.studentId]=s.name;});att.forEach(function(a){names[a.studentId]=names[a.studentId]||a.studentName;});
  var ids=Object.keys(names),all=[];
  var list=ids.map(function(id){
@@ -2469,6 +2469,7 @@ function heatStyle(pc){var c=pc>=70?'30,138,94':(pc>=40?'240,138,60':'194,58,46'
 function trendHtml(d){if(d===null||d===undefined)return '<span class="il-note">—</span>';var r=Math.round(d);return r>0?'<b style="color:'+C_READ+'">▲ '+r+'</b>':(r<0?'<b style="color:#C23A2E">▼ '+(-r)+'</b>':'<span class="il-note">▬ 0</span>');}
 function teacherResults(){
  var now=new Date(),ex=document.getElementById('extra'),rs=state.rs=state.rs||{classId:'',skill:'all',period:'30',what:'full',type:'',view:'students',student:'',lesson:'',sort:'avg',dir:-1};
+ rs.includePartials=true;
  rs.fromDate=rs.fromDate||localDateInput(new Date(now.getTime()-29*86400000));rs.toDate=rs.toDate||localDateInput(now);
  state.rsCache=state.rsCache||{};
  ex.innerHTML='<div class="il-panel rs-panel" style="margin-top:16px"><h3 style="margin:0 0 10px">Class results</h3><div class="il-toolbar rs-filters"><select class="vm-select" id="rzClass" aria-label="Class"><option value="">Select a class</option>'+state.classes.map(function(c){return '<option value="'+esc(c.classId)+'"'+(c.classId===rs.classId?' selected':'')+'>'+esc(c.className)+'</option>';}).join('')+'</select><select class="vm-select" id="rzSkill" aria-label="Skill"><option value="all">Reading + Listening</option><option value="reading">Reading</option><option value="listening">Listening</option></select><label class="rs-date-label">From Date <input class="vm-input" id="rzFrom" type="date" value="'+esc(rs.fromDate)+'" aria-label="From Date"></label><label class="rs-date-label">To Date <input class="vm-input" id="rzTo" type="date" value="'+esc(rs.toDate)+'" aria-label="To Date"></label></div><div class="il-toolbar rs-nav"><div class="il-seg" id="rzView"><button data-v="students">Progress</button><button data-v="types">Task types</button><button data-v="classes">Compare classes</button><button data-v="attempts">Attempts</button></div><span class="il-spacer"></span><details class="rs-actions"><summary>Actions</summary><div class="rs-action-menu"><button class="vm-btn vm-btn-ghost vm-btn-sm" id="rzRep" title="Create a short class progress report">Export report</button><button class="vm-btn vm-btn-ghost vm-btn-sm" id="rzPub" title="Refresh the ranks students see">Update student ranks</button><span class="il-note" id="rzRank" aria-live="polite"></span></div></details></div><div id="rzBody"></div></div>';
@@ -2547,13 +2548,14 @@ function drawResClasses(box,rs,redraw){
   var tm={};cls.forEach(function(c){c.d.att.forEach(function(a){if(rs.skill!=='all'&&a.skill!==rs.skill)return;attemptTypes(a).forEach(function(t){if(t.n)tm[t.type]=(tm[t.type]||0)+1;});});});
   var topts=Object.keys(tm).sort(function(a,b){return tm[b]-tm[a];});
   if(rs.type&&topts.indexOf(rs.type)<0)rs.type='';
+  if(rs.what==='type'&&!rs.type&&topts.length)rs.type=topts[0];
   var typeMode=rs.what==='type',need=typeMode&&!rs.type;
-  var st={skill:rs.skill,mode:rs.what,type:rs.type};
-  cls.forEach(function(c){c.S=resStats(c.d.att,c.d.roster,{skill:rs.skill,what:rs.what,type:rs.type}).cls;});
+  var st={skill:rs.skill,mode:rs.what,type:rs.type,includePartials:true};
+  cls.forEach(function(c){c.S=resStats(c.d.att,c.d.roster,{skill:rs.skill,what:rs.what,type:rs.type,includePartials:true}).cls;});
   var best=cls.filter(function(c){return c.S.avg!==null;}).sort(function(a,b){return b.S.avg-a.S.avg;});
-  var head='<div class="il-toolbar" style="margin-top:10px"><div class="il-seg" id="rcWhat"><button data-w="full">Full tests</button><button data-w="type">Task type</button></div><select class="vm-select" id="rcType" style="'+(typeMode?'':'display:none;')+'width:auto;min-width:210px" aria-label="Task type"><option value="">Choose a task type…</option>'+topts.map(function(t){return '<option value="'+esc(t)+'"'+(t===rs.type?' selected':'')+'>'+esc(typeName(t))+'</option>';}).join('')+'</select></div>';
+  var head='<div class="il-toolbar" style="margin-top:10px"><div class="il-seg" id="rcWhat"><button data-w="full">Tests</button><button data-w="type">Task type</button></div><select class="vm-select" id="rcType" style="'+(typeMode?'':'display:none;')+'width:auto;min-width:210px" aria-label="Task type"><option value="">Choose a task type…</option>'+topts.map(function(t){return '<option value="'+esc(t)+'"'+(t===rs.type?' selected':'')+'>'+esc(typeName(t))+'</option>';}).join('')+'</select></div>';
   var main='';
-  if(need)main='<div class="il-empty">Choose a task type to compare the classes on it.</div>';
+  if(need)main='<div class="il-empty">'+(topts.length?'Choose a task type to compare the classes on it.':'No task-type attempts in this date range.')+'</div>';
   else{
    main='<div style="overflow:auto"><table class="vm-table rs-tab"><thead><tr><th>#</th><th>Class</th><th>Students</th><th>Participation</th><th>Attempts</th><th class="gl-acc">Average</th><th>Reading</th><th>Listening</th><th>Best</th></tr></thead><tbody>'+
     cls.slice().sort(function(a,b){return (b.S.avg===null?-1:b.S.avg)-(a.S.avg===null?-1:a.S.avg);}).map(function(c){var S=c.S,rk=best.indexOf(c)+1;return '<tr><td>'+(rk?'<span class="pe-rk r'+(rk<=3?rk:0)+'">'+rk+'</span>':'<span class="il-note">—</span>')+'</td><td><i class="il-dot" style="background:'+c.color+'"></i><b>'+esc(c.name)+'</b></td><td>'+S.students+'</td><td>'+S.active+'/'+S.students+' <span class="il-note">('+(S.students?Math.round(S.active*100/S.students):0)+'%)</span></td><td>'+S.attempts+'</td><td class="gl-acc">'+(S.avg===null?'<span class="il-note">No attempts</span>':'<div class="rs-bar"><div class="rs-track"><i style="width:'+Math.round(S.avg)+'%;background:'+c.color+'"></i></div><b>'+Math.round(S.avg)+'%</b></div>')+'</td><td>'+pctTxt(S.avgR)+'</td><td>'+pctTxt(S.avgL)+'</td><td>'+pctTxt(S.best)+'</td></tr>';}).join('')+'</tbody></table></div><p class="il-note" style="margin:6px 0 0">Class average = mean of each student’s average'+(typeMode?' (task type: correct ÷ total questions)':'')+'. Compare it with participation: a class where few students practised can look better than it is.</p>'+
@@ -2701,9 +2703,9 @@ function progressFromRows(rows){rows=rows.filter(function(r){return typeof r.sco
 function drawResProgressChart(el,att,roster,rs,redraw){
  var names={},by=groupBy(att,'studentId'),series=[],hidden=rs.chartHidden=rs.chartHidden||{};
  roster.forEach(function(s){names[s.studentId]=s.name;});att.forEach(function(a){names[a.studentId]=names[a.studentId]||a.studentName;});
- Object.keys(names).forEach(function(id){var rows=glanceRows(by[id]||[],{skill:rs.skill,mode:rs.what,type:rs.type});if(rows.length)series.push({id:id,name:names[id]||id,rows:rows});});
+ Object.keys(names).forEach(function(id){var rows=glanceRows(by[id]||[],{skill:rs.skill,mode:rs.what,type:rs.type,includePartials:true});if(rows.length)series.push({id:id,name:names[id]||id,rows:rows});});
  series.sort(function(a,b){return b.rows.length-a.rows.length||String(a.name).localeCompare(String(b.name));});
- if(!series.length){el.innerHTML='<div class="il-empty">No scored '+(rs.what==='type'?'attempts for this task type.':'full-test attempts in this period.')+'</div>';return;}
+ if(!series.length){el.innerHTML='<div class="il-empty">No scored '+(rs.what==='type'?'attempts for this task type.':'test attempts in this period.')+'</div>';return;}
  var maxN=Math.max.apply(null,series.map(function(s){return s.rows.length;})),w=Math.max(300,Math.round(el.clientWidth||760)),h=w<500?280:320,pl=42,pr=18,pt=20,pb=52;
  function X(n){return maxN<2?pl+(w-pl-pr)/2:pl+(w-pl-pr)*(n-1)/(maxN-1);}
  function Y(v){return pt+(h-pt-pb)*(1-v/100);}
@@ -2725,17 +2727,18 @@ function drawResStudents(box,data,rs,redraw){
  var tm={};att.forEach(function(a){if(rs.skill!=='all'&&a.skill!==rs.skill)return;attemptTypes(a).forEach(function(t){if(t.n)tm[t.type]=(tm[t.type]||0)+1;});});
  var topts=Object.keys(tm).sort(function(a,b){return tm[b]-tm[a];});
  if(rs.type&&topts.indexOf(rs.type)<0)rs.type='';
+ if(rs.what==='type'&&!rs.type&&topts.length)rs.type=topts[0];
  var S=resStats(att,data.roster,rs),L=S.list.slice(),c=S.cls;
  var typeMode=rs.what==='type',need=typeMode&&!rs.type,progress={},allScores=S.list.filter(function(x){return x.avg!==null;}).map(function(x){return x.avg;}),med=medianValue(allScores),improving=0,declining=0;
- S.list.forEach(function(x){var rows=glanceRows(att.filter(function(a){return a.studentId===x.id;}),{skill:rs.skill,mode:rs.what,type:rs.type});progress[x.id]=progressFromRows(rows);if(progress[x.id]&&progress[x.id].delta>=5)improving++;if(progress[x.id]&&progress[x.id].delta<=-5)declining++;});
+ S.list.forEach(function(x){var rows=glanceRows(att.filter(function(a){return a.studentId===x.id;}),{skill:rs.skill,mode:rs.what,type:rs.type,includePartials:true});progress[x.id]=progressFromRows(rows);if(progress[x.id]&&progress[x.id].delta>=5)improving++;if(progress[x.id]&&progress[x.id].delta<=-5)declining++;});
  var key=rs.sort;L.sort(function(x,y){
   if(key==='name')return String(x.name).localeCompare(String(y.name))*rs.dir;
   var a=key==='delta'?(progress[x.id]&&progress[x.id].delta):(key==='last'?x.last:x[key]),b=key==='delta'?(progress[y.id]&&progress[y.id].delta):(key==='last'?y.last:y[key]);if(a===null||a===undefined||a==='')a=-1e9;if(b===null||b===undefined||b==='')b=-1e9;
   return (typeof a==='string'?String(a).localeCompare(b):a-b)*rs.dir||String(x.name).localeCompare(String(y.name));});
  var active=S.list.filter(function(x){return x.n>0;}).length;
- box.innerHTML='<div class="il-toolbar"><div class="il-seg" id="rzWhat"><button data-w="full">Full tests</button><button data-w="type">Task type</button></div><select class="vm-select" id="rzType" style="'+(typeMode?'':'display:none;')+'width:auto;min-width:210px" aria-label="Task type"><option value="">Choose a task type…</option>'+topts.map(function(t){return '<option value="'+esc(t)+'"'+(t===rs.type?' selected':'')+'>'+esc(typeName(t))+' · '+tm[t]+' attempts</option>';}).join('')+'</select><span class="il-note">'+(typeMode?'Scores and progress on this question type only.':'Scores from complete Reading or Listening tests.')+'</span></div>'+
-  (need?'<div class="il-empty">Choose a task type to see its progress chart and student table.</div>':
-  '<div class="gl-cards rs-summary">'+resCard('Class median',pctTxt(med),'Median of each student’s average · '+(typeMode?esc(typeName(rs.type)):'full tests'),'#0F6B4F')+resCard('Participation',active+'/'+S.cls.students,S.cls.students?Math.round(active*100/S.cls.students)+'% practised in this period':'no students','#6B7C93')+resCard('Improving','↑ '+improving,'up by 5+ points · first vs latest results',C_READ)+resCard('Declining','↓ '+declining,'down by 5+ points · first vs latest results','#C23A2E')+'</div>'+
+ box.innerHTML='<div class="il-toolbar"><div class="il-seg" id="rzWhat"><button data-w="full">Tests</button><button data-w="type">Task type</button></div><select class="vm-select" id="rzType" style="'+(typeMode?'':'display:none;')+'width:auto;min-width:210px" aria-label="Task type"><option value="">Choose a task type…</option>'+topts.map(function(t){return '<option value="'+esc(t)+'"'+(t===rs.type?' selected':'')+'>'+esc(typeName(t))+' · '+tm[t]+' attempts</option>';}).join('')+'</select><span class="il-note">'+(typeMode?'Scores and progress on this question type only.':'Scores from scored Reading or Listening test attempts.')+'</span></div>'+
+  (need?'<div class="il-empty">'+(topts.length?'Choose a task type to see its progress chart and student table.':'No task-type attempts in this date range.')+'</div>':
+  '<div class="gl-cards rs-summary">'+resCard('Class median',pctTxt(med),'Median of each student’s average · '+(typeMode?esc(typeName(rs.type)):'test attempts'),'#0F6B4F')+resCard('Participation',active+'/'+S.cls.students,S.cls.students?Math.round(active*100/S.cls.students)+'% practised in this period':'no students','#6B7C93')+resCard('Improving','↑ '+improving,'up by 5+ points · first vs latest results',C_READ)+resCard('Declining','↓ '+declining,'down by 5+ points · first vs latest results','#C23A2E')+'</div>'+
   '<div class="il-panel rs-progress"><h3 style="margin:0 0 4px">Progress by attempt</h3><p class="il-note" style="margin:0 0 10px">Compare each student’s score with the class median at the same attempt number.</p><div id="rzProgressChart"></div></div>'+
   '<div class="il-toolbar rs-table-tools"><input class="vm-input" id="rzSearch" type="search" placeholder="Search students…" value="'+esc(rs.query||'')+'"><span class="il-note" id="rzCount"></span></div><div style="overflow:auto"><table class="vm-table rs-tab"><thead><tr>'+[['name','Student'],['avg','Period average'],['latest','Latest'],['delta','Progress'],['n','Attempts'],['last','Last practice']].map(function(h){return '<th class="hs-th" data-sk="'+h[0]+'">'+h[1]+'<span>'+(rs.sort===h[0]?(rs.dir>0?' ▲':' ▼'):'')+'</span></th>';}).join('')+'<th></th></tr></thead><tbody id="rzStudentRows"></tbody></table></div><p class="il-note" style="margin:6px 0 0">Bar tick = class median. Progress compares the first and latest groups of up to three attempts; students with fewer than two attempts are marked as needing more data.</p><div id="rzDrill"></div>');
  if(!need)drawResProgressChart(document.getElementById('rzProgressChart'),att,data.roster,rs,redraw);
@@ -2749,7 +2752,7 @@ function drawResStudents(box,data,rs,redraw){
   rs.student=id;qa('.rs-tab tbody tr').forEach(function(r){r.classList.toggle('pe-me',r.getAttribute('data-row')===id);});
   var d=document.getElementById('rzDrill'),x=S.list.filter(function(s){return s.id===id;})[0]||{name:id};
   d.innerHTML='<h3 class="il-sect-h">'+esc(x.name)+'</h3><div id="rzDrillBox"></div>';
-  glanceView(document.getElementById('rzDrillBox'),att.filter(function(a){return a.studentId===id;}),{empty:'This student has no attempts in this period.',peers:att,xAxis:'attempts',studentName:x.name,init:{skill:rs.skill,mode:rs.what,type:rs.type}});
+  glanceView(document.getElementById('rzDrillBox'),att.filter(function(a){return a.studentId===id;}),{empty:'This student has no attempts in this period.',peers:att,xAxis:'attempts',studentName:x.name,init:{skill:rs.skill,mode:rs.what,type:rs.type,includePartials:true}});
   d.scrollIntoView({behavior:'smooth',block:'nearest'});
  }
  qa('[data-view]').forEach(function(b){b.onclick=function(e){e.stopPropagation();drill(b.getAttribute('data-view'));};});
