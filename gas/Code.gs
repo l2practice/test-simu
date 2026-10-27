@@ -149,6 +149,7 @@ function dispatch(action, p) {
     case 'readwise.delete':      return readwiseDelete(p);
     case 'ielts.importUrl':      return ieltsImportUrl(p);
     case 'ielts.gradeAttempt':   return vmfbIeltsGradeAttempt(p);
+    case 'ielts.feedbackDoc':    return vmfbIeltsFeedbackDoc(p);
     case 'ielts.script.get':     return vmfbIeltsScriptGet(p);
     case 'ielts.reportDoc':      return vmfbIeltsReportDoc(p);
     // Translate

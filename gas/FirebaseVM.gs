@@ -304,6 +304,71 @@ function vmfbIeltsReportDoc(p) {
   return { success:true, data:{ url:doc.getUrl(), shared:shared } };
 }
 
+// Teacher-created feedback for a student's saved IELTS attempt. The teacher's
+// browser sends only the AI commentary; the attempt and its class ownership are
+// loaded and checked here before creating or attaching a Google Doc.
+function vmfbIeltsFeedbackDoc(p) {
+  p = p || {};
+  var verified = vmfbIeltsVerifiedUser(p.idToken);
+  if (!verified.success) return verified;
+  var teacher = verified.user;
+  if (!teacher || teacher.role !== 'teacher') return { success:false, error:'Only teachers can create feedback documents.' };
+  var id = String(p.attemptId || '');
+  if (!/^IA_[A-Za-z0-9_-]{8,128}$/.test(id)) return { success:false, error:'Invalid IELTS attempt.' };
+  var attempt = fsGet('ieltsAttempts/' + id);
+  if (!attempt || attempt.teacherUid !== verified.uid || !attempt.classId) return { success:false, error:'This attempt is not in one of your classes.' };
+  var cls = fsGet('classes/' + attempt.classId);
+  if (!cls || cls.teacherUid !== verified.uid) return { success:false, error:'You do not have access to this class.' };
+  if (attempt.feedbackDocUrl && /^https:\/\/docs\.google\.com\//.test(attempt.feedbackDocUrl)) return { success:true, data:{ url:attempt.feedbackDocUrl, shared:true, existing:true } };
+  var aiText = String(p.aiText || '').trim().slice(0, 30000);
+  if (!aiText) return { success:false, error:'Generate the AI feedback before creating the document.' };
+  var title = String(attempt.title || 'IELTS practice').slice(0, 120);
+  var doc = DocumentApp.create('IELTS Feedback · ' + title + ' · ' + String(attempt.studentName || attempt.studentId || 'Student').slice(0, 80));
+  var body = doc.getBody(); body.clear();
+  body.setMarginTop(54).setMarginBottom(54).setMarginLeft(54).setMarginRight(54);
+  var A = DocumentApp.Attribute, GREEN = '#0F6B4F', INK = '#1D2B25';
+  function para(text, size, color, bold, before, after) {
+    var q = body.appendParagraph(String(text || ''));
+    var st = {}; st[A.FONT_FAMILY] = 'Google Sans'; st[A.FONT_SIZE] = size; st[A.FOREGROUND_COLOR] = color; st[A.BOLD] = bold;
+    q.setAttributes(st).setSpacingBefore(before).setSpacingAfter(after).setLineSpacing(1.2); return q;
+  }
+  var h = para('IELTS PRACTICE FEEDBACK', 20, GREEN, true, 0, 10); h.setHeading(DocumentApp.ParagraphHeading.TITLE);
+  para('Student: ' + String(attempt.studentName || attempt.studentId || 'Student'), 11, INK, true, 0, 3);
+  para('Practice: ' + title + ' · ' + String(attempt.skill || '').toUpperCase(), 10.5, INK, false, 0, 3);
+  para('Result: ' + (attempt.correct == null ? '—' : attempt.correct + '/' + (attempt.gradedCount || attempt.total || 0) + ' correct') + (attempt.score == null ? '' : ' · ' + attempt.score + '%') + ' · Time: ' + Math.max(1, Math.round((Number(attempt.durationSeconds) || 0) / 60)) + ' min · Completed: ' + String(attempt.completedAt || ''), 10.5, INK, false, 0, 12);
+  para('AI STUDY FEEDBACK', 14, GREEN, true, 8, 5).setHeading(DocumentApp.ParagraphHeading.HEADING1);
+  String(aiText).split(/\r?\n/).forEach(function(line) {
+    line = String(line || '').trim(); if (!line) return;
+    var isHead = /^[^\w\s]{1,4}\s*[A-Z][A-Z0-9 \-&'’/()]{2,}$/.test(line);
+    para(line, isHead ? 12 : 10.5, isHead ? GREEN : INK, isHead, isHead ? 8 : 2, isHead ? 3 : 4);
+  });
+  para('Answer record', 14, GREEN, true, 14, 5).setHeading(DocumentApp.ParagraphHeading.HEADING1);
+  var sections = (attempt.snapshot && attempt.snapshot.sections) || [], responses = attempt.responses || [], qrows = [];
+  sections.forEach(function(sec, si) { (sec.questions || []).forEach(function(q) {
+    var i = qrows.length, r = responses[i] || {};
+    qrows.push([String(q.number || (i + 1)), String(q.prompt || q.text || '').slice(0, 300), String(r.answer || '(blank)').slice(0, 150), (r.accepted || []).join(' / ').slice(0, 180), r.correct === true ? 'Correct' : r.correct === false ? 'Incorrect' : 'Not graded']);
+  }); });
+  if (qrows.length) {
+    var table = body.appendTable([['Q', 'Question', 'Student answer', 'Accepted answer(s)', 'Result']].concat(qrows.slice(0, 300)));
+    table.setBorderColor('#BFD8CB').setBorderWidth(0.75);
+    for (var ri = 0; ri < table.getNumRows(); ri++) for (var ci = 0; ci < table.getRow(ri).getNumCells(); ci++) {
+      var cell = table.getCell(ri, ci), tx = cell.editAsText(); tx.setFontFamily('Google Sans').setFontSize(ri === 0 ? 9 : 9.5).setForegroundColor(ri === 0 ? GREEN : INK).setBold(ri === 0);
+      cell.setPaddingTop(4).setPaddingBottom(4).setPaddingLeft(5).setPaddingRight(5).setBackgroundColor(ri === 0 ? '#E3F2EA' : (ri % 2 ? '#FFFFFF' : '#F6FAF8'));
+    }
+  }
+  para('This AI-generated study guidance should be reviewed alongside the original test. It is not an official IELTS score.', 9, '#607168', false, 12, 0);
+  doc.saveAndClose();
+  var url = doc.getUrl(), shared = false;
+  try {
+    var teacherEmail = String(teacher.email || '');
+    if (teacherEmail) DriveApp.getFileById(doc.getId()).addEditor(teacherEmail);
+    var student = attempt.uid ? fsGet('users/' + attempt.uid) : null, email = String(student && student.email || '');
+    if (email) { DriveApp.getFileById(doc.getId()).addEditor(email); shared = true; }
+  } catch (e) {}
+  fsCommit([wSet('ieltsAttempts/' + id, Object.assign({}, attempt, { feedbackDocUrl:url, feedbackDocAt:new Date().toISOString(), feedbackDocBy:verified.uid }))]);
+  return { success:true, data:{ url:url, shared:shared } };
+}
+
 function itk(path) { return 'https://identitytoolkit.googleapis.com/v1/projects/' + VMFB.PROJECT_ID + path; }
 // Firebase không nhận mật khẩu dưới 6 ký tự. Đệm y hệt vm-fbdata.js.
 function vmfbPw(p) { p = String(p == null ? '' : p).trim(); return p.length >= 6 ? p : (p + '______').slice(0, 6); }
