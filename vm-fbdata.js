@@ -1250,7 +1250,11 @@ async function ieltsAttemptDelete(p) {
 async function ieltsReportDoc(p) {
   await teacher(); await authReady();
   const current = auth.currentUser; if (!current) return fail('SESSION_EXPIRED');
-  return gas('ielts.reportDoc', { idToken: await current.getIdToken(), report: p.report });
+  const payload = { idToken: await current.getIdToken(), report: p.report };
+  let r = await gas('ielts.reportDoc', payload);
+  // a Code.gs without the ielts.reportDoc route: go through the existing grading route, which hands over to the report builder
+  if (r && r.success === false && /^Unknown action/i.test(String(r.error || ''))) r = await gas('ielts.gradeAttempt', Object.assign({ mode: 'reportDoc' }, payload));
+  return r;
 }
 async function ieltsRankGet() {
   const u = await me(); if (u.role === 'teacher') return ok(null);

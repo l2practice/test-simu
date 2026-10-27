@@ -152,6 +152,7 @@ function vmfbIeltsVerifiedUser(idToken) {
 
 function vmfbIeltsGradeAttempt(p) {
   p = p || {};
+  if (p.mode === 'reportDoc') return vmfbIeltsReportDoc(p);   // class report → Google Doc (reached through this route so Code.gs needs no extra line)
   var verified = vmfbIeltsVerifiedUser(p.idToken);
   if (!verified.success) return verified;
   var uid = verified.uid, user = verified.user;
@@ -258,27 +259,41 @@ function vmfbIeltsReportDoc(p) {
   if (!verified.user || verified.user.role !== 'teacher') return { success:false, error:'Only teachers can create reports.' };
   var rep = p.report || {}, blocks = Array.isArray(rep.blocks) ? rep.blocks.slice(0, 400) : [];
   if (!blocks.length) return { success:false, error:'The report is empty.' };
-  var title = String(rep.title || 'Class report').slice(0, 150);
-  var doc = DocumentApp.create(title), body = doc.getBody();
+  var FONT = 'Google Sans', GREEN = '#0F6B4F', INK = '#1D2B25';
+  var A = DocumentApp.Attribute;
+  var doc = DocumentApp.create(String(rep.title || 'Class report').slice(0, 150)), body = doc.getBody();
   body.clear();
+  body.setMarginTop(54).setMarginBottom(54).setMarginLeft(54).setMarginRight(54);
   function clip(v, n) { return String(v == null ? '' : v).slice(0, n); }
+  function style(par, size, color, bold, before, after) {
+    var st = {}; st[A.FONT_FAMILY] = FONT; st[A.FONT_SIZE] = size; st[A.FOREGROUND_COLOR] = color; st[A.BOLD] = bold;
+    par.setAttributes(st); par.setSpacingBefore(before).setSpacingAfter(after);
+  }
   blocks.forEach(function(b) {
     if (!b) return;
     if (b.t === 'table') {
-      var head = (b.head || []).slice(0, 12).map(function(x){ return clip(x, 80); });
+      var head = (b.head || []).slice(0, 12).map(function(x){ return clip(x, 90); });
       var rows = (b.rows || []).slice(0, 300).map(function(r){ return (r || []).slice(0, 12).map(function(x){ return clip(x, 200); }); });
       if (!head.length) return;
       var t = body.appendTable([head].concat(rows));
-      var hr = t.getRow(0);
-      for (var i = 0; i < hr.getNumCells(); i++) { hr.getCell(i).editAsText().setBold(true); hr.getCell(i).setBackgroundColor('#E6F2EC'); }
-      body.appendParagraph('');
+      t.setBorderColor('#BFD8CB').setBorderWidth(0.75);
+      for (var ri = 0; ri < t.getNumRows(); ri++) {
+        var row = t.getRow(ri);
+        for (var ci = 0; ci < row.getNumCells(); ci++) {
+          var cell = row.getCell(ci), tx = cell.editAsText();
+          tx.setFontFamily(FONT).setFontSize(ri === 0 ? 10 : 10.5).setForegroundColor(ri === 0 ? GREEN : INK).setBold(ri === 0);
+          cell.setPaddingTop(5).setPaddingBottom(5).setPaddingLeft(7).setPaddingRight(7);
+          cell.setBackgroundColor(ri === 0 ? '#E3F2EA' : (ri % 2 === 0 ? '#F6FAF8' : '#FFFFFF'));
+        }
+      }
+      var gap = body.appendParagraph(''); style(gap, 6, INK, false, 0, 4);
       return;
     }
-    var para = body.appendParagraph(clip(b.x, 2000));
-    if (b.t === 'h1') para.setHeading(DocumentApp.ParagraphHeading.HEADING1);
-    else if (b.t === 'h2') para.setHeading(DocumentApp.ParagraphHeading.HEADING2);
-    else if (b.t === 'h3') para.setHeading(DocumentApp.ParagraphHeading.HEADING3);
-    else para.setHeading(DocumentApp.ParagraphHeading.NORMAL);
+    var par = body.appendParagraph(clip(b.x, 2000));
+    if (b.t === 'h1') { par.setHeading(DocumentApp.ParagraphHeading.HEADING1); style(par, 24, GREEN, true, 0, 6); }
+    else if (b.t === 'h2') { par.setHeading(DocumentApp.ParagraphHeading.HEADING2); style(par, 16, GREEN, true, 18, 6); }
+    else if (b.t === 'h3') { par.setHeading(DocumentApp.ParagraphHeading.HEADING3); style(par, 13, '#B45F06', true, 14, 4); }
+    else { par.setHeading(DocumentApp.ParagraphHeading.NORMAL); style(par, 10.5, INK, false, 2, 4); par.setLineSpacing(1.25); }
   });
   doc.saveAndClose();
   var shared = false;
