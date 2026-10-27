@@ -2615,31 +2615,31 @@ function classReport(c){
 }
 function buildReport(cls,periodLabel){
  var R=cls.map(classReport),f1=function(v){return v===null||v===undefined?'—':Math.round(v)+'%';},sg=function(v){return v===null||v===undefined?'—':(v>0?'+':'')+Math.round(v)+' pts';};
- var B=[{t:'h1',x:'Class report · '+(cls.length===1?cls[0].name:cls.length+' classes')},{t:'p',x:periodLabel+' · created '+fmtStamp(new Date().toISOString())}];
+ var medal=function(i){return ['🥇','🥈','🥉'][i]||String(i+1);},B=[{t:'h1',x:'📊 Class report · '+(cls.length===1?cls[0].name:cls.length+' classes')},{t:'p',x:'🗓️ '+periodLabel+' · created '+fmtStamp(new Date().toISOString())}];
  var byDil=R.slice().sort(function(a,b){return b.daysPerStudent-a.daysPerStudent;});
- B.push({t:'h2',x:'1. Diligence: which class practises most'});
- B.push({t:'table',head:['#','Class','Students','Practised','Attempts','Attempts per active student','Practice days per student','Minutes'],rows:byDil.map(function(r,i){return [String(i+1),r.name,String(r.students),r.active+'/'+r.students+' ('+(r.students?Math.round(r.active*100/r.students):0)+'%)',String(r.attempts),r.perActive.toFixed(1),r.daysPerStudent.toFixed(1),String(r.minutes)];})});
+ B.push({t:'h2',x:'🔥 1. Diligence: which class practises most'});
+ B.push({t:'table',head:['#','Class','Students','Practised','Attempts','Attempts per active student','Practice days per student','Minutes'],rows:byDil.map(function(r,i){return [medal(i),r.name,String(r.students),r.active+'/'+r.students+' ('+(r.students?Math.round(r.active*100/r.students):0)+'%)',String(r.attempts),r.perActive.toFixed(1),r.daysPerStudent.toFixed(1),String(r.minutes)];})});
  B.push({t:'p',x:'Ranked by practice days per student (all students in the class, including those who did not practise). "Practised" is the share of students with at least one attempt in the period.'});
  var byAvg=R.slice().sort(function(a,b){return (b.avg===null?-1:b.avg)-(a.avg===null?-1:a.avg);});
- B.push({t:'h2',x:'2. Results: full tests'});
- B.push({t:'table',head:['#','Class','Average','Reading','Listening'],rows:byAvg.map(function(r,i){return [String(i+1),r.name,f1(r.avg),f1(r.avgR),f1(r.avgL)];})});
+ B.push({t:'h2',x:'🏆 2. Results: full tests'});
+ B.push({t:'table',head:['#','Class','Average','Reading','Listening'],rows:byAvg.map(function(r,i){return [medal(i),r.name,f1(r.avg),f1(r.avgR),f1(r.avgL)];})});
  B.push({t:'p',x:'Class average = mean of each student’s average on whole Reading and Listening tests, so a student with many attempts counts once.'});
- B.push({t:'h2',x:'3. Progress: how much students improved'});
- B.push({t:'table',head:['Class','Students with 2+ full tests','Improved (+5 or more)','About the same','Declined (−5 or more)','Average change'],rows:R.map(function(r){var n=r.prog.length;return [r.name,String(n),r.improved+(n?' ('+Math.round(r.improved*100/n)+'%)':''),String(n-r.improved-r.declined),r.declined+(n?' ('+Math.round(r.declined*100/n)+'%)':''),sg(r.avgDelta)];})});
+ B.push({t:'h2',x:'📈 3. Progress: how much students improved'});
+ B.push({t:'table',head:['Class','Students with 2+ full tests','🌟 Improved (+5 or more)','➖ About the same','⚠️ Declined (−5 or more)','Average change'],rows:R.map(function(r){var n=r.prog.length;return [r.name,String(n),r.improved+(n?' ('+Math.round(r.improved*100/n)+'%)':''),String(n-r.improved-r.declined),r.declined+(n?' ('+Math.round(r.declined*100/n)+'%)':''),sg(r.avgDelta)];})});
  B.push({t:'p',x:'Change = average of a student’s last (up to) 3 full-test scores minus the average of the first (up to) 3 in the period.'});
  R.forEach(function(r){
   var top=r.prog.slice().sort(function(a,b){return b.p.delta-a.p.delta;}).filter(function(x){return x.p.delta>0;}).slice(0,5),down=r.prog.filter(function(x){return x.p.delta<=-10;}).sort(function(a,b){return a.p.delta-b.p.delta;}).slice(0,5);
-  B.push({t:'h3',x:r.name});
-  B.push({t:'p',x:'Practised: '+r.active+'/'+r.students+' students · average '+f1(r.avg)+' · '+r.attempts+' attempts.'});
-  if(top.length)B.push({t:'table',head:['Most improved','From','To','Change','Full tests'],rows:top.map(function(x){return [x.name,f1(x.p.first),f1(x.p.last),sg(x.p.delta),String(x.p.n)];})});
-  if(down.length)B.push({t:'table',head:['Needs attention (score dropped)','From','To','Change'],rows:down.map(function(x){return [x.name,f1(x.p.first),f1(x.p.last),sg(x.p.delta)];})});
-  if(r.weak.length)B.push({t:'p',x:'Weakest task types: '+r.weak.map(function(t){return typeName(t.t)+' '+t.pc+'%';}).join(', ')+(r.strong.length?'. Strongest: '+r.strong.map(function(t){return typeName(t.t)+' '+t.pc+'%';}).join(', '):'')+'. (Task types with at least 10 questions.)'});
-  if(r.inactive.length)B.push({t:'p',x:'No attempts in this period ('+r.inactive.length+'): '+r.inactive.slice(0,25).join(', ')+(r.inactive.length>25?', …':'')+'.'});
+  B.push({t:'h3',x:'🏫 '+r.name});
+  B.push({t:'p',x:'✅ Practised: '+r.active+'/'+r.students+' students · average '+f1(r.avg)+' · '+r.attempts+' attempts.'});
+  if(top.length)B.push({t:'table',head:['🌟 Most improved','From','To','Change','Full tests'],rows:top.map(function(x){return [x.name,f1(x.p.first),f1(x.p.last),'📈 '+sg(x.p.delta),String(x.p.n)];})});
+  if(down.length)B.push({t:'table',head:['⚠️ Needs attention (score dropped)','From','To','Change'],rows:down.map(function(x){return [x.name,f1(x.p.first),f1(x.p.last),'📉 '+sg(x.p.delta)];})});
+  if(r.weak.length)B.push({t:'p',x:'🎯 Weakest task types: '+r.weak.map(function(t){return typeName(t.t)+' '+t.pc+'%';}).join(', ')+(r.strong.length?'. 💪 Strongest: '+r.strong.map(function(t){return typeName(t.t)+' '+t.pc+'%';}).join(', '):'')+'. (Task types with at least 10 questions.)'});
+  if(r.inactive.length)B.push({t:'p',x:'😴 No attempts in this period ('+r.inactive.length+'): '+r.inactive.slice(0,25).join(', ')+(r.inactive.length>25?', …':'')+'.'});
  });
  return B;
 }
 function reportHtml(blocks){
- var css='body{font-family:Calibri,Arial,sans-serif;font-size:11pt;color:#1d2b25}h1{font-size:20pt;color:#0F6B4F}h2{font-size:14pt;color:#0F6B4F;margin-top:18pt}h3{font-size:12pt;margin-top:14pt}table{border-collapse:collapse;margin:6pt 0}th,td{border:1px solid #bfc9c4;padding:4px 8px;text-align:left}th{background:#e6f2ec}p{margin:4pt 0}';
+ var css='body{font-family:"Google Sans",Calibri,Arial,sans-serif;font-size:11pt;color:#1d2b25}h1{font-size:20pt;color:#0F6B4F}h2{font-size:14pt;color:#0F6B4F;margin-top:18pt}h3{font-size:12pt;margin-top:14pt}table{border-collapse:collapse;margin:6pt 0}th,td{border:1px solid #bfc9c4;padding:4px 8px;text-align:left}th{background:#e6f2ec}p{margin:4pt 0}';
  return '<!doctype html><html><head><meta charset="utf-8"><title>Class report</title><style>'+css+'</style></head><body>'+blocks.map(function(b){
   if(b.t==='table')return '<table><thead><tr>'+b.head.map(function(h){return '<th>'+esc(h)+'</th>';}).join('')+'</tr></thead><tbody>'+b.rows.map(function(r){return '<tr>'+r.map(function(c){return '<td>'+esc(c)+'</td>';}).join('')+'</tr>';}).join('')+'</tbody></table>';
   return '<'+b.t+'>'+esc(b.x)+'</'+b.t+'>';}).join('')+'</body></html>';
