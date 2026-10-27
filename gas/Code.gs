@@ -150,6 +150,7 @@ function dispatch(action, p) {
     case 'ielts.importUrl':      return ieltsImportUrl(p);
     case 'ielts.gradeAttempt':   return vmfbIeltsGradeAttempt(p);
     case 'ielts.script.get':     return vmfbIeltsScriptGet(p);
+    case 'ielts.reportDoc':      return vmfbIeltsReportDoc(p);
     // Translate
     case 'translate.create':     return translateCreate(p);
     case 'translate.update':     return translateUpdate(p);

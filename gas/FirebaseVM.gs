@@ -250,6 +250,45 @@ function vmfbIeltsScriptGet(p) {
   return { success:true, data:{ id:id, script:script } };
 }
 
+// Class report → Google Doc in the script owner's Drive, shared (edit) with the teacher who asked for it. Needs the Documents and Drive scopes.
+function vmfbIeltsReportDoc(p) {
+  p = p || {};
+  var verified = vmfbIeltsVerifiedUser(p.idToken);
+  if (!verified.success) return verified;
+  if (!verified.user || verified.user.role !== 'teacher') return { success:false, error:'Only teachers can create reports.' };
+  var rep = p.report || {}, blocks = Array.isArray(rep.blocks) ? rep.blocks.slice(0, 400) : [];
+  if (!blocks.length) return { success:false, error:'The report is empty.' };
+  var title = String(rep.title || 'Class report').slice(0, 150);
+  var doc = DocumentApp.create(title), body = doc.getBody();
+  body.clear();
+  function clip(v, n) { return String(v == null ? '' : v).slice(0, n); }
+  blocks.forEach(function(b) {
+    if (!b) return;
+    if (b.t === 'table') {
+      var head = (b.head || []).slice(0, 12).map(function(x){ return clip(x, 80); });
+      var rows = (b.rows || []).slice(0, 300).map(function(r){ return (r || []).slice(0, 12).map(function(x){ return clip(x, 200); }); });
+      if (!head.length) return;
+      var t = body.appendTable([head].concat(rows));
+      var hr = t.getRow(0);
+      for (var i = 0; i < hr.getNumCells(); i++) { hr.getCell(i).editAsText().setBold(true); hr.getCell(i).setBackgroundColor('#E6F2EC'); }
+      body.appendParagraph('');
+      return;
+    }
+    var para = body.appendParagraph(clip(b.x, 2000));
+    if (b.t === 'h1') para.setHeading(DocumentApp.ParagraphHeading.HEADING1);
+    else if (b.t === 'h2') para.setHeading(DocumentApp.ParagraphHeading.HEADING2);
+    else if (b.t === 'h3') para.setHeading(DocumentApp.ParagraphHeading.HEADING3);
+    else para.setHeading(DocumentApp.ParagraphHeading.NORMAL);
+  });
+  doc.saveAndClose();
+  var shared = false;
+  try {
+    var email = String(verified.user.email || '');
+    if (email) { DriveApp.getFileById(doc.getId()).addEditor(email); shared = true; }
+  } catch (e) {}
+  return { success:true, data:{ url:doc.getUrl(), shared:shared } };
+}
+
 function itk(path) { return 'https://identitytoolkit.googleapis.com/v1/projects/' + VMFB.PROJECT_ID + path; }
 // Firebase không nhận mật khẩu dưới 6 ký tự. Đệm y hệt vm-fbdata.js.
 function vmfbPw(p) { p = String(p == null ? '' : p).trim(); return p.length >= 6 ? p : (p + '______').slice(0, 6); }

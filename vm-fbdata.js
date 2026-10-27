@@ -1234,6 +1234,24 @@ async function ieltsRankPublish(p) {
   }
   return ok({ published: n });
 }
+async function ieltsAttemptDelete(p) {
+  const t = await teacher();
+  const ids = (Array.isArray(p.ids) ? p.ids : []).map(str).filter(id => /^[A-Za-z0-9_-]{1,128}$/.test(id)).slice(0, 300);
+  let n = 0;
+  for (let i = 0; i < ids.length; i += 20) {
+    await Promise.all(ids.slice(i, i + 20).map(async id => {
+      const ref = fs.doc('ieltsAttempts/' + id), s = await ref.get();
+      if (!s.exists || s.data().teacherUid !== t.uid) return;   // only this teacher's own students' attempts
+      await ref.delete(); n++;
+    }));
+  }
+  return ok({ deleted: n });
+}
+async function ieltsReportDoc(p) {
+  await teacher(); await authReady();
+  const current = auth.currentUser; if (!current) return fail('SESSION_EXPIRED');
+  return gas('ielts.reportDoc', { idToken: await current.getIdToken(), report: p.report });
+}
 async function ieltsRankGet() {
   const u = await me(); if (u.role === 'teacher') return ok(null);
   const s = await fs.doc('ieltsRanks/' + u.uid).get();
@@ -1352,7 +1370,7 @@ const ACTIONS = {
   'ielts.attempt.save': ieltsAttemptSave, 'ielts.attempt.list': ieltsAttemptList,
   'ielts.report.create': ieltsReportCreate, 'ielts.report.list': ieltsReportList, 'ielts.report.update': ieltsReportUpdate,
   'ielts.audio.upload': ieltsAudioUpload, 'ielts.audio.attach': ieltsAudioAttach, 'ielts.audio.url': ieltsAudioUrl,
-  'ielts.rank.publish': ieltsRankPublish, 'ielts.rank.get': ieltsRankGet, 'ielts.importUrl': ieltsImportUrl, 'ielts.importScript': ieltsImportScript, 'ielts.script.get': ieltsScriptGet, 'ielts.activity.sync': ieltsActivitySync, 'ielts.activity.list': ieltsActivityList, 'ielts.script.save': ieltsScriptSave, 'ielts.script.mine': ieltsScriptMine, 'ielts.script.discard': ieltsScriptDiscard, 'ielts.script.pending': ieltsScriptPending, 'ielts.script.review': ieltsScriptReview, 'ielts.images.backup': ieltsImagesBackup,
+  'ielts.attempt.delete': ieltsAttemptDelete, 'ielts.report.doc': ieltsReportDoc, 'ielts.rank.publish': ieltsRankPublish, 'ielts.rank.get': ieltsRankGet, 'ielts.importUrl': ieltsImportUrl, 'ielts.importScript': ieltsImportScript, 'ielts.script.get': ieltsScriptGet, 'ielts.activity.sync': ieltsActivitySync, 'ielts.activity.list': ieltsActivityList, 'ielts.script.save': ieltsScriptSave, 'ielts.script.mine': ieltsScriptMine, 'ielts.script.discard': ieltsScriptDiscard, 'ielts.script.pending': ieltsScriptPending, 'ielts.script.review': ieltsScriptReview, 'ielts.images.backup': ieltsImagesBackup,
   'vocab.today': vocabToday,
   'ping': async () => ok('pong')
 };
