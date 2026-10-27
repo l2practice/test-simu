@@ -2450,7 +2450,7 @@ function trendHtml(d){if(d===null||d===undefined)return '<span class="il-note">�
 function teacherResults(){
  var ex=document.getElementById('extra'),rs=state.rs=state.rs||{classId:'',skill:'all',period:'30',what:'full',type:'',view:'students',student:'',lesson:'',sort:'avg',dir:-1};
  state.rsCache=state.rsCache||{};
- ex.innerHTML='<div class="il-panel" style="margin-top:16px"><h3 style="margin:0 0 8px">Class results</h3><div class="il-toolbar"><select class="vm-select" id="rzClass"><option value="">Select a class</option>'+state.classes.map(function(c){return '<option value="'+esc(c.classId)+'"'+(c.classId===rs.classId?' selected':'')+'>'+esc(c.className)+'</option>';}).join('')+'</select><select class="vm-select" id="rzSkill"><option value="all">Reading + Listening</option><option value="reading">Reading</option><option value="listening">Listening</option></select><select class="vm-select" id="rzPeriod" aria-label="Period">'+RS_PERIODS.map(function(o){return '<option value="'+o[0]+'"'+(o[0]===rs.period?' selected':'')+'>'+o[1]+'</option>';}).join('')+'</select><span class="il-spacer"></span><span class="il-note" id="rzRank"></span><button class="vm-btn vm-btn-ghost vm-btn-sm" id="rzPub" title="Compute every student’s rank and publish it to them (each student sees only their own rank)">Update student ranks</button><div class="il-seg" id="rzView"><button data-v="students">Students</button><button data-v="types">Task types</button><button data-v="classes">Classes</button><button data-v="attempts">Attempts</button></div></div><div id="rzBody"></div></div>';
+ ex.innerHTML='<div class="il-panel" style="margin-top:16px"><h3 style="margin:0 0 8px">Class results</h3><div class="il-toolbar"><select class="vm-select" id="rzClass"><option value="">Select a class</option>'+state.classes.map(function(c){return '<option value="'+esc(c.classId)+'"'+(c.classId===rs.classId?' selected':'')+'>'+esc(c.className)+'</option>';}).join('')+'</select><select class="vm-select" id="rzSkill"><option value="all">Reading + Listening</option><option value="reading">Reading</option><option value="listening">Listening</option></select><select class="vm-select" id="rzPeriod" aria-label="Period">'+RS_PERIODS.map(function(o){return '<option value="'+o[0]+'"'+(o[0]===rs.period?' selected':'')+'>'+o[1]+'</option>';}).join('')+'</select><span class="il-spacer"></span><span class="il-note" id="rzRank"></span><button class="vm-btn vm-btn-ghost vm-btn-sm" id="rzRep" title="Create a short report: diligence and progress of each class">Export report</button><button class="vm-btn vm-btn-ghost vm-btn-sm" id="rzPub" title="Compute every student’s rank and publish it to them (each student sees only their own rank)">Update student ranks</button><div class="il-seg" id="rzView"><button data-v="students">Students</button><button data-v="types">Task types</button><button data-v="classes">Classes</button><button data-v="attempts">Attempts</button></div></div><div id="rzBody"></div></div>';
  document.getElementById('rzSkill').value=rs.skill;
  function setSeg(){qa('#rzView button').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-v')===rs.view);});var cs=document.getElementById('rzClass'),pb=document.getElementById('rzPub'),rk=document.getElementById('rzRank');if(cs)cs.style.display=rs.view==='classes'?'none':'';if(pb)pb.style.display=rs.view==='classes'?'none':'';if(rk)rk.style.display=rs.view==='classes'?'none':'';}
  setSeg();
@@ -2468,6 +2468,7 @@ function teacherResults(){
    if(manual)VM.toast('Student ranks updated.','ok');
   }).catch(function(e){pub[cls]=0;if(note)note.textContent='';if(manual)say(e.message);});
  }
+ document.getElementById('rzRep').onclick=function(){reportDialog(rs);};
  document.getElementById('rzPub').onclick=function(){if(!rs.classId)return say('Choose a class first.');pubRanks(true);};
  function load(){
   var body=document.getElementById('rzBody');
@@ -2547,12 +2548,13 @@ function drawResClasses(box,rs,redraw){
 }
 function cmpBars(el,cls){
  var gid='b'+Math.random().toString(36).slice(2,6),per=96,w=Math.max(Math.round(el.clientWidth||600),cls.length*per+60),h=270,pl=34,pr=10,pt=26,pb=44;
- var series=[['avg','Overall','#5B6B8C'],['avgR','Reading',C_READ],['avgL','Listening',C_LIST]];
+ var series=[['avg','Overall (both skills)','#7B61C9'],['avgR','Reading',C_READ],['avgL','Listening',C_LIST]];
  function Y(v){return pt+(h-pt-pb)*(1-v/100);}
  var grid='';[0,25,50,75,100].forEach(function(v){grid+='<line x1="'+pl+'" x2="'+(w-pr)+'" y1="'+Y(v)+'" y2="'+Y(v)+'" stroke="#E7E2EC" stroke-dasharray="'+(v?'3 5':'0')+'"/><text x="'+(pl-6)+'" y="'+(Y(v)+4)+'" text-anchor="end" font-size="11" fill="#5C7482">'+v+'</text>';});
  var defs='<defs>'+series.map(function(s,i){return '<linearGradient id="'+gid+i+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+s[2]+'"/><stop offset="1" stop-color="'+s[2]+'" stop-opacity=".55"/></linearGradient>';}).join('')+'</defs>';
  var cw=(w-pl-pr)/cls.length,bw=Math.min(22,(cw-18)/3),bars=cls.map(function(c,ci){
   var cx=pl+cw*ci+cw/2,x0=cx-bw*1.5-3;
+  if(c.S.avg===null&&c.S.avgR===null&&c.S.avgL===null)return '<text x="'+cx.toFixed(1)+'" y="'+(Y(0)-8)+'" text-anchor="middle" font-size="11" fill="#8A93A6">No data</text><text x="'+cx.toFixed(1)+'" y="'+(h-24)+'" text-anchor="middle" font-size="12" font-weight="700" fill="#2B3A33">'+esc(String(c.name).slice(0,Math.max(8,Math.floor(cw/7))))+'</text><circle cx="'+cx.toFixed(1)+'" cy="'+(h-9)+'" r="4" fill="'+c.color+'"/>';
   return series.map(function(s,si){var v=c.S[s[0]];if(v===null||v===undefined)return '';var x=x0+si*(bw+3),y=Y(v);
    return '<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+Math.max(1,Y(0)-y).toFixed(1)+'" rx="5" fill="url(#'+gid+si+')"><title>'+esc(c.name)+' · '+s[1]+' '+Math.round(v)+'%</title></rect><text x="'+(x+bw/2).toFixed(1)+'" y="'+(y-5).toFixed(1)+'" text-anchor="middle" font-size="10.5" font-weight="800" fill="'+s[2]+'">'+Math.round(v)+'</text>';}).join('')+
    '<text x="'+cx.toFixed(1)+'" y="'+(h-24)+'" text-anchor="middle" font-size="12" font-weight="700" fill="#2B3A33">'+esc(String(c.name).slice(0,Math.max(8,Math.floor(cw/7))))+'</text><circle cx="'+cx.toFixed(1)+'" cy="'+(h-9)+'" r="4" fill="'+c.color+'"/>';}).join('');
@@ -2585,6 +2587,86 @@ function cmpHeat(el,cls,rs){
  var types=Object.keys(tot).sort(function(a,b){return tot[b]-tot[a];});
  if(!types.length){el.innerHTML='<div class="il-empty">No task-type results in this period.</div>';return;}
  el.innerHTML='<p class="il-note" style="margin:0 0 6px">Each cell is correct ÷ total questions of that task type for the whole class. Faded cells rest on one attempt only.</p><div style="overflow:auto"><table class="vm-table rs-heat"><thead><tr><th class="rs-sticky">Task type</th>'+cls.map(function(c){return '<th><i class="il-dot" style="background:'+c.color+'"></i>'+esc(c.name)+'</th>';}).join('')+'</tr></thead><tbody>'+types.map(function(t){return '<tr><td class="rs-sticky"><b>'+esc(typeName(t))+'</b></td>'+Ms.map(function(M,i){var e=M.cls[t];if(!e)return '<td class="rs-hc rs-empty">—</td>';var pc=Math.round(e.ok*100/e.n);return '<td class="rs-hc'+(e.at<2?' rs-few':'')+'" style="cursor:default;'+heatStyle(pc)+'" title="'+esc(cls[i].name)+' · '+esc(typeName(t))+': '+e.ok+'/'+e.n+' correct in '+e.at+' attempt'+(e.at===1?'':'s')+'">'+pc+'%</td>';}).join('')+'</tr>';}).join('')+'</tbody></table></div>';
+}
+/* ───────── Class report (Google Doc / Word / paste) ─────────
+   Blocks: {t:'h1'|'h2'|'h3'|'p'|'table', x, head, rows}. The same blocks feed the Google Doc, the downloadable file and the clipboard copy. */
+function reportMean(a){return a.length?a.reduce(function(x,y){return x+y;},0)/a.length:null;}
+function studentProgress(att){   // full-test scores in time order: mean of the last k vs the first k (k up to 3); needs 2+ scored attempts
+ var rows=glanceRows(att,{skill:'all',mode:'full',type:''}),n=rows.length;
+ if(n<2)return null;
+ var k=Math.min(3,Math.floor(n/2)),first=reportMean(rows.slice(0,k).map(function(r){return r.score;})),last=reportMean(rows.slice(n-k).map(function(r){return r.score;}));
+ return{n:n,first:first,last:last,delta:last-first};
+}
+function classReport(c){
+ var att=c.d.att,roster=c.d.roster,names={},by=groupBy(att,'studentId');
+ roster.forEach(function(s){names[s.studentId]=s.name;});att.forEach(function(a){names[a.studentId]=names[a.studentId]||a.studentName;});
+ var ids=Object.keys(names),active=ids.filter(function(id){return (by[id]||[]).length;}),days=0,minutes=0;
+ active.forEach(function(id){var set={};by[id].forEach(function(a){set[dayKey(a.completedAt)]=1;minutes+=Math.round((a.durationSeconds||0)/60);});days+=Object.keys(set).length;});
+ var prog=[];ids.forEach(function(id){var p=studentProgress(by[id]||[]);if(p)prog.push({id:id,name:names[id]||id,p:p});});
+ var M=resTypeMatrix(att,roster,{skill:'all'}),types=Object.keys(M.cls).filter(function(t){return M.cls[t].n>=10;}).map(function(t){return{t:t,pc:Math.round(M.cls[t].ok*100/M.cls[t].n),n:M.cls[t].n};}).sort(function(a,b){return a.pc-b.pc;});
+ var base=function(sk){return classBaseline(att.filter(function(a){return sk==='all'||a.skill===sk;}),{skill:sk,mode:'full',type:''});};
+ return{name:c.name,students:ids.length,active:active.length,attempts:att.length,days:days,minutes:minutes,
+  daysPerStudent:ids.length?days/ids.length:0,perActive:active.length?att.length/active.length:0,
+  avg:base('all'),avgR:base('reading'),avgL:base('listening'),
+  prog:prog,improved:prog.filter(function(x){return x.p.delta>=5;}).length,declined:prog.filter(function(x){return x.p.delta<=-5;}).length,
+  avgDelta:prog.length?reportMean(prog.map(function(x){return x.p.delta;})):null,
+  inactive:ids.filter(function(id){return !(by[id]||[]).length;}).map(function(id){return names[id]||id;}),
+  weak:types.slice(0,3),strong:types.slice(-3).reverse()};
+}
+function buildReport(cls,periodLabel){
+ var R=cls.map(classReport),f1=function(v){return v===null||v===undefined?'—':Math.round(v)+'%';},sg=function(v){return v===null||v===undefined?'—':(v>0?'+':'')+Math.round(v)+' pts';};
+ var B=[{t:'h1',x:'Class report · '+(cls.length===1?cls[0].name:cls.length+' classes')},{t:'p',x:periodLabel+' · created '+fmtStamp(new Date().toISOString())}];
+ var byDil=R.slice().sort(function(a,b){return b.daysPerStudent-a.daysPerStudent;});
+ B.push({t:'h2',x:'1. Diligence: which class practises most'});
+ B.push({t:'table',head:['#','Class','Students','Practised','Attempts','Attempts per active student','Practice days per student','Minutes'],rows:byDil.map(function(r,i){return [String(i+1),r.name,String(r.students),r.active+'/'+r.students+' ('+(r.students?Math.round(r.active*100/r.students):0)+'%)',String(r.attempts),r.perActive.toFixed(1),r.daysPerStudent.toFixed(1),String(r.minutes)];})});
+ B.push({t:'p',x:'Ranked by practice days per student (all students in the class, including those who did not practise). "Practised" is the share of students with at least one attempt in the period.'});
+ var byAvg=R.slice().sort(function(a,b){return (b.avg===null?-1:b.avg)-(a.avg===null?-1:a.avg);});
+ B.push({t:'h2',x:'2. Results: full tests'});
+ B.push({t:'table',head:['#','Class','Average','Reading','Listening'],rows:byAvg.map(function(r,i){return [String(i+1),r.name,f1(r.avg),f1(r.avgR),f1(r.avgL)];})});
+ B.push({t:'p',x:'Class average = mean of each student’s average on whole Reading and Listening tests, so a student with many attempts counts once.'});
+ B.push({t:'h2',x:'3. Progress: how much students improved'});
+ B.push({t:'table',head:['Class','Students with 2+ full tests','Improved (+5 or more)','About the same','Declined (−5 or more)','Average change'],rows:R.map(function(r){var n=r.prog.length;return [r.name,String(n),r.improved+(n?' ('+Math.round(r.improved*100/n)+'%)':''),String(n-r.improved-r.declined),r.declined+(n?' ('+Math.round(r.declined*100/n)+'%)':''),sg(r.avgDelta)];})});
+ B.push({t:'p',x:'Change = average of a student’s last (up to) 3 full-test scores minus the average of the first (up to) 3 in the period.'});
+ R.forEach(function(r){
+  var top=r.prog.slice().sort(function(a,b){return b.p.delta-a.p.delta;}).filter(function(x){return x.p.delta>0;}).slice(0,5),down=r.prog.filter(function(x){return x.p.delta<=-10;}).sort(function(a,b){return a.p.delta-b.p.delta;}).slice(0,5);
+  B.push({t:'h3',x:r.name});
+  B.push({t:'p',x:'Practised: '+r.active+'/'+r.students+' students · average '+f1(r.avg)+' · '+r.attempts+' attempts.'});
+  if(top.length)B.push({t:'table',head:['Most improved','From','To','Change','Full tests'],rows:top.map(function(x){return [x.name,f1(x.p.first),f1(x.p.last),sg(x.p.delta),String(x.p.n)];})});
+  if(down.length)B.push({t:'table',head:['Needs attention (score dropped)','From','To','Change'],rows:down.map(function(x){return [x.name,f1(x.p.first),f1(x.p.last),sg(x.p.delta)];})});
+  if(r.weak.length)B.push({t:'p',x:'Weakest task types: '+r.weak.map(function(t){return typeName(t.t)+' '+t.pc+'%';}).join(', ')+(r.strong.length?'. Strongest: '+r.strong.map(function(t){return typeName(t.t)+' '+t.pc+'%';}).join(', '):'')+'. (Task types with at least 10 questions.)'});
+  if(r.inactive.length)B.push({t:'p',x:'No attempts in this period ('+r.inactive.length+'): '+r.inactive.slice(0,25).join(', ')+(r.inactive.length>25?', …':'')+'.'});
+ });
+ return B;
+}
+function reportHtml(blocks){
+ var css='body{font-family:Calibri,Arial,sans-serif;font-size:11pt;color:#1d2b25}h1{font-size:20pt;color:#0F6B4F}h2{font-size:14pt;color:#0F6B4F;margin-top:18pt}h3{font-size:12pt;margin-top:14pt}table{border-collapse:collapse;margin:6pt 0}th,td{border:1px solid #bfc9c4;padding:4px 8px;text-align:left}th{background:#e6f2ec}p{margin:4pt 0}';
+ return '<!doctype html><html><head><meta charset="utf-8"><title>Class report</title><style>'+css+'</style></head><body>'+blocks.map(function(b){
+  if(b.t==='table')return '<table><thead><tr>'+b.head.map(function(h){return '<th>'+esc(h)+'</th>';}).join('')+'</tr></thead><tbody>'+b.rows.map(function(r){return '<tr>'+r.map(function(c){return '<td>'+esc(c)+'</td>';}).join('')+'</tr>';}).join('')+'</tbody></table>';
+  return '<'+b.t+'>'+esc(b.x)+'</'+b.t+'>';}).join('')+'</body></html>';
+}
+function reportDialog(rs){
+ var all=state.classes||[],sel=(rs.cmp&&rs.cmp.length?rs.cmp:(rs.classId?[rs.classId]:all.slice(0,6).map(function(c){return c.classId;}))).slice();
+ var box=document.createElement('div');box.className='il-busy';box.id='rpBox';
+ box.innerHTML='<div class="il-busy-card" style="max-width:520px;text-align:left;width:94%;max-height:90vh;overflow:auto"><h3 style="margin:0 0 6px">Export class report</h3><p class="il-note" style="margin:0 0 10px">A short report: which class practises most, how students progressed, weakest task types and who has not practised.</p><label class="vm-label">Period</label><select class="vm-select" id="rpPeriod">'+RS_PERIODS.map(function(o){return '<option value="'+o[0]+'"'+(o[0]===rs.period?' selected':'')+'>'+o[1]+'</option>';}).join('')+'</select><label class="vm-label" style="margin-top:10px">Classes</label><div class="il-students">'+all.map(function(c){return '<label class="il-opt"><input type="checkbox" data-rc="'+esc(c.classId)+'"'+(sel.indexOf(c.classId)>=0?' checked':'')+'> '+esc(c.className)+'</label>';}).join('')+'</div><div id="rpErr" class="il-error"></div><div class="il-row" style="margin-top:12px;flex-wrap:wrap"><button class="vm-btn vm-btn-primary" id="rpDoc">Create Google Doc</button><button class="vm-btn vm-btn-ghost" id="rpDl">Download .doc</button><button class="vm-btn vm-btn-ghost" id="rpCopy">Copy to paste</button><button class="vm-btn vm-btn-ghost" id="rpX">Close</button></div><p class="il-note" style="margin:8px 0 0">“Download” opens in Word and can be uploaded to Google Docs. “Copy” keeps the tables when you paste into a Google Doc.</p></div>';
+ document.body.appendChild(box);
+ function chosen(){return qa('#rpBox [data-rc]').filter(function(i){return i.checked;}).map(function(i){return i.getAttribute('data-rc');});}
+ function make(then){
+  var ids=chosen(),err=document.getElementById('rpErr');err.textContent='';
+  if(!ids.length)return err.textContent='Tick at least one class.';
+  var period=document.getElementById('rpPeriod').value,label=(RS_PERIODS.filter(function(o){return o[0]===period;})[0]||[])[1]||'';
+  qa('#rpBox button').forEach(function(b){b.disabled=true;});
+  Promise.all(ids.map(function(id){return rsFetch(id,period);})).then(function(ds){
+   var cls=ids.map(function(id,i){var c=all.filter(function(x){return x.classId===id;})[0]||{};return{id:id,name:c.className||id,d:ds[i]};});
+   return then(buildReport(cls,label));
+  }).catch(function(e){err.textContent=e.message||'Could not build the report.';}).then(function(){qa('#rpBox button').forEach(function(b){b.disabled=false;});});
+ }
+ document.getElementById('rpX').onclick=function(){box.remove();};
+ document.getElementById('rpDl').onclick=function(){make(function(B){var a=document.createElement('a'),u=URL.createObjectURL(new Blob(['﻿'+reportHtml(B)],{type:'application/msword'}));a.href=u;a.download='class-report-'+dayKey(new Date())+'.doc';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u);},4000);VM.toast('Report downloaded.','ok');});};
+ document.getElementById('rpCopy').onclick=function(){make(function(B){var html=reportHtml(B);
+  function fallback(){var d=document.createElement('div');d.contentEditable='true';d.style.cssText='position:fixed;left:-9999px;top:0';d.innerHTML=html.replace(/^[\s\S]*<body>|<\/body>[\s\S]*$/g,'');document.body.appendChild(d);var r=document.createRange();r.selectNodeContents(d);var s=window.getSelection();s.removeAllRanges();s.addRange(r);var ok=false;try{ok=document.execCommand('copy');}catch(e){}s.removeAllRanges();d.remove();return ok;}
+  if(navigator.clipboard&&window.ClipboardItem)return navigator.clipboard.write([new ClipboardItem({'text/html':new Blob([html],{type:'text/html'}),'text/plain':new Blob([B.map(function(b){return b.t==='table'?b.head.join('\t')+'\n'+b.rows.map(function(r){return r.join('\t');}).join('\n'):b.x;}).join('\n\n')],{type:'text/plain'})})]).then(function(){VM.toast('Copied. Paste it into a Google Doc.','ok');}).catch(function(){if(fallback())VM.toast('Copied. Paste it into a Google Doc.','ok');else throw new Error('Copy was blocked by the browser. Use Download instead.');});
+  if(fallback())VM.toast('Copied. Paste it into a Google Doc.','ok');else throw new Error('Copy was blocked by the browser. Use Download instead.');});};
+ document.getElementById('rpDoc').onclick=function(){make(function(B){return call('ielts.report.doc',{report:{title:B[0].x+' · '+fmtDate(new Date().toISOString()),blocks:B}}).then(function(d){box.remove();VM.alert('Your report is ready.',{title:'Google Doc created',ok:'Open'}).then(function(){window.open(d.url,'_blank','noopener');});});});};
 }
 function resCard(label,val,sub,col){return '<div class="gl-card"'+(col?' style="border-top-color:'+col+'"':'')+'><div class="gl-card-h">'+label+'</div><div class="gl-big">'+val+'</div><div class="il-note">'+sub+'</div></div>';}
 function pctTxt(v){return v===null||v===undefined?'—':Math.round(v)+'%';}
@@ -2633,16 +2715,35 @@ function drawResTypes(box,data,rs,redraw){
   glanceView(document.getElementById('rzDrillBox'),data.att.filter(function(a){return a.studentId===sid;}),{empty:'No attempts in this period.',peers:data.att,init:{skill:rs.skill,mode:'type',type:t}});
   d.scrollIntoView({behavior:'smooth',block:'nearest'});};});
 }
+function attId(a){return a.id||a._id||'';}
 function drawResAttempts(box,data,rs){
  var att=data.att.filter(function(a){return rs.skill==='all'||a.skill===rs.skill;});
  var students=Array.from(new Set(att.map(function(a){return a.studentId;}))),items=Array.from(new Set(att.map(function(a){return a.contentId;})));
- box.innerHTML='<div class="il-toolbar"><select class="vm-select" id="raStudent"><option value="all">All students</option>'+students.map(function(id){var a=att.find(function(r){return r.studentId===id;});return '<option value="'+esc(id)+'"'+(rs.student===id?' selected':'')+'>'+esc(a.studentName||id)+'</option>';}).join('')+'</select><select class="vm-select" id="raItem"><option value="all">All lessons</option>'+items.map(function(id){var a=att.find(function(r){return r.contentId===id;});return '<option value="'+esc(id)+'">'+esc(a.title)+'</option>';}).join('')+'</select></div><div id="raChart"></div><div style="overflow:auto"><table class="vm-table"><thead><tr><th>Student</th><th>Lesson</th><th>Skill</th><th>Practice score</th><th>Time</th><th>Completed</th><th>Feedback</th></tr></thead><tbody id="raRows"></tbody></table></div>';
+ box.innerHTML='<div class="il-toolbar"><select class="vm-select" id="raStudent"><option value="all">All students</option>'+students.map(function(id){var a=att.find(function(r){return r.studentId===id;});return '<option value="'+esc(id)+'"'+(rs.student===id?' selected':'')+'>'+esc(a.studentName||id)+'</option>';}).join('')+'</select><select class="vm-select" id="raItem"><option value="all">All lessons</option>'+items.map(function(id){var a=att.find(function(r){return r.contentId===id;});return '<option value="'+esc(id)+'">'+esc(a.title)+'</option>';}).join('')+'</select><span class="il-spacer"></span><button class="vm-btn vm-btn-ghost vm-btn-sm" id="raZero" title="Tick every task-type attempt with 0%, e.g. those graded wrongly by the old version">Select 0% task-type attempts</button><button class="vm-btn vm-btn-danger vm-btn-sm" id="raDel" disabled>Delete selected</button></div><div id="raChart"></div><div style="overflow:auto"><table class="vm-table"><thead><tr><th><input type="checkbox" id="raAll" aria-label="Select all shown"></th><th>Student</th><th>Lesson</th><th>Skill</th><th>Practice score</th><th>Time</th><th>Completed</th><th>Feedback</th></tr></thead><tbody id="raRows"></tbody></table></div>';
+ var shown=[],pick={};
+ function sync(){var n=Object.keys(pick).filter(function(k){return pick[k];}).length,d=document.getElementById('raDel');d.disabled=!n;d.textContent=n?'Delete selected ('+n+')':'Delete selected';}
  function f(){
   var st=document.getElementById('raStudent').value,it=document.getElementById('raItem').value;
   var r=att.filter(function(a){return (st==='all'||a.studentId===st)&&(it==='all'||a.contentId===it);});
+  shown=r.slice().reverse();
   drawChart(document.getElementById('raChart'),r);
-  document.getElementById('raRows').innerHTML=r.slice().reverse().map(function(a){return '<tr><td>'+esc(a.studentName)+'</td><td>'+esc(a.title)+'</td><td>'+esc(a.skill)+'</td><td>'+(a.score===null?'Not scored · answer key pending':a.score+'%')+' · '+a.correct+'/'+a.gradedCount+' scored</td><td>'+Math.round(a.durationSeconds/60)+' min</td><td>'+new Date(a.completedAt).toLocaleString()+'</td><td>'+(docUrlOk(a.feedbackDocUrl)?'<a href="'+esc(a.feedbackDocUrl)+'" target="_blank" rel="noopener">📄 Open doc</a>':'<span class="il-note">—</span>')+'</td></tr>';}).join('')||'<tr><td colspan="7">No attempts for these filters.</td></tr>';
+  document.getElementById('raRows').innerHTML=shown.map(function(a){return '<tr><td><input type="checkbox" data-pk="'+esc(attId(a))+'"'+(pick[attId(a)]?' checked':'')+'></td><td>'+esc(a.studentName)+'</td><td>'+esc(a.title)+'</td><td>'+esc(a.skill)+'</td><td>'+(a.score===null?'Not scored · answer key pending':a.score+'%')+' · '+a.correct+'/'+a.gradedCount+' scored</td><td>'+Math.round(a.durationSeconds/60)+' min</td><td>'+new Date(a.completedAt).toLocaleString()+'</td><td>'+(docUrlOk(a.feedbackDocUrl)?'<a href="'+esc(a.feedbackDocUrl)+'" target="_blank" rel="noopener">📄 Open doc</a>':'<span class="il-note">—</span>')+'</td></tr>';}).join('')||'<tr><td colspan="8">No attempts for these filters.</td></tr>';
+  qa('[data-pk]').forEach(function(c){c.onchange=function(){pick[c.getAttribute('data-pk')]=c.checked;sync();};});
+  document.getElementById('raAll').checked=false;sync();
  }
+ document.getElementById('raAll').onchange=function(){var on=this.checked;shown.forEach(function(a){pick[attId(a)]=on;});qa('[data-pk]').forEach(function(c){c.checked=on;});sync();};
+ document.getElementById('raZero').onclick=function(){var n=0;pick={};shown.forEach(function(a){if(isTaskAttempt(a)&&a.score===0&&attId(a)){pick[attId(a)]=true;n++;}});qa('[data-pk]').forEach(function(c){c.checked=!!pick[c.getAttribute('data-pk')];});sync();if(!n)VM.toast('No 0% task-type attempts in the list shown.','warn');else VM.toast(n+' attempt'+(n===1?'':'s')+' ticked. Check the list, then click Delete selected.','ok',5000);};
+ document.getElementById('raDel').onclick=function(){
+  var ids=Object.keys(pick).filter(function(k){return pick[k];}),btn=this;if(!ids.length)return;
+  VM.confirm('Delete '+ids.length+' attempt'+(ids.length===1?'':'s')+' permanently? Students lose these results from their history, charts and ranks. This cannot be undone.',{danger:true,ok:'Delete '+ids.length,title:'Delete attempts'}).then(function(y){
+   if(!y)return;btn.disabled=true;
+   call('ielts.attempt.delete',{ids:ids}).then(function(r){
+    var gone={};ids.forEach(function(i){gone[i]=1;});
+    Object.keys(state.rsCache||{}).forEach(function(k){var d=state.rsCache[k];if(d&&d.att)d.att=d.att.filter(function(a){return !gone[attId(a)];});});
+    data.att=data.att.filter(function(a){return !gone[attId(a)];});att=att.filter(function(a){return !gone[attId(a)];});
+    pick={};state.rkPub={};VM.toast((r.deleted||0)+' attempt'+(r.deleted===1?'':'s')+' deleted.','ok');drawResAttempts(box,data,rs);
+   }).catch(function(e){btn.disabled=false;say(e.message);});});
+ };
  document.getElementById('raStudent').onchange=function(){rs.student=this.value==='all'?'':this.value;f();};document.getElementById('raItem').onchange=f;f();
 }
 

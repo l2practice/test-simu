@@ -169,7 +169,8 @@ service cloud.firestore {
     }
     match /ieltsAttempts/{id} {
       allow read: if isMe(resource.data.uid) || owns(resource.data);
-      allow create, update, delete: if false; // trusted grader in Apps Script writes attempts
+      allow create, update: if false; // trusted grader in Apps Script writes attempts
+      allow delete: if owns(resource.data); // the class teacher can remove wrong results (e.g. graded by an old version)
     }
     match /ieltsReports/{id} {
       allow read: if owns(resource.data);
