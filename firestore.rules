@@ -154,6 +154,14 @@ service cloud.firestore {
                             && request.resource.data.classId == profile().classId;
       allow delete: if false;
     }
+    // Class ranks: the teacher's Results page computes each student's rank (full tests and task types) and writes ONE document per student.
+    // A student reads only their own document: it holds their own score and rank, never classmates' scores.
+    match /ieltsRanks/{id} {
+      allow get: if missing() || (signedIn() && (isMe(resource.data.uid) || owns(resource.data)));
+      allow create, update: if isTeacher() && request.resource.data.teacherUid == request.auth.uid
+                            && request.resource.data.uid == id && classOwned(request.resource.data.classId);
+      allow delete: if false;
+    }
     // Library index: small summaries (title, book, test, part, counts) grouped per book. Full tests stay protected above.
     match /ieltsIndex/{id} {
       allow read: if signedIn();
