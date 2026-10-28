@@ -290,8 +290,9 @@ function vmfbIeltsReportDoc(p) {
     if (b.t === 'h1') { par.setHeading(DocumentApp.ParagraphHeading.HEADING1); style(par, 24, GREEN, true, 0, 6); }
     else if (b.t === 'h2') { par.setHeading(DocumentApp.ParagraphHeading.HEADING2); style(par, 16, GREEN, true, 18, 6); }
     else if (b.t === 'h3') { par.setHeading(DocumentApp.ParagraphHeading.HEADING3); style(par, 13, '#B45F06', true, 14, 4); }
-    else { par.setHeading(DocumentApp.ParagraphHeading.NORMAL); style(par, 10.5, INK, false, 2, 4); par.setLineSpacing(1.25); }
+    else { par.setHeading(DocumentApp.ParagraphHeading.NORMAL); style(par, 10.5, INK, false, 2, 4); par.setLineSpacing(1.25); par.setAlignment(DocumentApp.HorizontalAlignment.JUSTIFY); }
   });
+  body.editAsText().setFontFamily(FONT);
   doc.saveAndClose();
   var shared = false;
   try {
@@ -357,40 +358,60 @@ function vmfbIeltsFeedbackDoc(p) {
     found = vmfbFeedbackDocExisting_(id, attempt);
     if (found) return found;
   var title = String(attempt.title || 'IELTS practice').slice(0, 120);
-  var doc = DocumentApp.create('IELTS Feedback · ' + title + ' · ' + String(attempt.studentName || attempt.studentId || 'Student').slice(0, 80));
+  var studentName = String(attempt.studentName || attempt.studentId || 'Student').slice(0, 80);
+  var doc = DocumentApp.create('IELTS Feedback · ' + title + ' · ' + studentName);
   var body = doc.getBody(); body.clear();
   body.setMarginTop(54).setMarginBottom(54).setMarginLeft(54).setMarginRight(54);
-  var A = DocumentApp.Attribute, GREEN = '#0F6B4F', INK = '#1D2B25';
-  function para(text, size, color, bold, before, after) {
+  var A = DocumentApp.Attribute, H = DocumentApp.ParagraphHeading, FONT = 'Google Sans', GREEN = '#0F6B4F', INK = '#1D2B25', RED = '#B3261E';
+  // Heading first, then the look: setHeading() resets font, size and colour. Every call costs ~50 ms, so one setAttributes per paragraph.
+  function para(text, size, color, bold, before, after, heading, left) {
     var q = body.appendParagraph(String(text || ''));
-    var st = {}; st[A.FONT_FAMILY] = 'Google Sans'; st[A.FONT_SIZE] = size; st[A.FOREGROUND_COLOR] = color; st[A.BOLD] = bold;
-    st[A.SPACING_BEFORE] = before; st[A.SPACING_AFTER] = after; st[A.LINE_SPACING] = 1.2;
-    q.setAttributes(st); return q;   // every Apps Script call costs ~50 ms: keep the call count low or the document takes minutes
+    if (heading) q.setHeading(heading);
+    var st = {}; st[A.FONT_FAMILY] = FONT; st[A.FONT_SIZE] = size; st[A.FOREGROUND_COLOR] = color; st[A.BOLD] = bold;
+    st[A.SPACING_BEFORE] = before; st[A.SPACING_AFTER] = after; st[A.LINE_SPACING] = 1.3;
+    st[A.HORIZONTAL_ALIGNMENT] = left ? DocumentApp.HorizontalAlignment.LEFT : DocumentApp.HorizontalAlignment.JUSTIFY;
+    q.setAttributes(st); return q;
   }
-  var h = para('IELTS PRACTICE FEEDBACK', 20, GREEN, true, 0, 10); h.setHeading(DocumentApp.ParagraphHeading.TITLE);
-  para('Student: ' + String(attempt.studentName || attempt.studentId || 'Student'), 11, INK, true, 0, 3);
-  para('Practice: ' + title + ' · ' + String(attempt.skill || '').toUpperCase(), 10.5, INK, false, 0, 3);
-  para('Result: ' + (attempt.correct == null ? '—' : attempt.correct + '/' + (attempt.gradedCount || attempt.total || 0) + ' correct') + (attempt.score == null ? '' : ' · ' + attempt.score + '%') + ' · Time: ' + Math.max(1, Math.round((Number(attempt.durationSeconds) || 0) / 60)) + ' min · Completed: ' + String(attempt.completedAt || ''), 10.5, INK, false, 0, 12);
-  para('AI STUDY FEEDBACK', 14, GREEN, true, 8, 5).setHeading(DocumentApp.ParagraphHeading.HEADING1);
-  String(aiText).split(/\r?\n/).forEach(function(line) {
-    line = String(line || '').trim(); if (!line) return;
-    var isHead = /^[^\w\s]{1,4}\s*[A-Z][A-Z0-9 \-&'’/()]{2,}$/.test(line);
-    para(line, isHead ? 12 : 10.5, isHead ? GREEN : INK, isHead, isHead ? 8 : 2, isHead ? 3 : 4);
-  });
-  para('Answer record', 14, GREEN, true, 14, 5).setHeading(DocumentApp.ParagraphHeading.HEADING1);
-  var sections = (attempt.snapshot && attempt.snapshot.sections) || [], responses = attempt.responses || [], qrows = [];
-  sections.forEach(function(sec, si) { (sec.questions || []).forEach(function(q) {
-    var i = qrows.length, r = responses[i] || {};
-    qrows.push([String(q.number || (i + 1)), String(q.prompt || q.text || '').slice(0, 300), String(r.answer || '(blank)').slice(0, 150), (r.accepted || []).join(' / ').slice(0, 180), r.correct === true ? 'Correct' : r.correct === false ? 'Incorrect' : 'Not graded']);
-  }); });
-  if (qrows.length) {
-    var table = body.appendTable([['Q', 'Question', 'Student answer', 'Accepted answer(s)', 'Result']].concat(qrows.slice(0, 300)));
-    var ts = {}; ts[A.FONT_FAMILY] = 'Google Sans'; ts[A.FONT_SIZE] = 9.5; ts[A.FOREGROUND_COLOR] = INK; ts[A.BORDER_COLOR] = '#BFD8CB'; ts[A.BORDER_WIDTH] = 0.75;
+  function addTable(head, rows, widths) {
+    var table = body.appendTable([head].concat(rows));
+    var ts = {}; ts[A.FONT_FAMILY] = FONT; ts[A.FONT_SIZE] = 9.5; ts[A.FOREGROUND_COLOR] = INK; ts[A.BORDER_COLOR] = '#BFD8CB'; ts[A.BORDER_WIDTH] = 0.75;
     table.setAttributes(ts);
     var hr = table.getRow(0);
     for (var ci = 0; ci < hr.getNumCells(); ci++) { var hc = hr.getCell(ci); hc.setBackgroundColor('#E3F2EA'); hc.editAsText().setBold(true).setForegroundColor(GREEN).setFontSize(9); }
+    return table;
   }
-  para('This AI-generated study guidance should be reviewed alongside the original test. It is not an official IELTS score.', 9, '#607168', false, 12, 0);
+  var total = attempt.gradedCount || attempt.total || 0, mins = Math.max(1, Math.round((Number(attempt.durationSeconds) || 0) / 60));
+  para('IELTS PRACTICE FEEDBACK', 22, GREEN, true, 0, 8, H.TITLE, true);
+  para('Sinh viên: ' + studentName, 11, INK, true, 0, 2, null, true);
+  para('Bài làm: ' + title + ' · ' + String(attempt.skill || '').toUpperCase(), 10.5, INK, false, 0, 2, null, true);
+  para('Kết quả: ' + (attempt.correct == null ? '—' : attempt.correct + '/' + total + ' câu đúng') + (attempt.score == null ? '' : ' · ' + attempt.score + '%') + ' · Thời gian làm bài: ' + mins + ' phút', 10.5, INK, false, 0, 8, null, true);
+  var sections = (attempt.snapshot && attempt.snapshot.sections) || [], responses = attempt.responses || [], byType = {}, order = [], wrong = [], gi = 0;
+  sections.forEach(function(sec) { (sec.questions || []).forEach(function(q) {
+    var r = responses[gi] || {}, ty = String(q.type || 'short-answer'); gi++;
+    if (r.correct === null || r.correct === undefined) return;
+    if (!byType[ty]) { byType[ty] = { ok: 0, n: 0 }; order.push(ty); }
+    byType[ty].n++; if (r.correct) byType[ty].ok++;
+    if (r.correct === false) wrong.push([String(q.number || gi), String(q.prompt || q.text || '').slice(0, 260), String(r.answer || '(bỏ trống)').slice(0, 140), (r.accepted || []).join(' / ').slice(0, 160)]);
+  }); });
+  if (order.length) {
+    para('PERFORMANCE BY TASK TYPE', 14, GREEN, true, 6, 4, H.HEADING1, true);
+    addTable(['Dạng bài', 'Đúng / Tổng', 'Tỉ lệ'], order.sort(function(x, y) { return byType[x].ok / byType[x].n - byType[y].ok / byType[y].n; }).map(function(ty) {
+      var e = byType[ty]; return [ty.replace(/-/g, ' ').replace(/\b\w/g, function(c) { return c.toUpperCase(); }), e.ok + ' / ' + e.n, Math.round(e.ok * 100 / e.n) + '%'];
+    }));
+    para('Sắp xếp từ dạng bài em làm yếu nhất đến mạnh nhất.', 9, '#607168', false, 2, 6, null, true);
+  }
+  String(aiText).split(/\r?\n/).forEach(function(line) {
+    line = String(line || '').trim(); if (!line) return;
+    var isHead = /^[^\w\s]{1,4}\s*[A-Z][A-Z0-9 \-&'’/()]{2,}$/.test(line), isQ = /^❌/.test(line);
+    if (isHead) para(line, 14, GREEN, true, 12, 4, H.HEADING1, true);
+    else if (isQ) para(line, 11, RED, true, 10, 2, null, true);
+    else para(line, 10.5, INK, false, 1, 3, null, false);
+  });
+  para('WRONG ANSWERS AT A GLANCE', 14, GREEN, true, 14, 4, H.HEADING1, true);
+  if (wrong.length) addTable(['Câu', 'Đề bài (trích)', 'Em trả lời', 'Đáp án đúng'], wrong.slice(0, 120));
+  else para('Không có câu nào sai trong bài này. Rất tốt!', 10.5, INK, false, 0, 4, null, true);
+  para('Nhận xét này do AI tạo ra, chỉ mang tính tham khảo và không phải điểm IELTS chính thức. Em nên đối chiếu với đề gốc và trao đổi thêm với thầy/cô.', 9, '#607168', false, 14, 0, null, true);
+  body.editAsText().setFontFamily(FONT);   // one call so the whole document, tables included, is in the font
   doc.saveAndClose();
   var url = doc.getUrl(), shared = vmfbShareFeedbackDoc_(doc.getId(), attempt);
   fsCommit([wMerge('ieltsAttempts/' + id, { feedbackDocUrl:url, feedbackDocAt:new Date().toISOString(), feedbackDocBy:verified.uid, feedbackDocByRole:isTeacher ? 'teacher' : 'student', feedbackDocShared:shared || false }, ['feedbackDocUrl', 'feedbackDocAt', 'feedbackDocBy', 'feedbackDocByRole', 'feedbackDocShared'])]);
