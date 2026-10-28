@@ -319,7 +319,16 @@ function vmfbIeltsFeedbackDoc(p) {
   if (!attempt || attempt.teacherUid !== verified.uid || !attempt.classId) return { success:false, error:'This attempt is not in one of your classes.' };
   var cls = fsGet('classes/' + attempt.classId);
   if (!cls || cls.teacherUid !== verified.uid) return { success:false, error:'You do not have access to this class.' };
-  if (attempt.feedbackDocUrl && /^https:\/\/docs\.google\.com\//.test(attempt.feedbackDocUrl)) return { success:true, data:{ url:attempt.feedbackDocUrl, shared:true, existing:true } };
+  if (attempt.feedbackDocUrl && /^https:\/\/docs\.google\.com\//.test(attempt.feedbackDocUrl)) {
+    var existingId = /\/document\/d\/([A-Za-z0-9_-]+)/.exec(attempt.feedbackDocUrl), existingShared = false;
+    if (existingId) try {
+      var existingFile = DriveApp.getFileById(existingId[1]);
+      if (teacher.email) existingFile.addEditor(String(teacher.email));
+      var existingStudent = attempt.uid ? fsGet('users/' + attempt.uid) : null;
+      if (existingStudent && existingStudent.email) { existingFile.addEditor(String(existingStudent.email)); existingShared = true; }
+    } catch (shareErr) {}
+    return { success:true, data:{ url:attempt.feedbackDocUrl, shared:existingShared, existing:true } };
+  }
   var aiText = String(p.aiText || '').trim().slice(0, 30000);
   if (!aiText) return { success:false, error:'Generate the AI feedback before creating the document.' };
   var title = String(attempt.title || 'IELTS practice').slice(0, 120);

@@ -458,9 +458,12 @@ body:not(.exam-mode) .tk-act .vm-btn:active:not(:disabled){transform:translateY(
 .gl-chart{max-height:360px}
 .rs-filters{margin-bottom:8px}.rs-filters .vm-select{min-width:175px}.rs-date-label{display:flex;align-items:center;gap:6px;font-size:.8rem;color:var(--vm-ink-2);white-space:nowrap}.rs-date-label .vm-input{width:200px;min-width:200px}.rs-nav{padding-bottom:10px;border-bottom:1px solid var(--vm-border-2)}
 .rs-actions{position:relative}.rs-actions>summary{cursor:pointer;list-style:none;border:1px solid var(--vm-border);border-radius:10px;padding:7px 12px;background:#fff;font-weight:700;color:var(--vm-ink-2)}.rs-actions>summary::-webkit-details-marker{display:none}.rs-action-menu{position:absolute;right:0;top:calc(100% + 6px);z-index:20;display:grid;gap:7px;min-width:190px;padding:10px;background:#fff;border:1px solid var(--vm-border-2);border-radius:12px;box-shadow:0 10px 24px rgba(10,63,48,.16)}
+.rs-nav{position:relative;z-index:8;overflow:visible}.rs-actions{z-index:30}.rs-actions>summary{display:block;position:relative;z-index:31;min-width:72px;text-align:center}.rs-action-menu{z-index:32;max-width:min(300px,calc(100vw - 32px))}.rs-action-menu .vm-btn{width:100%;min-height:40px;white-space:normal}
 .rs-summary{grid-template-columns:repeat(4,minmax(0,1fr));margin-top:12px}.rs-summary .gl-card{min-width:0}.rs-progress{margin-bottom:14px}.rs-table-tools{justify-content:space-between;margin:14px 0 6px}.rs-table-tools .vm-input{max-width:280px}.rs-tab th{white-space:nowrap}.rs-tab td{vertical-align:middle}
+.g-student-table{min-width:900px}.g-sort{cursor:pointer;white-space:nowrap}.g-sort:hover{color:var(--vm-primary)}.g-mode-head{text-align:center;white-space:nowrap}.g-detail{margin-top:14px}.g-detail-tabs{margin-bottom:10px}.g-stat-table th,.g-stat-table td{white-space:nowrap;text-align:center}.g-stat-table th:first-child,.g-stat-table td:first-child{text-align:left}.g-progress-svg{width:100%;height:auto;display:block}.g-progress-tip{font-size:.78rem}
 @media(max-width:820px){.rs-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.rs-nav{align-items:flex-start}.rs-nav .il-seg{flex-wrap:wrap;border-radius:14px}.rs-filters .vm-select{flex:1;min-width:140px}.rs-date-label{flex:1}.rs-date-label .vm-input{flex:1;min-width:190px}}
-@media(max-width:480px){.rs-summary{grid-template-columns:1fr 1fr}.rs-summary .gl-card{padding:10px}.rs-summary .gl-big{font-size:1.55rem}.rs-nav .il-seg button{padding:6px 10px;font-size:.78rem}}
+@media(max-width:620px){.rs-nav{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:start}.rs-nav>.il-spacer{display:none}.rs-nav .il-seg{grid-column:1/-1;width:100%;display:flex;justify-content:flex-start;overflow-x:auto;flex-wrap:nowrap;border-radius:14px}.rs-nav .il-seg button{flex:0 0 auto}.rs-actions{grid-column:2;justify-self:end}.rs-action-menu{right:0;min-width:min(260px,calc(100vw - 36px))}.g-detail-tabs{display:flex;overflow-x:auto;flex-wrap:nowrap}.g-detail-tabs button{white-space:nowrap}}
+@media(max-width:480px){.rs-summary{grid-template-columns:1fr 1fr}.rs-summary .gl-card{padding:10px}.rs-summary .gl-big{font-size:1.55rem}.rs-nav .il-seg button{padding:7px 10px;font-size:.78rem}}
 </style></head><body><div id="app"></div><script src="vm-common.js?v=20261019e"></script><script>
 
 
@@ -770,7 +773,7 @@ function drawHistory(){
 }
 function drawGlanceTeacher(){
  setTitle('Glance');
- root().innerHTML='<div class="ielts-wrap wide"><div class="ielts-hero"><h2>Class glance</h2><p>Choose a class to see each student’s scores and the latest practice activity.</p></div><div class="il-toolbar"><select class="vm-select" id="gClass"><option value="">Select a class…</option>'+state.classes.map(function(c){return '<option value="'+esc(c.classId)+'"'+(state.glanceClass===c.classId?' selected':'')+'>'+esc(c.className)+'</option>';}).join('')+'</select><label class="il-note" for="gPeriod" style="margin-left:8px">Period</label><select class="vm-select" id="gPeriod">'+[['14','Last 2 weeks'],['30','Last 1 month'],['60','Last 2 months'],['90','Last 3 months'],['0','All time']].map(function(o){return '<option value="'+o[0]+'"'+((state.glancePeriod||'14')===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('')+'</select></div><div id="gBody"><div class="il-empty">Select a class to view scores.</div></div></div>';
+ root().innerHTML='<div class="ielts-wrap wide"><div class="ielts-hero"><h2>Class glance</h2><p>See how regularly students practise and how their results change in each practice mode.</p></div><div class="il-toolbar"><select class="vm-select" id="gClass"><option value="">Select a class…</option>'+state.classes.map(function(c){return '<option value="'+esc(c.classId)+'"'+(state.glanceClass===c.classId?' selected':'')+'>'+esc(c.className)+'</option>';}).join('')+'</select><label class="il-note" for="gPeriod" style="margin-left:8px">Period</label><select class="vm-select" id="gPeriod">'+[['14','Last 2 weeks'],['30','Last 1 month'],['60','Last 2 months'],['90','Last 3 months'],['0','All time']].map(function(o){return '<option value="'+o[0]+'"'+((state.glancePeriod||'14')===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('')+'</select></div><div id="gBody"><div class="il-empty">Select a class to view scores.</div></div></div>';
  document.getElementById('gPeriod').onchange=function(){state.glancePeriod=this.value;loadClass();};
  document.getElementById('gClass').onchange=function(){state.glanceClass=this.value;state.glanceStudent='';loadClass();};
  function loadClass(){
@@ -789,13 +792,78 @@ function drawGlanceTeacher(){
   var added=state.items.filter(function(i){return i.updatedAt&&Date.now()-new Date(i.updatedAt).getTime()<14*86400000;}).sort(function(a,b){return String(b.updatedAt).localeCompare(String(a.updatedAt));}).slice(0,8).map(function(i){return{t:i.updatedAt,html:'<span class="il-feed-ic new">＋</span><div><b>'+esc(i.ownerName||'Someone')+'</b> added <b>'+esc(i.title)+'</b> <span class="il-note">to the Library · '+i.questionCount+' questions'+(i.review==='pending'?' · <b style="color:var(--il-bdk)">needs check</b>':'')+'</span>'+(i.review==='pending'&&i.canEdit?' <button class="vm-btn vm-btn-accent vm-btn-sm" data-rv="'+esc(i.id)+'">Check</button>':'')+'</div>'};});
   var docsFeed=att.filter(function(a){return docUrlOk(a.feedbackDocUrl);}).sort(function(a,b){return String(b.feedbackDocAt||b.completedAt).localeCompare(String(a.feedbackDocAt||a.completedAt));}).slice(0,8).map(function(a){return{t:a.feedbackDocAt||a.completedAt,html:'<span class="il-feed-ic new">📄</span><div><b>'+esc(a.studentName||a.studentId)+'</b> created a feedback doc for <b>'+esc(a.title)+'</b> <a href="'+esc(a.feedbackDocUrl)+'" target="_blank" rel="noopener">Open doc</a></div>'};});
   var feed=recent.concat(added).concat(docsFeed).sort(function(a,b){return String(b.t).localeCompare(String(a.t));}).slice(0,14);
-  var ids=Object.keys(by).sort(function(a,b){return String(a).localeCompare(String(b),undefined,{numeric:true});});
-  function skillCell(rows,skill){var r=rows.filter(function(a){return a.skill===skill&&typeof a.score==='number';});if(!r.length)return '<span class="il-note">—</span>';var avg=Math.round(r.reduce(function(s,a){return s+a.score;},0)/r.length);return '<b>'+r[r.length-1].score+'%</b> <span class="il-note">avg '+avg+'% · '+r.length+'</span>';}
-  body.innerHTML='<div class="il-glance-grid"><div class="il-panel"><h3 style="margin-top:0">New Practice</h3><div class="il-feed">'+(feed.length?feed.map(function(f){return '<div class="il-feed-row">'+f.html+'<span class="il-note il-feed-t">'+esc(fmtAgo(f.t))+'</span></div>';}).join(''):'<div class="il-note">No recent activity.</div>')+'</div></div><div class="il-panel" style="overflow:auto"><h3 style="margin-top:0">Student scores</h3><table class="vm-table"><thead><tr><th>Student ID</th><th>Student</th><th>Practices</th><th><i class="il-dot" style="background:'+C_READ+'"></i>Reading</th><th><i class="il-dot" style="background:'+C_LIST+'"></i>Listening</th><th>Last practice</th><th></th></tr></thead><tbody>'+(ids.length?ids.map(function(id){var rows=by[id].slice().sort(function(a,b){return String(a.completedAt).localeCompare(String(b.completedAt));}),last=rows[rows.length-1];return '<tr><td data-sort="'+esc(id)+'"><b>'+esc(id)+'</b></td><td>'+esc(names[id]||id)+'</td><td>'+rows.length+'</td><td>'+skillCell(rows,'reading')+'</td><td>'+skillCell(rows,'listening')+'</td><td data-sort="'+(last?esc(last.completedAt):'')+'">'+(last?esc(fmtAgo(last.completedAt)):'<span class="il-note">never</span>')+'</td><td><button class="vm-btn vm-btn-ghost vm-btn-sm" data-st="'+esc(id)+'">View</button></td></tr>';}).join(''):'<tr><td colspan="6">This class has no students yet.</td></tr>')+'</tbody></table></div></div><div id="stView"></div>';
+  var ids=Object.keys(by),sort=state.glanceSort||'id',dir=state.glanceDir||1;
+  function cats(rows,mode,skill){return rows.filter(function(a){return a.skill===skill&&(mode==='full'?(!isTaskAttempt(a)&&isFullAttempt(a)):mode==='part'?(!isTaskAttempt(a)&&!isFullAttempt(a)):isTaskAttempt(a));}).length;}
+  function sumValue(id,key){var rows=by[id]||[],last=rows.slice().sort(function(a,b){return String(b.completedAt).localeCompare(String(a.completedAt));})[0];if(key==='id')return id;if(key==='name')return names[id]||id;if(key==='last')return last?new Date(last.completedAt).getTime():0;var m=/^(full|part|task)-(reading|listening)$/.exec(key);return m?cats(rows,m[1],m[2]):0;}
+  ids.sort(function(a,b){var av=sumValue(a,sort),bv=sumValue(b,sort),c=typeof av==='string'?av.localeCompare(bv,undefined,{numeric:true}):av-bv;return c*dir||String(names[a]||a).localeCompare(String(names[b]||b));});
+  function th(key,label,span){return '<th class="g-sort" data-gsort="'+key+'"'+(span?' colspan="2"':'')+'>'+label+(sort===key?(dir>0?' ▲':' ▼'):' ↕')+'</th>';}
+  var rowsHtml=ids.map(function(id){var rows=by[id],last=rows.slice().sort(function(a,b){return String(a.completedAt).localeCompare(String(b.completedAt));}).pop();return '<tr><td><b>'+esc(id)+'</b></td><td>'+esc(names[id]||id)+'</td>'+['full','part','task'].map(function(m){return '<td>'+cats(rows,m,'reading')+'</td><td>'+cats(rows,m,'listening')+'</td>';}).join('')+'<td>'+(last?esc(fmtAgo(last.completedAt)):'<span class="il-note">never</span>')+'</td><td><button class="vm-btn vm-btn-ghost vm-btn-sm" data-st="'+esc(id)+'">View</button></td></tr>';}).join('');
+  body.innerHTML='<div class="il-glance-grid"><div class="il-panel"><h3 style="margin-top:0">Recent activity</h3><div class="il-feed">'+(feed.length?feed.map(function(f){return '<div class="il-feed-row">'+f.html+'<span class="il-note il-feed-t">'+esc(fmtAgo(f.t))+'</span></div>';}).join(''):'<div class="il-note">No recent activity.</div>')+'</div></div><div class="il-panel"><h3 style="margin-top:0">Student practice</h3><p class="il-note">Attempt counts for the selected period. Sort by Student ID, name, practice counts or last practice.</p><div style="overflow:auto"><table class="vm-table g-student-table"><thead><tr><th rowspan="2" class="g-sort" data-gsort="id">Student ID'+(sort==='id'?(dir>0?' ▲':' ▼'):' ↕')+'</th><th rowspan="2" class="g-sort" data-gsort="name">Student'+(sort==='name'?(dir>0?' ▲':' ▼'):' ↕')+'</th><th colspan="2" class="g-mode-head">Full Test</th><th colspan="2" class="g-mode-head">Individual Practice</th><th colspan="2" class="g-mode-head">Task Type</th><th rowspan="2" class="g-sort" data-gsort="last">Last practice'+(sort==='last'?(dir>0?' ▲':' ▼'):' ↕')+'</th><th rowspan="2">View</th></tr><tr>'+['full-reading','full-listening','part-reading','part-listening','task-reading','task-listening'].map(function(k){return '<th class="g-sort" data-gsort="'+k+'">'+(/reading/.test(k)?'Rea':'Lis')+(sort===k?(dir>0?' ▲':' ▼'):' ↕')+'</th>';}).join('')+'</tr></thead><tbody>'+(rowsHtml||'<tr><td colspan="10" class="il-empty">This class has no students yet.</td></tr>')+'</tbody></table></div></div></div><div id="stView"></div>';
   qa('[data-rv]').forEach(function(b){b.onclick=function(){openReview(b.getAttribute('data-rv'));};});
-  qa('[data-st]').forEach(function(b){b.onclick=function(){var id=b.getAttribute('data-st'),box=document.getElementById('stView');box.innerHTML='<h3 class="il-sect-h">'+esc(names[id]||id)+'</h3><div id="stBox"></div>';glanceView(document.getElementById('stBox'),by[id]||[],{empty:'This student has not completed a practice yet.'});box.scrollIntoView({behavior:'smooth'});};});
+  qa('[data-gsort]').forEach(function(th){th.onclick=function(){var k=th.getAttribute('data-gsort');if(state.glanceSort===k)state.glanceDir=-(state.glanceDir||1);else{state.glanceSort=k;state.glanceDir=k==='id'||k==='name'||k==='last'?1:-1;}drawClass(att,roster);};});
+  qa('[data-st]').forEach(function(b){b.onclick=function(){var id=b.getAttribute('data-st'),box=document.getElementById('stView');state.glanceStudent=id;box.innerHTML='<div class="g-detail"><h3 class="il-sect-h">'+esc(names[id]||id)+' · '+esc(id)+'</h3><div id="stBox"></div></div>';glanceStudentProgress(document.getElementById('stBox'),by[id]||[],names[id]||id);box.scrollIntoView({behavior:'smooth'});};});
  }
  loadClass();
+}
+function signedPoints(v){if(v===null||v===undefined||!isFinite(v))return '—';var n=Math.round(v);return(n>0?'+':'')+n+' pp';}
+function attemptPartScores(a){
+ var secs=(a.snapshot&&a.snapshot.sections)||[],resp=a.responses||[],out=[],ri=0,title=String(a.title||'');
+ secs.forEach(function(s,si){var part=Number(s.part)||Number((/(?:passage|part|p)\s*(\d+)/i.exec(String(s.title||s.label||''))||[])[1])||Number((/(?:passage|part|p)\s*(\d+)/i.exec(title)||[])[1])||si+1,ok=0,n=0;
+  (s.questions||[]).forEach(function(){var r=resp[ri++];if(r&&(r.correct===true||r.correct===false)){n++;if(r.correct)ok++;}});
+  if(n)out.push({part:part,ok:ok,n:n,score:ok*100/n});
+ });
+ return out;
+}
+function glanceStudentProgress(box,attempts,name){
+ var mode=state.glanceMode||'full';
+ function draw(){
+  var tabs=[['full','Full test'],['part','Individual Part'],['task','Task type']];
+  box.innerHTML='<div class="il-toolbar g-detail-tabs">'+tabs.map(function(t){return '<button class="vm-btn '+(mode===t[0]?'vm-btn-primary':'vm-btn-ghost')+'" data-gmode="'+t[0]+'">'+t[1]+'</button>';}).join('')+'</div><div class="il-panel"><div id="gStudentMode"></div></div>';
+  box.querySelectorAll('[data-gmode]').forEach(function(b){b.onclick=function(){mode=b.getAttribute('data-gmode');state.glanceMode=mode;draw();};});
+  var body=document.getElementById('gStudentMode');
+  if(mode==='full')drawGlanceFullTests(body,attempts,name);
+  else if(mode==='part')drawGlanceParts(body,attempts);
+  else drawGlanceTaskTypes(body,attempts);
+ }
+ draw();
+}
+function drawGlanceFullTests(el,attempts,name){
+ var rows=attempts.filter(function(a){return !isTaskAttempt(a)&&isFullAttempt(a)&&typeof a.correct==='number';}).sort(function(a,b){return String(a.completedAt).localeCompare(String(b.completedAt));});
+ if(!rows.length){el.innerHTML='<div class="il-empty">No scored full tests in this period.</div>';return;}
+ var w=Math.max(320,Math.min(1000,el.clientWidth||760)),h=w<500?260:320,pl=52,pr=24,pt=22,pb=48,maxN=Math.max.apply(null,['reading','listening'].map(function(s){return rows.filter(function(a){return a.skill===s;}).length;}));
+ function X(i){return pl+(w-pl-pr)*(maxN<2?.5:i/(maxN-1));}function Y(v){return pt+(h-pt-pb)*(1-v/40);}
+ var grid='';[0,10,20,30,40].forEach(function(v){grid+='<line x1="'+pl+'" x2="'+(w-pr)+'" y1="'+Y(v)+'" y2="'+Y(v)+'" stroke="#E7E2EC" stroke-dasharray="'+(v?'3 5':'0')+'"/><text x="'+(pl-8)+'" y="'+(Y(v)+4)+'" text-anchor="end" font-size="11" fill="#5C7482">'+v+'/40</text>';});
+ var series=['reading','listening'].map(function(skill){var col=skill==='reading'?C_READ:C_LIST,r=rows.filter(function(a){return a.skill===skill;}),pts=r.map(function(a,i){return{x:X(i),y:Y(Math.max(0,Math.min(40,a.correct))),a:a,i:i};}),path=monoPath(pts),line=pts.length>1?'<path d="'+path+'" fill="none" stroke="'+col+'" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>':'';
+  return line+pts.map(function(p){var tip=name+' · '+(skill==='reading'?'Reading':'Listening')+' · Attempt '+(p.i+1)+' · '+p.a.correct+'/40 correct\n'+(p.a.title||'Full test')+'\n'+fmtStamp(p.a.completedAt)+' · '+fmtDurationSeconds(p.a.durationSeconds);return '<circle class="gl-pt" cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="5" fill="#fff" stroke="'+col+'" stroke-width="2.5" tabindex="0" aria-label="'+esc(tip.replace(/\n/g,', '))+'" data-tip="'+esc(tip)+'"/>';}).join('');}).join('');
+ var ticks=[];for(var i=0;i<maxN;i++)ticks.push('<text x="'+X(i)+'" y="'+(h-25)+'" text-anchor="middle" font-size="11" fill="#5C7482">'+(i+1)+'</text>');
+ el.innerHTML='<h3 style="margin:0 0 4px">Full test scores</h3><p class="il-note">Each point is one full test. Vertical scale is correct answers out of 40; horizontal scale is attempt number.</p><div class="gl-legend"><span class="gl-leg"><i style="background:'+C_READ+'"></i>Reading</span><span class="gl-leg"><i style="background:'+C_LIST+'"></i>Listening</span><span class="il-note">Hover a point for test, score, date and time spent.</span></div><div class="gl-chart-wrap"><svg viewBox="0 0 '+w+' '+h+'" width="'+w+'" height="'+h+'" class="g-progress-svg gl-chart" role="img" aria-label="Full test correct answers by attempt">'+grid+'<line x1="'+pl+'" x2="'+(w-pr)+'" y1="'+Y(0)+'" y2="'+Y(0)+'" stroke="#C9D8D0"/> '+series+ticks.join('')+'<text x="'+((pl+w-pr)/2)+'" y="'+(h-5)+'" text-anchor="middle" font-size="10" fill="#5C7482">Number of attempts</text></svg><div class="gl-tip"></div></div>';
+ bindChartTips(el.querySelector('.gl-chart-wrap'));
+}
+function drawGlanceParts(el,attempts){
+ var all=attempts.filter(function(a){return !isTaskAttempt(a)&&!isFullAttempt(a);}),order=all.slice().sort(function(a,b){return String(a.completedAt).localeCompare(String(b.completedAt));});
+ function table(skill,count,label){var prev={},body='';
+  var rows=order.filter(function(a){return a.skill===skill;});
+  rows.forEach(function(a,index){var scores=attemptPartScores(a),current={},deltas=[];scores.forEach(function(p){current[p.part]=p;if(prev[p.part])deltas.push(p.score-prev[p.part].score);});
+   var cells=Array.apply(null,Array(count)).map(function(_,i){var p=current[i+1];return p?'<td><b>'+p.ok+'/'+p.n+'</b><div class="il-note">'+Math.round(p.score)+'%</div></td>':'<td>—</td>';}).join('');
+   var change=deltas.length?reportMean(deltas):null;
+   body+='<tr><td><b>'+(index+1)+'. '+esc(a.title||'Individual part')+'</b><div class="il-note">'+esc(fmtStamp(a.completedAt))+' · '+fmtDurationSeconds(a.durationSeconds)+'</div></td>'+cells+'<td><b>'+signedPoints(change)+'</b></td></tr>';
+   Object.keys(current).forEach(function(k){prev[k]=current[k];});
+  });
+  var headers=Array.apply(null,Array(count)).map(function(_,i){return '<th>'+label+' '+(i+1)+'</th>';}).join('');
+  return '<div class="il-panel"><h3 style="margin:0 0 8px">'+(skill==='reading'?'Reading':'Listening')+' · '+(skill==='reading'?'3 passages':'4 parts')+'</h3><div style="overflow:auto"><table class="vm-table g-stat-table"><thead><tr><th>Attempt</th>'+headers+'<th>Change</th></tr></thead><tbody>'+(body||'<tr><td colspan="'+(count+2)+'" class="il-note">No individual-part attempts.</td></tr>')+'</tbody></table></div><p class="il-note">Scores show correct / graded questions and accuracy. Change compares this attempt with the previous attempt for the same part.</p></div>';
+ }
+ el.innerHTML='<p class="il-note">Each part cell shows the latest correct / graded questions. Beneath it: change from the first to latest attempt for that part. Change is in percentage points.</p><div class="rc-grid" style="grid-template-columns:repeat(auto-fit,minmax(320px,1fr));align-items:start">'+table('reading',3,'Passage')+table('listening',4,'Part')+'</div>';
+}
+function drawGlanceTaskTypes(el,attempts){
+ function table(skill){var rows=attempts.filter(function(a){return isTaskAttempt(a)&&a.skill===skill;}).sort(function(a,b){return String(a.completedAt).localeCompare(String(b.completedAt));}),byType={},types=[],counts={};
+  rows.forEach(function(a,i){attemptTypes(a).forEach(function(t){if(!t.n)return;if(!byType[t.type]){byType[t.type]=[];types.push(t.type);}byType[t.type][i]={ok:t.ok,n:t.n,pc:t.ok*100/t.n};});});
+  var heads=rows.map(function(a,i){return '<th title="'+esc((a.title||'Task type')+' · '+fmtStamp(a.completedAt))+'">Attempt '+(i+1)+'</th>';}).join('');
+  function change(list){var v=list.filter(Boolean);return v.length>1?v[v.length-1].pc-v[0].pc:null;}
+  var body=types.map(function(type){var list=byType[type]||[],d=change(list);return '<tr><th>'+esc(typeName(type))+'</th>'+rows.map(function(_,i){var p=list[i];return p?'<td><b>'+Math.round(p.pc)+'%</b><div class="il-note">'+p.ok+'/'+p.n+'</div></td>':'<td>—</td>';}).join('')+'<td><b>'+signedPoints(d)+'</b></td></tr>';}).join('');
+  var footer='<tr><th>Change vs first attempt</th>'+rows.map(function(_,i){if(i===0)return '<td>—</td>';var deltas=types.map(function(t){var list=byType[t]||[],first=list[0],cur=list[i];return first&&cur?cur.pc-first.pc:null;}).filter(function(v){return v!==null;});return '<td><b>'+signedPoints(deltas.length?reportMean(deltas):null)+'</b></td>';}).join('')+'<td>pp</td></tr>';
+  return '<div class="il-panel"><h3 style="margin:0 0 8px">'+(skill==='reading'?'Reading':'Listening')+' task types</h3><p class="il-note">Each attempt cell shows accuracy and correct / total questions. Change is percentage points.</p>'+(types.length?'<div style="overflow:auto"><table class="vm-table g-stat-table"><thead><tr><th>Task type</th>'+heads+'<th>Change</th></tr></thead><tbody>'+body+footer+'</tbody></table></div>':'<div class="il-empty">No task-type attempts in this skill for the selected period.</div>')+'</div>';
+ }
+ el.innerHTML='<div class="rc-grid" style="grid-template-columns:repeat(auto-fit,minmax(340px,1fr));align-items:start">'+table('reading')+table('listening')+'</div>';
 }
 
 /* ───────── Library: by test / by task type ───────── */
@@ -1924,7 +1992,7 @@ function teacherFeedbackPrompt(a){
  return 'You are an IELTS Reading and Listening teacher writing personalised study feedback for a Vietnamese EFL university student. Write clear, supportive English as plain text. Use these headings on separate lines: 🎯 OVERALL, ✅ STRENGTHS, 🔍 QUESTIONS TO REVIEW, 🧠 WHY MISTAKES HAPPEN, 📅 PRACTICE PLAN, 💡 TIP. Cover every question in questionsToReview without skipping. For each, explain why an accepted answer is correct using the passage or audioScript; quote or paraphrase relevant evidence. Compare the student answer with acceptedAnswers and explain a plausible cause without claiming certainty. If context is missing, say so. If no questions need review, say no incorrect graded answers were recorded and offer a focused next step. Give three short practice steps. Do not invent facts or imply this is an official IELTS band. Per-question timing and answer-change telemetry are not stored for teacher-created documents, so do not speculate about them. End with: AI-generated study guidance; please review with your teacher.\nDATA: '+JSON.stringify(data);
 }
 function createTeacherFeedbackDoc(attemptId,btn){
- var all=(state.rsCache&&state.rsCache[rs.classId+'|all']&&state.rsCache[rs.classId+'|all'].att)||[],a=all.filter(function(x){return attId(x)===attemptId;})[0];
+ var cid=state.rs&&state.rs.classId,all=(state.rsCache&&state.rsCache[cid+'|all']&&state.rsCache[cid+'|all'].att)||[],a=all.filter(function(x){return attId(x)===attemptId;})[0];
  if(!a)return say('Could not find this attempt. Refresh the results and try again.');
  if(docUrlOk(a.feedbackDocUrl)){window.open(a.feedbackDocUrl,'_blank','noopener');return;}
  var keys=aiKeys();
@@ -1938,6 +2006,15 @@ function createTeacherFeedbackDoc(attemptId,btn){
   VM.toast(d.shared===false?'Google Doc created. Student sharing may need to be enabled by the teacher.':'Google Doc created and shared with the student.','ok',5000);
   window.open(d.url,'_blank','noopener');
  }).catch(function(e){if(btn){btn.disabled=false;btn.textContent='Create Google Doc';}say(e.message||'Could not create the feedback document.');});
+}
+function openClassFeedbackDoc(attemptId,btn){
+ var cid=state.rs&&state.rs.classId,all=(state.rsCache&&state.rsCache[cid+'|all']&&state.rsCache[cid+'|all'].att)||[],a=all.filter(function(x){return attId(x)===attemptId;})[0];
+ if(!a||!docUrlOk(a.feedbackDocUrl))return say('This attempt does not have a Google Doc yet.');
+ var win=window.open('about:blank','_blank');if(!win)return say('Allow pop-ups for this site to open the Google Doc.');
+ try{win.document.title='Opening Google Doc…';win.document.body.innerHTML='<p style="font:16px Arial,sans-serif;padding:24px">Checking document access…</p>';}catch(e){}
+ if(btn){btn.disabled=true;btn.textContent='Opening…';}
+ var timeout=new Promise(function(_,reject){setTimeout(function(){reject(new Error('The document access check timed out. Opening the saved Google Doc link directly.'));},25000);});
+ Promise.race([call('ielts.feedbackDoc.create',{attemptId:a.id,aiText:''}),timeout]).then(function(d){win.location.href=d.url||a.feedbackDocUrl;}).catch(function(e){win.location.href=a.feedbackDocUrl;VM.toast(e.message,'warn',6000);}).then(function(){if(btn){btn.disabled=false;btn.textContent='Open Google Doc';}});
 }
 function drawReview(){
  var x=state.active,rv=state.review,a=rv.attempt,tel=rv.tel,ins=insightsOf(x,a,tel);
@@ -2501,9 +2578,9 @@ function teacherResults(){
  rs.includePartials=true;
  rs.fromDate=rs.fromDate||localDateInput(new Date(now.getTime()-29*86400000));rs.toDate=rs.toDate||localDateInput(now);
  state.rsCache=state.rsCache||{};
- ex.innerHTML='<div class="il-panel rs-panel" style="margin-top:16px"><h3 style="margin:0 0 10px">Class results</h3><div class="il-toolbar rs-filters"><select class="vm-select" id="rzClass" aria-label="Class"><option value="">Select a class</option>'+state.classes.map(function(c){return '<option value="'+esc(c.classId)+'"'+(c.classId===rs.classId?' selected':'')+'>'+esc(c.className)+'</option>';}).join('')+'</select><select class="vm-select" id="rzSkill" aria-label="Skill"><option value="all">Reading + Listening</option><option value="reading">Reading</option><option value="listening">Listening</option></select><label class="rs-date-label">From Date <input class="vm-input" id="rzFrom" type="date" value="'+esc(rs.fromDate)+'" aria-label="From Date"></label><label class="rs-date-label">To Date <input class="vm-input" id="rzTo" type="date" value="'+esc(rs.toDate)+'" aria-label="To Date"></label></div><div class="il-toolbar rs-nav"><div class="il-seg" id="rzView"><button data-v="full">Full test</button><button data-v="parts">Individual Part</button><button data-v="type">Task type</button></div><span class="il-spacer"></span><details class="rs-actions"><summary>More</summary><div class="rs-action-menu"><button class="vm-btn vm-btn-ghost vm-btn-sm" data-aux-view="classes">Compare classes</button><button class="vm-btn vm-btn-ghost vm-btn-sm" data-aux-view="attempts">Manage attempts</button><button class="vm-btn vm-btn-ghost vm-btn-sm" id="rzRep" title="Create a short class progress report">Export report</button><button class="vm-btn vm-btn-ghost vm-btn-sm" id="rzPub" title="Refresh the ranks students see">Update student ranks</button><span class="il-note" id="rzRank" aria-live="polite"></span></div></details></div><div id="rzBody"></div></div>';
+ ex.innerHTML='<div class="il-panel rs-panel" style="margin-top:16px"><h3 style="margin:0 0 10px">Class results</h3><div class="il-toolbar rs-filters"><select class="vm-select" id="rzClass" aria-label="Class"><option value="">Select a class</option>'+state.classes.map(function(c){return '<option value="'+esc(c.classId)+'"'+(c.classId===rs.classId?' selected':'')+'>'+esc(c.className)+'</option>';}).join('')+'</select><select class="vm-select" id="rzSkill" aria-label="Skill"><option value="all">Reading + Listening</option><option value="reading">Reading</option><option value="listening">Listening</option></select><label class="rs-date-label">From Date <input class="vm-input" id="rzFrom" type="date" value="'+esc(rs.fromDate)+'" aria-label="From Date"></label><label class="rs-date-label">To Date <input class="vm-input" id="rzTo" type="date" value="'+esc(rs.toDate)+'" aria-label="To Date"></label></div><div class="il-toolbar rs-nav"><div class="il-seg" id="rzView"><button data-v="full">Full test</button><button data-v="parts">Individual Part</button><button data-v="type">Task type</button></div><span class="il-spacer"></span><details class="rs-actions"><summary>More</summary><div class="rs-action-menu"><button class="vm-btn vm-btn-ghost vm-btn-sm" data-aux-view="classes">Compare classes</button><button class="vm-btn vm-btn-ghost vm-btn-sm" id="rzRep" title="Export a single-class progress report">Export report</button></div></details></div><div id="rzBody"></div></div>';
  document.getElementById('rzSkill').value=rs.skill;
- function setSeg(){qa('#rzView button').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-v')===rs.view);});var cs=document.getElementById('rzClass'),pb=document.getElementById('rzPub'),rk=document.getElementById('rzRank');if(cs)cs.style.display=rs.view==='classes'?'none':'';if(pb)pb.style.display=rs.view==='classes'?'none':'';if(rk)rk.style.display=rs.view==='classes'?'none':'';}
+ function setSeg(){qa('#rzView button').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-v')===rs.view);});var cs=document.getElementById('rzClass');if(cs)cs.style.display=rs.view==='classes'?'none':'';}
  setSeg();
  qa('#rzView button').forEach(function(b){b.onclick=function(){rs.view=b.getAttribute('data-v');rs.what=rs.view==='type'?'type':(rs.view==='parts'?'part':'full');rs.type='';rs.lesson='';rs.student='';setSeg();if(!data)load();else render();};});
  qa('[data-aux-view]').forEach(function(b){b.onclick=function(){rs.view=b.getAttribute('data-aux-view');if(rs.view==='classes'&&rs.what==='part')rs.what='full';setSeg();if(rs.view==='classes')render();else if(!data)load();else render();var m=b.closest('details');if(m)m.open=false;};});
@@ -2523,7 +2600,6 @@ function teacherResults(){
   }).catch(function(e){pub[cls]=0;if(note)note.textContent='';if(manual)say(e.message);});
  }
  document.getElementById('rzRep').onclick=function(){reportDialog(rs);};
- document.getElementById('rzPub').onclick=function(){if(!rs.classId)return say('Choose a class first.');pubRanks(true);};
  function load(){
   var body=document.getElementById('rzBody');
   if(rs.view==='classes')return render();
@@ -2653,45 +2729,39 @@ function studentProgress(att){   // full-test scores in time order: mean of the 
  var k=Math.min(3,Math.floor(n/2)),first=reportMean(rows.slice(0,k).map(function(r){return r.score;})),last=reportMean(rows.slice(n-k).map(function(r){return r.score;}));
  return{n:n,first:first,last:last,delta:last-first};
 }
+function reportProgressForMode(rows,mode){
+ var deltas=[];
+ if(mode==='full'){
+  var p=progressFromRows(rows.filter(function(a){return !isTaskAttempt(a)&&isFullAttempt(a);}).map(function(a){return glanceRows([a],{skill:'all',mode:'full'})[0];}).filter(Boolean));
+  return p?p.delta:null;
+ }
+ if(mode==='part'){
+  var byPart={};rows.filter(function(a){return !isTaskAttempt(a)&&!isFullAttempt(a);}).forEach(function(a){attemptPartScores(a).forEach(function(p){(byPart[a.skill+'|'+p.part]=byPart[a.skill+'|'+p.part]||[]).push(p.score);});});
+  Object.keys(byPart).forEach(function(k){var x=byPart[k];if(x.length>1)deltas.push(x[x.length-1]-x[0]);});
+ }else{
+  var byType={};rows.filter(isTaskAttempt).forEach(function(a){attemptTypes(a).forEach(function(t){if(!t.n)return;(byType[a.skill+'|'+t.type]=byType[a.skill+'|'+t.type]||[]).push(t.ok*100/t.n);});});
+  Object.keys(byType).forEach(function(k){var x=byType[k];if(x.length>1)deltas.push(x[x.length-1]-x[0]);});
+ }
+ return deltas.length?reportMean(deltas):null;
+}
 function classReport(c){
  var att=c.d.att,roster=c.d.roster,names={},by=groupBy(att,'studentId');
- roster.forEach(function(s){names[s.studentId]=s.name;});att.forEach(function(a){names[a.studentId]=names[a.studentId]||a.studentName;});
- var ids=Object.keys(names),active=ids.filter(function(id){return (by[id]||[]).length;}),days=0,minutes=0;
- active.forEach(function(id){var set={};by[id].forEach(function(a){set[dayKey(a.completedAt)]=1;minutes+=Math.round((a.durationSeconds||0)/60);});days+=Object.keys(set).length;});
- var prog=[];ids.forEach(function(id){var p=studentProgress(by[id]||[]);if(p)prog.push({id:id,name:names[id]||id,p:p});});
- var M=resTypeMatrix(att,roster,{skill:'all'}),types=Object.keys(M.cls).filter(function(t){return M.cls[t].n>=10;}).map(function(t){return{t:t,pc:Math.round(M.cls[t].ok*100/M.cls[t].n),n:M.cls[t].n};}).sort(function(a,b){return a.pc-b.pc;});
- var base=function(sk){return classBaseline(att.filter(function(a){return sk==='all'||a.skill===sk;}),{skill:sk,mode:'full',type:''});};
- return{name:c.name,students:ids.length,active:active.length,attempts:att.length,days:days,minutes:minutes,
-  daysPerStudent:ids.length?days/ids.length:0,perActive:active.length?att.length/active.length:0,
-  avg:base('all'),avgR:base('reading'),avgL:base('listening'),
-  prog:prog,improved:prog.filter(function(x){return x.p.delta>=5;}).length,declined:prog.filter(function(x){return x.p.delta<=-5;}).length,
-  avgDelta:prog.length?reportMean(prog.map(function(x){return x.p.delta;})):null,
-  inactive:ids.filter(function(id){return !(by[id]||[]).length;}).map(function(id){return names[id]||id;}),
-  weak:types.slice(0,3),strong:types.slice(-3).reverse()};
-}
-function buildReport(cls,periodLabel){
- var R=cls.map(classReport),f1=function(v){return v===null||v===undefined?'—':Math.round(v)+'%';},sg=function(v){return v===null||v===undefined?'—':(v>0?'+':'')+Math.round(v)+' pts';};
- var medal=function(i){return ['🥇','🥈','🥉'][i]||String(i+1);},B=[{t:'h1',x:'📊 Class report · '+(cls.length===1?cls[0].name:cls.length+' classes')},{t:'p',x:'🗓️ '+periodLabel+' · created '+fmtStamp(new Date().toISOString())}];
- var byDil=R.slice().sort(function(a,b){return b.daysPerStudent-a.daysPerStudent;});
- B.push({t:'h2',x:'🔥 1. Diligence: which class practises most'});
- B.push({t:'table',head:['#','Class','Students','Practised','Attempts','Attempts per active student','Practice days per student','Minutes'],rows:byDil.map(function(r,i){return [medal(i),r.name,String(r.students),r.active+'/'+r.students+' ('+(r.students?Math.round(r.active*100/r.students):0)+'%)',String(r.attempts),r.perActive.toFixed(1),r.daysPerStudent.toFixed(1),String(r.minutes)];})});
- B.push({t:'p',x:'Ranked by practice days per student (all students in the class, including those who did not practise). "Practised" is the share of students with at least one attempt in the period.'});
- var byAvg=R.slice().sort(function(a,b){return (b.avg===null?-1:b.avg)-(a.avg===null?-1:a.avg);});
- B.push({t:'h2',x:'🏆 2. Results: full tests'});
- B.push({t:'table',head:['#','Class','Average','Reading','Listening'],rows:byAvg.map(function(r,i){return [medal(i),r.name,f1(r.avg),f1(r.avgR),f1(r.avgL)];})});
- B.push({t:'p',x:'Class average = mean of each student’s average on whole Reading and Listening tests, so a student with many attempts counts once.'});
- B.push({t:'h2',x:'📈 3. Progress: how much students improved'});
- B.push({t:'table',head:['Class','Students with 2+ full tests','🌟 Improved (+5 or more)','➖ About the same','⚠️ Declined (−5 or more)','Average change'],rows:R.map(function(r){var n=r.prog.length;return [r.name,String(n),r.improved+(n?' ('+Math.round(r.improved*100/n)+'%)':''),String(n-r.improved-r.declined),r.declined+(n?' ('+Math.round(r.declined*100/n)+'%)':''),sg(r.avgDelta)];})});
- B.push({t:'p',x:'Change = average of a student’s last (up to) 3 full-test scores minus the average of the first (up to) 3 in the period.'});
- R.forEach(function(r){
-  var top=r.prog.slice().sort(function(a,b){return b.p.delta-a.p.delta;}).filter(function(x){return x.p.delta>0;}).slice(0,5),down=r.prog.filter(function(x){return x.p.delta<=-10;}).sort(function(a,b){return a.p.delta-b.p.delta;}).slice(0,5);
-  B.push({t:'h3',x:'🏫 '+r.name});
-  B.push({t:'p',x:'✅ Practised: '+r.active+'/'+r.students+' students · average '+f1(r.avg)+' · '+r.attempts+' attempts.'});
-  if(top.length)B.push({t:'table',head:['🌟 Most improved','From','To','Change','Full tests'],rows:top.map(function(x){return [x.name,f1(x.p.first),f1(x.p.last),'📈 '+sg(x.p.delta),String(x.p.n)];})});
-  if(down.length)B.push({t:'table',head:['⚠️ Needs attention (score dropped)','From','To','Change'],rows:down.map(function(x){return [x.name,f1(x.p.first),f1(x.p.last),'📉 '+sg(x.p.delta)];})});
-  if(r.weak.length)B.push({t:'p',x:'🎯 Weakest task types: '+r.weak.map(function(t){return typeName(t.t)+' '+t.pc+'%';}).join(', ')+(r.strong.length?'. 💪 Strongest: '+r.strong.map(function(t){return typeName(t.t)+' '+t.pc+'%';}).join(', '):'')+'. (Task types with at least 10 questions.)'});
-  if(r.inactive.length)B.push({t:'p',x:'😴 No attempts in this period ('+r.inactive.length+'): '+r.inactive.slice(0,25).join(', ')+(r.inactive.length>25?', …':'')+'.'});
+ roster.forEach(function(s){names[s.studentId]=s.name;});att.forEach(function(a){names[a.studentId]=names[a.studentId]||a.studentName||a.studentId;});
+ var ids=Object.keys(names),minutes=att.reduce(function(n,a){return n+Math.round((Number(a.durationSeconds)||0)/60);},0),days={};att.forEach(function(a){days[dayKey(a.completedAt)]=1;});
+ var modes={full:{reading:0,listening:0},part:{reading:0,listening:0},task:{reading:0,listening:0}},titles={};
+ att.forEach(function(a){var mode=isTaskAttempt(a)?'task':(isFullAttempt(a)?'full':'part'),skill=a.skill==='listening'?'listening':'reading',k=mode+'|'+skill;modes[mode][skill]++;var title=String(a.title||'Practice'),key=mode+'|'+skill+'|'+title,e=titles[key]||(titles[key]={mode:mode,skill:skill,title:title,attempts:0,students:{},minutes:0,ok:0,n:0});e.attempts++;e.students[a.studentId]=1;e.minutes+=Math.round((Number(a.durationSeconds)||0)/60);
+  if(mode==='task')attemptTypes(a).forEach(function(t){e.ok+=t.ok;e.n+=t.n;});else{e.ok+=Number(a.correct)||0;e.n+=Number(a.gradedCount)||0;}
  });
+ var students=ids.map(function(id){var rows=(by[id]||[]).slice().sort(function(a,b){return String(a.completedAt).localeCompare(String(b.completedAt));}),s={id:id,name:names[id]||id,fullR:0,fullL:0,partR:0,partL:0,taskR:0,taskL:0,last:rows.length?rows[rows.length-1].completedAt:'',n:rows.length};
+  rows.forEach(function(a){var mode=isTaskAttempt(a)?'task':(isFullAttempt(a)?'full':'part'),sk=a.skill==='listening'?'L':'R';s[mode+sk]++;});
+  s.fullChange=reportProgressForMode(rows,'full');s.partChange=reportProgressForMode(rows,'part');s.taskChange=reportProgressForMode(rows,'task');return s;
+ });
+ var titlesList=Object.keys(titles).map(function(k){var e=titles[k];return{mode:e.mode,skill:e.skill,title:e.title,attempts:e.attempts,students:Object.keys(e.students).length,minutes:e.minutes,score:e.n?Math.round(e.ok*100/e.n):null,ok:e.ok,n:e.n};}).sort(function(a,b){return ['full','part','task'].indexOf(a.mode)-['full','part','task'].indexOf(b.mode)||a.skill.localeCompare(b.skill)||a.title.localeCompare(b.title);});
+ var modeRows=['full','part','task'].map(function(mode){var list=att.filter(function(a){return mode==='task'?isTaskAttempt(a):(!isTaskAttempt(a)&&(mode==='full'?isFullAttempt(a):!isFullAttempt(a)));}),active={};list.forEach(function(a){active[a.studentId]=1;});var mins=list.reduce(function(n,a){return n+Math.round((Number(a.durationSeconds)||0)/60);},0),ok=0,n=0;list.forEach(function(a){if(mode==='task')attemptTypes(a).forEach(function(t){ok+=t.ok;n+=t.n;});else{ok+=Number(a.correct)||0;n+=Number(a.gradedCount)||0;}});return[mode==='full'?'Full test':mode==='part'?'Individual Part':'Task type',list.length,Object.keys(active).length,mins,list.length?Math.round(mins/list.length):0,n?Math.round(ok*100/n)+'%':'—'];});
+ return{name:c.name,students:ids.length,attempts:att.length,minutes:minutes,days:Object.keys(days).length,modes:modes,modeRows:modeRows,studentsRows:students,titles:titlesList};
+}
+function buildReport(c,periodLabel){
+ var r=classReport(c),B=[{t:'h1',x:'📊 Class progress report · '+r.name},{t:'p',x:'🗓️ '+periodLabel+' · created '+fmtStamp(new Date().toISOString())},{t:'p',x:'This report covers '+r.students+' enrolled students, '+r.attempts+' attempts across '+r.days+' practice days, and '+r.minutes+' total minutes.'},{t:'h2',x:'Practice by mode'},{t:'table',head:['Mode','Attempts','Students practised','Total minutes','Avg min / attempt','Avg accuracy'],rows:r.modeRows},{t:'p',x:'Practice counts split Reading and Listening; student counts and accuracy are calculated separately for each mode.'},{t:'h2',x:'Tests and parts practised'},{t:'table',head:['Mode','Skill','Test / part','Attempts','Students','Minutes','Correct','Accuracy'],rows:r.titles.map(function(x){return[x.mode==='full'?'Full test':x.mode==='part'?'Individual Part':'Task type',x.skill==='reading'?'Reading':'Listening',x.title,x.attempts,x.students,x.minutes,x.n?x.ok+'/'+x.n:'—',x.score===null?'—':x.score+'%'];})},{t:'h2',x:'Student diligence and progress'},{t:'table',head:['Student ID','Student','Full test R/L','Individual part R/L','Task type R/L','Total attempts','Last practice','Full change','Part change','Task change'],rows:r.studentsRows.map(function(s){return[s.id,s.name,s.fullR+' / '+s.fullL,s.partR+' / '+s.partL,s.taskR+' / '+s.taskL,s.n,s.last?fmtStamp(s.last):'—',signedPoints(s.fullChange),signedPoints(s.partChange),signedPoints(s.taskChange)];})},{t:'p',x:'Changes are percentage points from the first to latest scored practice within each mode. Individual Part and Task Type changes average the available part/type trends; one attempt alone has no change value.'}];
  return B;
 }
 function reportHtml(blocks){
@@ -2701,20 +2771,19 @@ function reportHtml(blocks){
   return '<'+b.t+'>'+esc(b.x)+'</'+b.t+'>';}).join('')+'</body></html>';
 }
 function reportDialog(rs){
- var all=state.classes||[],sel=(rs.cmp&&rs.cmp.length?rs.cmp:(rs.classId?[rs.classId]:all.slice(0,6).map(function(c){return c.classId;}))).slice();
+ var all=state.classes||[];
  var box=document.createElement('div');box.className='il-busy';box.id='rpBox';
- box.innerHTML='<div class="il-busy-card" style="max-width:520px;text-align:left;width:94%;max-height:90vh;overflow:auto"><h3 style="margin:0 0 6px">Export class report</h3><p class="il-note" style="margin:0 0 10px">A short report: which class practises most, how students progressed, weakest task types and who has not practised.</p><label class="vm-label">From Date</label><input class="vm-input" id="rpFrom" type="date" value="'+esc(rs.fromDate)+'"><label class="vm-label" style="margin-top:10px">To Date</label><input class="vm-input" id="rpTo" type="date" value="'+esc(rs.toDate)+'"><label class="vm-label" style="margin-top:10px">Classes</label><div class="il-students">'+all.map(function(c){return '<label class="il-opt"><input type="checkbox" data-rc="'+esc(c.classId)+'"'+(sel.indexOf(c.classId)>=0?' checked':'')+'> '+esc(c.className)+'</label>';}).join('')+'</div><div id="rpErr" class="il-error"></div><div class="il-row" style="margin-top:12px;flex-wrap:wrap"><button class="vm-btn vm-btn-primary" id="rpDoc">Create Google Doc</button><button class="vm-btn vm-btn-ghost" id="rpDl">Download .doc</button><button class="vm-btn vm-btn-ghost" id="rpCopy">Copy to paste</button><button class="vm-btn vm-btn-ghost" id="rpX">Close</button></div><p class="il-note" style="margin:8px 0 0">“Download” opens in Word and can be uploaded to Google Docs. “Copy” keeps the tables when you paste into a Google Doc.</p></div>';
+ box.innerHTML='<div class="il-busy-card" style="max-width:620px;text-align:left;width:94%;max-height:90vh;overflow:auto"><h3 style="margin:0 0 6px">Export class report</h3><p class="il-note" style="margin:0 0 10px">One class per report. The summary covers practice volume, time spent and progress in Full test, Individual Part and Task type.</p><label class="vm-label" for="rpClass">Class</label><select class="vm-select" id="rpClass" style="width:100%"><option value="">Select one class…</option>'+all.map(function(c){return '<option value="'+esc(c.classId)+'"'+(rs.classId===c.classId?' selected':'')+'>'+esc(c.className)+'</option>';}).join('')+'</select><label class="vm-label" style="margin-top:10px">From Date</label><input class="vm-input" id="rpFrom" type="date" value="'+esc(rs.fromDate)+'"><label class="vm-label" style="margin-top:10px">To Date</label><input class="vm-input" id="rpTo" type="date" value="'+esc(rs.toDate)+'"><div id="rpErr" class="il-error"></div><div class="il-row" style="margin-top:12px;flex-wrap:wrap"><button class="vm-btn vm-btn-primary" id="rpDoc">Create Google Doc</button><button class="vm-btn vm-btn-ghost" id="rpDl">Download .doc</button><button class="vm-btn vm-btn-ghost" id="rpCopy">Copy to paste</button><button class="vm-btn vm-btn-ghost" id="rpX">Close</button></div><p class="il-note" style="margin:8px 0 0">The report includes mode totals, practice titles, participation, time and per-student attempt counts and progress.</p></div>';
  document.body.appendChild(box);
- function chosen(){return qa('#rpBox [data-rc]').filter(function(i){return i.checked;}).map(function(i){return i.getAttribute('data-rc');});}
  function make(then){
-  var ids=chosen(),err=document.getElementById('rpErr');err.textContent='';
-  if(!ids.length)return err.textContent='Tick at least one class.';
+  var id=document.getElementById('rpClass').value,err=document.getElementById('rpErr');err.textContent='';
+  if(!id)return err.textContent='Choose one class.';
   var from=document.getElementById('rpFrom').value,to=document.getElementById('rpTo').value,label=(from||'All dates')+' – '+(to||'All dates');
   if(from&&to&&from>to)return err.textContent='From Date must be on or before To Date.';
   qa('#rpBox button').forEach(function(b){b.disabled=true;});
-  Promise.all(ids.map(function(id){return rsFetch(id);})).then(function(ds){
-   var cls=ids.map(function(id,i){var c=all.filter(function(x){return x.classId===id;})[0]||{},d=ds[i];return{id:id,name:c.className||id,d:{att:rsFilterAttempts(d.att,from,to),roster:d.roster}};});
-   return then(buildReport(cls,label));
+  rsFetch(id).then(function(d){
+   var c=all.filter(function(x){return x.classId===id;})[0]||{},cl={id:id,name:c.className||id,d:{att:rsFilterAttempts(d.att,from,to),roster:d.roster}};
+   return then(buildReport(cl,label));
   }).catch(function(e){err.textContent=e.message||'Could not build the report.';}).then(function(){qa('#rpBox button').forEach(function(b){b.disabled=false;});});
  }
  document.getElementById('rpX').onclick=function(){box.remove();};
@@ -2781,10 +2850,10 @@ function drawResStudents(box,data,rs,redraw){
  if(!need)drawResProgressChart(document.getElementById('rzProgressChart'),att,data.roster,rs,redraw);
  function rowHtml(x){
   var has=x.n>0,p=progress[x.id],gap=x.avg===null||med===null?null:x.avg-med,rows=att.filter(function(a){return a.studentId===x.id;}).slice().sort(function(a,b){return String(b.completedAt).localeCompare(String(a.completedAt));}),open=!!rs.expandedStudents[x.id],eligible=rows.filter(function(a){return rs.what!=='type'||glanceRows([a],{skill:rs.skill,mode:'type',type:rs.type}).length;});
-  var children=eligible.map(function(a){var point=rs.what==='type'?glanceRows([a],{skill:rs.skill,mode:'type',type:rs.type})[0]:null;var result=rs.what==='full'?(a.score===null?'Not scored':((typeof a.correct==='number'?a.correct:0)+'/40')):rs.what==='type'?(Math.round(point.score)+'% · '+(point.ok||0)+'/'+(point.n||0)):(a.score===null?'Not scored':Math.round(a.score)+'% · '+(a.correct||0)+'/'+(a.gradedCount||0));var doc=docUrlOk(a.feedbackDocUrl)?'<a class="vm-btn vm-btn-ghost vm-btn-sm" href="'+esc(a.feedbackDocUrl)+'" target="_blank" rel="noopener">Open Google Doc</a>':'<button class="vm-btn vm-btn-ghost vm-btn-sm" data-doc-create="'+esc(attId(a))+'">Create Google Doc</button>';return '<tr><td>'+esc(a.title||'Practice')+'</td><td>'+result+'</td><td>'+fmtDurationSeconds(a.durationSeconds)+'</td><td>'+esc(fmtStamp(a.completedAt))+'</td><td>'+doc+'</td></tr>';}).join('');
+  var children=eligible.map(function(a){var point=rs.what==='type'?glanceRows([a],{skill:rs.skill,mode:'type',type:rs.type})[0]:null;var result=rs.what==='full'?(a.score===null?'Not scored':((typeof a.correct==='number'?a.correct:0)+'/40')):rs.what==='type'?(Math.round(point.score)+'% · '+(point.ok||0)+'/'+(point.n||0)):(a.score===null?'Not scored':Math.round(a.score)+'% · '+(a.correct||0)+'/'+(a.gradedCount||0));var doc=docUrlOk(a.feedbackDocUrl)?'<button class="vm-btn vm-btn-ghost vm-btn-sm" data-doc-open="'+esc(attId(a))+'">Open Google Doc</button>':'<button class="vm-btn vm-btn-ghost vm-btn-sm" data-doc-create="'+esc(attId(a))+'">Create Google Doc</button>';return '<tr><td>'+esc(a.title||'Practice')+'</td><td>'+result+'</td><td>'+fmtDurationSeconds(a.durationSeconds)+'</td><td>'+esc(fmtStamp(a.completedAt))+'</td><td>'+doc+'</td></tr>';}).join('');
   return '<tr class="rs-student-row'+(open?' pe-me':'')+'"><td><button class="rs-student-toggle" data-expand="'+esc(x.id)+'" aria-expanded="'+open+'">'+(open?'▾ ':'▸ ')+esc(x.name)+'</button><div class="il-note">'+esc(x.id)+'</div></td><td class="gl-acc">'+(has?'<div class="rs-bar"><div class="rs-track"><i style="width:'+Math.round(x.avg)+'%;background:'+pcColor(Math.round(x.avg))+'"></i>'+(med!==null?'<u style="left:'+Math.round(med)+'%" title="Class median '+Math.round(med)+'%"></u>':'')+'</div><b>'+Math.round(x.avg)+'%</b></div><span class="il-note">'+(gap===null?'':(gap>0?'+':'')+Math.round(gap)+' pts vs median')+'</span>':'<span class="il-note">No attempts</span>')+'</td><td>'+pctTxt(x.latest)+'</td><td>'+(p?'<b>'+trendHtml(p.delta)+'</b><div class="il-note">'+Math.round(p.first)+'% → '+Math.round(p.last)+'%</div>':'<span class="il-note">Need 2+ attempts</span>')+'</td><td>'+x.n+'</td><td>'+(x.last?esc(fmtAgo(x.last)):'<span class="il-note">—</span>')+'</td><td><button class="vm-btn vm-btn-ghost vm-btn-sm" data-expand="'+esc(x.id)+'" aria-expanded="'+open+'">'+(open?'Hide':'View')+' '+eligible.length+'</button></td></tr>'+(open?'<tr class="rs-child-row"><td colspan="7"><div style="overflow:auto"><table class="vm-table"><thead><tr><th>Test / part</th><th>Result</th><th>Time</th><th>Completed</th><th>Google Docs</th></tr></thead><tbody>'+(children||'<tr><td colspan="5" class="il-note">No attempts for this selection.</td></tr>')+'</tbody></table></div></td></tr>':'');
  }
- function fillRows(){var q=(rs.query||'').trim().toLowerCase(),shown=L.filter(function(x){return !q||String(x.name+' '+x.id).toLowerCase().indexOf(q)>=0;});document.getElementById('rzStudentRows').innerHTML=shown.map(rowHtml).join('')||'<tr><td colspan="7" class="il-empty">No students match this search.</td></tr>';document.getElementById('rzCount').textContent=shown.length+' of '+L.length+' students';qa('[data-expand]').forEach(function(b){b.onclick=function(e){e.stopPropagation();var id=b.getAttribute('data-expand');rs.expandedStudents[id]=!rs.expandedStudents[id];fillRows();};});qa('[data-doc-create]').forEach(function(b){b.onclick=function(e){e.stopPropagation();createTeacherFeedbackDoc(b.getAttribute('data-doc-create'),b);};});}
+ function fillRows(){var q=(rs.query||'').trim().toLowerCase(),shown=L.filter(function(x){return !q||String(x.name+' '+x.id).toLowerCase().indexOf(q)>=0;});document.getElementById('rzStudentRows').innerHTML=shown.map(rowHtml).join('')||'<tr><td colspan="7" class="il-empty">No students match this search.</td></tr>';document.getElementById('rzCount').textContent=shown.length+' of '+L.length+' students';qa('[data-expand]').forEach(function(b){b.onclick=function(e){e.stopPropagation();var id=b.getAttribute('data-expand');rs.expandedStudents[id]=!rs.expandedStudents[id];fillRows();};});qa('[data-doc-create]').forEach(function(b){b.onclick=function(e){e.stopPropagation();createTeacherFeedbackDoc(b.getAttribute('data-doc-create'),b);};});qa('[data-doc-open]').forEach(function(b){b.onclick=function(e){e.stopPropagation();openClassFeedbackDoc(b.getAttribute('data-doc-open'),b);};});}
  document.getElementById('rzSearch').oninput=function(){rs.query=this.value;fillRows();};fillRows();
  var ts=document.getElementById('rzType');if(ts)ts.onchange=function(){rs.type=this.value;redraw();};var ps=document.getElementById('rzPart');if(ps)ps.onchange=function(){rs.lesson=this.value;redraw();};
  qa('.rs-tab th[data-sk]').forEach(function(th){th.onclick=function(){var k=th.getAttribute('data-sk');if(rs.sort===k)rs.dir=-rs.dir;else{rs.sort=k;rs.dir=k==='name'||k==='last'?1:-1;}redraw();};});
