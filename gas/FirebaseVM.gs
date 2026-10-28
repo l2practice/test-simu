@@ -279,16 +279,10 @@ function vmfbIeltsReportDoc(p) {
       var rows = (b.rows || []).slice(0, 300).map(function(r){ return (r || []).slice(0, 12).map(function(x){ return clip(x, 200); }); });
       if (!head.length) return;
       var t = body.appendTable([head].concat(rows));
-      t.setBorderColor('#BFD8CB').setBorderWidth(0.75);
-      for (var ri = 0; ri < t.getNumRows(); ri++) {
-        var row = t.getRow(ri);
-        for (var ci = 0; ci < row.getNumCells(); ci++) {
-          var cell = row.getCell(ci), tx = cell.editAsText();
-          tx.setFontFamily(FONT).setFontSize(ri === 0 ? 10 : 10.5).setForegroundColor(ri === 0 ? GREEN : INK).setBold(ri === 0);
-          cell.setPaddingTop(5).setPaddingBottom(5).setPaddingLeft(7).setPaddingRight(7);
-          cell.setBackgroundColor(ri === 0 ? '#E3F2EA' : (ri % 2 === 0 ? '#F6FAF8' : '#FFFFFF'));
-        }
-      }
+      var tst = {}; tst[A.FONT_FAMILY] = FONT; tst[A.FONT_SIZE] = 10.5; tst[A.FOREGROUND_COLOR] = INK; tst[A.BORDER_COLOR] = '#BFD8CB'; tst[A.BORDER_WIDTH] = 0.75;
+      t.setAttributes(tst);
+      var hrow = t.getRow(0);
+      for (var ci = 0; ci < hrow.getNumCells(); ci++) { var hcell = hrow.getCell(ci); hcell.setBackgroundColor('#E3F2EA'); hcell.editAsText().setBold(true).setForegroundColor(GREEN).setFontSize(10); }
       var gap = body.appendParagraph(''); style(gap, 6, INK, false, 0, 4);
       return;
     }
@@ -370,7 +364,8 @@ function vmfbIeltsFeedbackDoc(p) {
   function para(text, size, color, bold, before, after) {
     var q = body.appendParagraph(String(text || ''));
     var st = {}; st[A.FONT_FAMILY] = 'Google Sans'; st[A.FONT_SIZE] = size; st[A.FOREGROUND_COLOR] = color; st[A.BOLD] = bold;
-    q.setAttributes(st).setSpacingBefore(before).setSpacingAfter(after).setLineSpacing(1.2); return q;
+    st[A.SPACING_BEFORE] = before; st[A.SPACING_AFTER] = after; st[A.LINE_SPACING] = 1.2;
+    q.setAttributes(st); return q;   // every Apps Script call costs ~50 ms: keep the call count low or the document takes minutes
   }
   var h = para('IELTS PRACTICE FEEDBACK', 20, GREEN, true, 0, 10); h.setHeading(DocumentApp.ParagraphHeading.TITLE);
   para('Student: ' + String(attempt.studentName || attempt.studentId || 'Student'), 11, INK, true, 0, 3);
@@ -390,11 +385,10 @@ function vmfbIeltsFeedbackDoc(p) {
   }); });
   if (qrows.length) {
     var table = body.appendTable([['Q', 'Question', 'Student answer', 'Accepted answer(s)', 'Result']].concat(qrows.slice(0, 300)));
-    table.setBorderColor('#BFD8CB').setBorderWidth(0.75);
-    for (var ri = 0; ri < table.getNumRows(); ri++) for (var ci = 0; ci < table.getRow(ri).getNumCells(); ci++) {
-      var cell = table.getCell(ri, ci), tx = cell.editAsText(); tx.setFontFamily('Google Sans').setFontSize(ri === 0 ? 9 : 9.5).setForegroundColor(ri === 0 ? GREEN : INK).setBold(ri === 0);
-      cell.setPaddingTop(4).setPaddingBottom(4).setPaddingLeft(5).setPaddingRight(5).setBackgroundColor(ri === 0 ? '#E3F2EA' : (ri % 2 ? '#FFFFFF' : '#F6FAF8'));
-    }
+    var ts = {}; ts[A.FONT_FAMILY] = 'Google Sans'; ts[A.FONT_SIZE] = 9.5; ts[A.FOREGROUND_COLOR] = INK; ts[A.BORDER_COLOR] = '#BFD8CB'; ts[A.BORDER_WIDTH] = 0.75;
+    table.setAttributes(ts);
+    var hr = table.getRow(0);
+    for (var ci = 0; ci < hr.getNumCells(); ci++) { var hc = hr.getCell(ci); hc.setBackgroundColor('#E3F2EA'); hc.editAsText().setBold(true).setForegroundColor(GREEN).setFontSize(9); }
   }
   para('This AI-generated study guidance should be reviewed alongside the original test. It is not an official IELTS score.', 9, '#607168', false, 12, 0);
   doc.saveAndClose();

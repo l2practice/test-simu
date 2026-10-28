@@ -1328,7 +1328,7 @@ async function gas(action, payload) {
   let lastErr = null;
   for (let attempt = 0; attempt < 3; attempt++) {
     const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 90000);
+    const timer = setTimeout(() => ctrl.abort(), /^ielts\.(feedbackDoc|reportDoc)$/.test(action) ? 200000 : 90000);   // building a Google Doc can take a while
     try {
       const r = await fetch(window.VM.GAS, {
         method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
