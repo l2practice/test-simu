@@ -167,16 +167,16 @@ function vmfbIeltsGradeAttempt(p) {
   if (docs.some(function(d){ return !d; })) return { success:false, error:'One of the tests could not be found.' };
   var keys = ids.map(function(id){ return fsGet('ieltsAnswerKeys/' + id); });
   if (keys.some(function(k){ return !k; })) return { success:false, error:'This test has no answer key yet; please tell your teacher.' };
-  if (docs.some(function(d){ return d.review === 'pending'; })) return { success:false, error:'This test is waiting for a teacher to check it. It opens for practice once it is approved.' };
   var accessible = docs.every(function(d){ return !d.archived && d.status === 'published' || d.ownerUid === uid; });
   if (!accessible) return { success:false, error:'You do not have access to this test.' };
-  var assignmentId = String(p.assignmentId || '');
+  var assignmentId = String(p.assignmentId || ''), inClassOk = false;
   if (assignmentId) {
     if (!/^[A-Za-z0-9_-]{1,64}$/.test(assignmentId)) return { success:false, error:'Invalid in-class session.' };
     var asg = fsGet('assignments/' + assignmentId);
     if (!asg || asg.deleted || asg.kind !== 'ielts' || asg.classId !== user.classId) return { success:false, error:'Invalid in-class session.' };
     var okIds = ids.every(function(id){ return (asg.contentIds || []).indexOf(id) >= 0; });
     if (!okIds) return { success:false, error:'This test is not part of this in-class session.' };
+    inClassOk = true;   // the teacher chose these parts for this session, so they are graded even if the Library still lists them as waiting for a check
     // one submission per student per session: a double click or a retried request returns the attempt already saved
     var prev = fsQuery('ieltsAttempts', [['uid', 'EQUAL', uid], ['assignmentId', 'EQUAL', assignmentId]], 1);
     if (prev.length) return { success:true, data:Object.assign({ id:prev[0]._id }, prev[0]) };
@@ -188,6 +188,8 @@ function vmfbIeltsGradeAttempt(p) {
     if (startMs && Date.now() < startMs - 60000) return { success:false, error:'This in-class test has not started yet.' };
     if (endMs && Date.now() > endMs + 120000) return { success:false, error:'This in-class session has closed.' };
   }
+  // practice outside a teacher's in-class session: a part a student added stays closed until the teacher has checked it
+  if (!inClassOk && docs.some(function(d){ return d.review === 'pending'; })) return { success:false, error:'This test is waiting for a teacher to check it. It opens for practice once it is approved.' };
   var title = taskType ? ('Task type · ' + taskType.replace(/-/g, ' ')) : (docs.length === 1 ? docs[0].title : 'Full Test · ' + docs[0].skill);
   var skill = docs[0].skill;
   if (docs.some(function(d){ return d.skill !== skill; })) return { success:false, error:'A full test can only combine parts of the same skill.' };
