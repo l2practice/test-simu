@@ -859,13 +859,8 @@ function ieltsLibraryId(skill, book, test, part) { return ('L_' + skill + '_' + 
 // ── Library index: one small summary per part, grouped in one document per book, so opening the Library
 //    reads a handful of tiny documents (or none, thanks to the on-device cache) instead of every full test.
 const IDX_KEY = 'ielts_index_v3', IDX_SCHEMA = 3;
-// Tests students added BEFORE the approval step existed (12 Oct 2026, Vietnam time) count as already approved; only newer ones wait for the teacher.
-const REVIEW_FROM = Date.parse('2026-10-11T17:00:00Z');
-function effReview(d) {
-  const r = d.review || (d.ownerRole === 'student' ? 'pending' : 'approved');
-  if (r === 'pending') { const t = Date.parse(d.created || d.createdAt || d.updatedAt || '') || 0; if (t && t < REVIEW_FROM) return 'approved'; }
-  return r;
-}
+// There is no approval step: everything in the Library is usable straight away. `review` stays in the documents only for old data and is always 'approved'.
+function effReview() { return 'approved'; }
 const idxShard = book => 'b_' + String(book || 'x').replace(/[^A-Za-z0-9_-]/g, '_');
 function idxSummary(id, d) {
   return {
@@ -916,8 +911,7 @@ async function ieltsContentSave(p) {
   const teacherUid = prior.exists ? (prior.data().teacherUid || '') : (u.role === 'teacher' ? u.uid : (u.teacherUid || ''));
   const version = prior.exists ? (prior.data().version || 1) + 1 : 1;
   const priorD = prior.exists ? prior.data() : null;
-  // a teacher's own tests are approved straight away; a student's test waits for the teacher's check before it joins the shared Library (the student can practise it in Free Practice meanwhile)
-  const approved = u.role === 'teacher' && !(priorD && priorD.ownerRole === 'student' && priorD.review === 'pending');
+  const approved = true;
   const folder = u.role === 'teacher' && p.folder !== undefined ? str(p.folder).slice(0, 40) : (priorD ? (priorD.folder || '') : '');
   // Firestore cannot store an array inside an array, so each question's answers live in a small map: {a:[…]}
   const keySections = data.sections.map(s => ({ script: s.script || '', answers: (s.questions || []).map(q => ({ a: q.answers || [] })) }));
@@ -927,7 +921,7 @@ async function ieltsContentSave(p) {
   batch.set(ref, Object.assign({}, data, {
     ownerUid, ownerName: prior.exists ? (prior.data().ownerName || '') : (u.fullName || ''), ownerRole: prior.exists ? (prior.data().ownerRole || '') : u.role,
     teacherUid, classId: '', allowedClassIds: [], visibility: 'library', status: 'published', archived: false, version,
-    review: approved ? 'approved' : 'pending', reviewedBy: approved ? u.uid : '', reviewedAt: approved ? nowIso() : '', folder,
+    review: 'approved', reviewedBy: '', reviewedAt: '', folder,
     createdAt: prior.exists ? prior.data().createdAt : nowIso(), updatedAt: nowIso()
   }));
   batch.set(fs.doc('ieltsAnswerKeys/' + id), { ownerUid, teacherUid, visibility: 'library', sections: keySections, version, updatedAt: nowIso() });
@@ -963,8 +957,7 @@ async function ieltsContentList(p) {
       await idxRebuild(all); rows = all.map(d => idxSummary(d._id, d));
     } catch (e) {}
   }
-  rows = rows.map(r => Object.assign({}, r, { review: effReview(r) }))
-             .filter(r => r.review === 'approved' || r.ownerUid === u.uid || (u.role === 'teacher' && r.teacherUid === u.uid));
+  rows = rows.map(r => Object.assign({}, r, { review: 'approved' }));
   return ok(rows.filter(d => p.skill ? d.skill === p.skill : true).map(d => ({
     id: d.id, title: d.title, skill: d.skill, book: d.book || '', test: d.test || '', part: d.part || '', taskTypes: d.taskTypes || [],
     mine: d.ownerUid === u.uid, questionCount: d.questionCount || 0, hasAudio: !!d.hasAudio, ownerName: d.ownerName || '', ownerRole: d.ownerRole || '',
@@ -1062,7 +1055,8 @@ async function ieltsInclassCreate(p) {
   const t = await teacher();
   const cls = await fs.doc('classes/' + str(p.classId)).get();
   if (!cls.exists || cls.data().teacherUid !== t.uid || cls.data().status === 'Archived') return fail('The class does not exist or is not yours.');
-  const ids = (Array.isArray(p.contentIds) ? p.contentIds : []).map(str).filter(Boolean).slice(0, 4);
+  const taskType = str(p.taskType), taskTypes = taskType ? (Array.isArray(p.taskTypes) && p.taskTypes.length ? p.taskTypes.map(str).filter(Boolean).slice(0, 12) : [taskType]) : [];
+  const ids = (Array.isArray(p.contentIds) ? p.contentIds : []).map(str).filter(Boolean).slice(0, taskType ? 12 : 4);
   if (!ids.length) return fail('Select a test from the Library.');
   const meta = [];
   for (const cid of ids) {
@@ -1077,10 +1071,10 @@ async function ieltsInclassCreate(p) {
   const id = str(p.assignmentId) || genId(10, 'IC-');
   const ref = fs.doc('assignments/' + id);
   if ((await ref.get()).exists) return ok({ assignmentId: id });
-  const title = str(p.title) || (meta.length === 1 ? meta[0].title : ((meta[0].skill === 'listening' ? 'Full Lis: ' : 'Full Read: ') + meta[0].book + '-' + meta[0].test));
+  const title = str(p.title) || (taskType ? 'Task type: ' + taskType.replace(/-/g, ' ') : meta.length === 1 ? meta[0].title : ((meta[0].skill === 'listening' ? 'Full Lis: ' : 'Full Read: ') + meta[0].book + '-' + meta[0].test));
   await ref.set({
     assignmentId: id, kind: 'ielts', teacherUid: t.uid, classId: str(p.classId), mode: 'inclass', title, skill: meta[0].skill,
-    contentIds: ids, contentMeta: meta, sessionStart: str(p.sessionStart), sessionDurationMin: dur, sessionEnd: '',
+    contentIds: ids, contentMeta: meta, taskType, taskTypes, sessionStart: str(p.sessionStart), sessionDurationMin: dur, sessionEnd: '',
     extAll: '', ext: {}, active: true, deleted: false, createdAt: nowIso()
   });
   return ok({ assignmentId: id });
@@ -1091,7 +1085,7 @@ async function ieltsInclassList(p) {
     .filter(d => d.kind === 'ielts' && !d.deleted && (!p.classId || d.classId === p.classId))
     .sort((a, b) => str(b.createdAt).localeCompare(str(a.createdAt)));
   return ok(rows.map(d => ({
-    assignmentId: d._id, classId: d.classId, title: d.title, skill: d.skill, contentIds: d.contentIds || [], contentMeta: d.contentMeta || [],
+    assignmentId: d._id, classId: d.classId, title: d.title, skill: d.skill, contentIds: d.contentIds || [], contentMeta: d.contentMeta || [], taskType: d.taskType || '', taskTypes: d.taskTypes || [],
     sessionStart: d.sessionStart, sessionDurationMin: d.sessionDurationMin, extAll: d.extAll || '', ext: d.ext || {},
     endsAt: new Date(ieltsSessionEnd(d, null) || 0).toISOString(), status: ieltsSessionStatus(d, null), createdAt: d.createdAt
   })));
@@ -1103,7 +1097,7 @@ async function ieltsInclassForStudent() {
     .filter(d => d.kind === 'ielts' && !d.deleted)
     .sort((a, b) => str(b.createdAt).localeCompare(str(a.createdAt)));
   return ok(rows.map(d => ({
-    assignmentId: d._id, title: d.title, skill: d.skill, contentIds: d.contentIds || [], contentMeta: d.contentMeta || [],
+    assignmentId: d._id, title: d.title, skill: d.skill, contentIds: d.contentIds || [], contentMeta: d.contentMeta || [], taskType: d.taskType || '', taskTypes: d.taskTypes || [],
     sessionStart: d.sessionStart, sessionDurationMin: d.sessionDurationMin,
     endsAt: new Date(ieltsSessionEnd(d, u.studentId) || 0).toISOString(), status: ieltsSessionStatus(d, u.studentId)
   })));

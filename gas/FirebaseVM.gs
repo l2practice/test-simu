@@ -160,7 +160,7 @@ function vmfbIeltsGradeAttempt(p) {
   var taskType = String(p.taskType || '');
   // task-type practice grades only the questions of that type (same filter the client used to build the exam)
   var ttSet = taskType ? (Array.isArray(p.taskTypes) && p.taskTypes.length ? p.taskTypes.map(String) : [taskType]) : [];
-  var ids = Array.isArray(p.contentIds) ? p.contentIds.slice(0, taskType ? 12 : 4) : [];
+  var ids = Array.isArray(p.contentIds) ? p.contentIds.slice(0, (taskType || p.assignmentId) ? 12 : 4) : [];
   ids = ids.filter(function(id){ return /^[A-Za-z0-9_-]{1,128}$/.test(String(id)); });
   if (!ids.length) return { success:false, error:'No test selected.' };
   var docs = ids.map(function(id){ return fsGet('ieltsContent/' + id); });
@@ -176,7 +176,10 @@ function vmfbIeltsGradeAttempt(p) {
     if (!asg || asg.deleted || asg.kind !== 'ielts' || asg.classId !== user.classId) return { success:false, error:'Invalid in-class session.' };
     var okIds = ids.every(function(id){ return (asg.contentIds || []).indexOf(id) >= 0; });
     if (!okIds) return { success:false, error:'This test is not part of this in-class session.' };
-    inClassOk = true;   // the teacher chose these parts for this session, so they are graded even if the Library still lists them as waiting for a check
+    inClassOk = true;
+    // the session decides what is graded: a task-type session keeps only its question types, any other session grades whole parts
+    taskType = String(asg.taskType || '');
+    ttSet = taskType ? (Array.isArray(asg.taskTypes) && asg.taskTypes.length ? asg.taskTypes.map(String) : [taskType]) : [];
     // one submission per student per session: a double click or a retried request returns the attempt already saved
     var prev = fsQuery('ieltsAttempts', [['uid', 'EQUAL', uid], ['assignmentId', 'EQUAL', assignmentId]], 1);
     if (prev.length) return { success:true, data:Object.assign({ id:prev[0]._id }, prev[0]) };
@@ -188,8 +191,6 @@ function vmfbIeltsGradeAttempt(p) {
     if (startMs && Date.now() < startMs - 60000) return { success:false, error:'This in-class test has not started yet.' };
     if (endMs && Date.now() > endMs + 120000) return { success:false, error:'This in-class session has closed.' };
   }
-  // practice outside a teacher's in-class session: a part a student added stays closed until the teacher has checked it
-  if (!inClassOk && docs.some(function(d){ return d.review === 'pending'; })) return { success:false, error:'This test is waiting for a teacher to check it. It opens for practice once it is approved.' };
   var title = taskType ? ('Task type · ' + taskType.replace(/-/g, ' ')) : (docs.length === 1 ? docs[0].title : 'Full Test · ' + docs[0].skill);
   var skill = docs[0].skill;
   if (docs.some(function(d){ return d.skill !== skill; })) return { success:false, error:'A full test can only combine parts of the same skill.' };
@@ -245,7 +246,7 @@ function vmfbIeltsScriptGet(p) {
   if (!doc) return { success:false, error:'Test not found.' };
   var isTeacher = user.role === 'teacher';
   if (!isTeacher) {
-    if (doc.archived || doc.review === 'pending' || doc.status !== 'published') {
+    if (doc.archived || doc.status !== 'published') {
       if (doc.ownerUid !== uid) return { success:false, error:'You do not have access to this test.' };
     }
   }
