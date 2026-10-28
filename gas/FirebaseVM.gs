@@ -304,33 +304,61 @@ function vmfbIeltsReportDoc(p) {
   return { success:true, data:{ url:doc.getUrl(), shared:shared } };
 }
 
-// Teacher-created feedback for a student's saved IELTS attempt. The teacher's
-// browser sends only the AI commentary; the attempt and its class ownership are
-// loaded and checked here before creating or attaching a Google Doc.
+// ── IELTS feedback Google Doc: ONE document per attempt, created by whoever asks first (student or class teacher).
+// The other person later just gets the same link (and access) instead of creating a second file.
+function vmfbShareFeedbackDoc_(docId, attempt) {
+  var shared = false;
+  try {
+    var f = DriveApp.getFileById(docId);
+    var t = attempt.teacherUid ? fsGet('users/' + attempt.teacherUid) : null;
+    if (t && t.email) { try { f.addEditor(String(t.email)); } catch (e1) {} }
+    var s = attempt.uid ? fsGet('users/' + attempt.uid) : null;
+    if (s && s.email) { try { f.addViewer(String(s.email)); shared = true; } catch (e2) {} }
+    // a student without a usable Google account: anyone holding the (unguessable) link can view
+    if (!shared) { f.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); shared = 'link'; }
+  } catch (e) {}
+  return shared;
+}
+function vmfbFeedbackDocExisting_(id, attempt) {
+  var url = String(attempt.feedbackDocUrl || '');
+  if (!/^https:\/\/docs\.google\.com\//.test(url)) return null;
+  var shared = attempt.feedbackDocShared || false;
+  if (!shared) {   // first open by the other side: grant access once and remember it
+    var m = /\/document\/d\/([A-Za-z0-9_-]+)/.exec(url);
+    if (m) {
+      shared = vmfbShareFeedbackDoc_(m[1], attempt);
+      if (shared) fsCommit([wMerge('ieltsAttempts/' + id, { feedbackDocShared: shared }, ['feedbackDocShared'])]);
+    }
+  }
+  return { success:true, data:{ url:url, shared:shared, existing:true, by:String(attempt.feedbackDocByRole || '') } };
+}
 function vmfbIeltsFeedbackDoc(p) {
   p = p || {};
   var verified = vmfbIeltsVerifiedUser(p.idToken);
   if (!verified.success) return verified;
-  var teacher = verified.user;
-  if (!teacher || teacher.role !== 'teacher') return { success:false, error:'Only teachers can create feedback documents.' };
+  var me = verified.user, isTeacher = !!me && me.role === 'teacher';
   var id = String(p.attemptId || '');
   if (!/^IA_[A-Za-z0-9_-]{8,128}$/.test(id)) return { success:false, error:'Invalid IELTS attempt.' };
   var attempt = fsGet('ieltsAttempts/' + id);
-  if (!attempt || attempt.teacherUid !== verified.uid || !attempt.classId) return { success:false, error:'This attempt is not in one of your classes.' };
-  var cls = fsGet('classes/' + attempt.classId);
-  if (!cls || cls.teacherUid !== verified.uid) return { success:false, error:'You do not have access to this class.' };
-  if (attempt.feedbackDocUrl && /^https:\/\/docs\.google\.com\//.test(attempt.feedbackDocUrl)) {
-    var existingId = /\/document\/d\/([A-Za-z0-9_-]+)/.exec(attempt.feedbackDocUrl), existingShared = false;
-    if (existingId) try {
-      var existingFile = DriveApp.getFileById(existingId[1]);
-      if (teacher.email) existingFile.addEditor(String(teacher.email));
-      var existingStudent = attempt.uid ? fsGet('users/' + attempt.uid) : null;
-      if (existingStudent && existingStudent.email) { existingFile.addEditor(String(existingStudent.email)); existingShared = true; }
-    } catch (shareErr) {}
-    return { success:true, data:{ url:attempt.feedbackDocUrl, shared:existingShared, existing:true } };
+  if (!attempt) return { success:false, error:'This attempt was not found.' };
+  if (isTeacher) {
+    if (attempt.teacherUid !== verified.uid || !attempt.classId) return { success:false, error:'This attempt is not in one of your classes.' };
+    var cls = fsGet('classes/' + attempt.classId);
+    if (!cls || cls.teacherUid !== verified.uid) return { success:false, error:'You do not have access to this class.' };
+  } else if (!me || me.role !== 'student' || attempt.uid !== verified.uid) {
+    return { success:false, error:'This attempt is not yours.' };
   }
+  var found = vmfbFeedbackDocExisting_(id, attempt);
+  if (found) return found;
+  if (p.checkOnly) return { success:true, data:{ existing:false } };
   var aiText = String(p.aiText || '').trim().slice(0, 30000);
   if (!aiText) return { success:false, error:'Generate the AI feedback before creating the document.' };
+  var lock = LockService.getScriptLock();
+  try { lock.waitLock(25000); } catch (le) { return { success:false, error:'The server is busy. Please try again in a moment.' }; }
+  try {
+    attempt = fsGet('ieltsAttempts/' + id);   // the other side may have created it while we waited
+    found = vmfbFeedbackDocExisting_(id, attempt);
+    if (found) return found;
   var title = String(attempt.title || 'IELTS practice').slice(0, 120);
   var doc = DocumentApp.create('IELTS Feedback · ' + title + ' · ' + String(attempt.studentName || attempt.studentId || 'Student').slice(0, 80));
   var body = doc.getBody(); body.clear();
@@ -367,15 +395,10 @@ function vmfbIeltsFeedbackDoc(p) {
   }
   para('This AI-generated study guidance should be reviewed alongside the original test. It is not an official IELTS score.', 9, '#607168', false, 12, 0);
   doc.saveAndClose();
-  var url = doc.getUrl(), shared = false;
-  try {
-    var teacherEmail = String(teacher.email || '');
-    if (teacherEmail) DriveApp.getFileById(doc.getId()).addEditor(teacherEmail);
-    var student = attempt.uid ? fsGet('users/' + attempt.uid) : null, email = String(student && student.email || '');
-    if (email) { DriveApp.getFileById(doc.getId()).addEditor(email); shared = true; }
-  } catch (e) {}
-  fsCommit([wSet('ieltsAttempts/' + id, Object.assign({}, attempt, { feedbackDocUrl:url, feedbackDocAt:new Date().toISOString(), feedbackDocBy:verified.uid }))]);
-  return { success:true, data:{ url:url, shared:shared } };
+  var url = doc.getUrl(), shared = vmfbShareFeedbackDoc_(doc.getId(), attempt);
+  fsCommit([wMerge('ieltsAttempts/' + id, { feedbackDocUrl:url, feedbackDocAt:new Date().toISOString(), feedbackDocBy:verified.uid, feedbackDocByRole:isTeacher ? 'teacher' : 'student', feedbackDocShared:shared || false }, ['feedbackDocUrl', 'feedbackDocAt', 'feedbackDocBy', 'feedbackDocByRole', 'feedbackDocShared'])]);
+  return { success:true, data:{ url:url, shared:shared, created:true } };
+  } finally { lock.releaseLock(); }
 }
 
 function itk(path) { return 'https://identitytoolkit.googleapis.com/v1/projects/' + VMFB.PROJECT_ID + path; }

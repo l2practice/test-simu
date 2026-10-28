@@ -1992,20 +1992,28 @@ function teacherFeedbackPrompt(a){
  var data={student:a.studentName||a.studentId||'Student',practice:a.title||'IELTS practice',skill:a.skill,score:{correct:a.correct,graded:a.gradedCount,percent:a.score},durationMinutes:Math.max(1,Math.round((Number(a.durationSeconds)||0)/60)),questionsToReview:questions,contextByPart:context};
  return 'You are an IELTS Reading and Listening teacher writing personalised study feedback for a Vietnamese EFL university student. Write clear, supportive English as plain text. Use these headings on separate lines: 🎯 OVERALL, ✅ STRENGTHS, 🔍 QUESTIONS TO REVIEW, 🧠 WHY MISTAKES HAPPEN, 📅 PRACTICE PLAN, 💡 TIP. Cover every question in questionsToReview without skipping. For each, explain why an accepted answer is correct using the passage or audioScript; quote or paraphrase relevant evidence. Compare the student answer with acceptedAnswers and explain a plausible cause without claiming certainty. If context is missing, say so. If no questions need review, say no incorrect graded answers were recorded and offer a focused next step. Give three short practice steps. Do not invent facts or imply this is an official IELTS band. Per-question timing and answer-change telemetry are not stored for teacher-created documents, so do not speculate about them. End with: AI-generated study guidance; please review with your teacher.\nDATA: '+JSON.stringify(data);
 }
+function feedbackToast(d,who){
+ if(d.existing)return VM.toast(d.by==='teacher'&&who==='student'?'Your teacher already created this document. Opening it.':(d.by==='student'&&who==='teacher'?'The student already created this document. Opening it.':'This document already exists. Opening it.'),'ok',4000);
+ VM.toast(d.shared==='link'?'Google Doc created. The student has no Google email on file, so anyone with the link can view it.':(d.shared?'Google Doc created and shared with '+(who==='teacher'?'the student':'your teacher')+'.':'Google Doc created. Sharing by email failed, please share it manually.'),d.shared?'ok':'warn',5000);
+}
 function createTeacherFeedbackDoc(attemptId,btn){
  var cid=state.rs&&state.rs.classId,all=(state.rsCache&&state.rsCache[cid+'|all']&&state.rsCache[cid+'|all'].att)||[],a=all.filter(function(x){return attId(x)===attemptId;})[0];
  if(!a)return say('Could not find this attempt. Refresh the results and try again.');
  if(docUrlOk(a.feedbackDocUrl)){window.open(a.feedbackDocUrl,'_blank','noopener');return;}
- var keys=aiKeys();
- if(!keys){VM.alert('To create a Google Doc with personalised explanations, save a Gemini or Groq API key in Settings on this device. The key stays in this browser and is sent directly to the AI provider.',{title:'AI key needed',ok:'Open AI settings'}).then(function(){aiSettings();});return;}
- if(btn){btn.disabled=true;btn.textContent='Creating…';}
- var aiText='';
- callAI(keys,teacherFeedbackPrompt(a)).then(function(t){aiText=String(t||'').trim();if(!aiText)throw new Error('The AI returned empty feedback. Try again.');return call('ielts.feedbackDoc.create',{attemptId:a.id,aiText:aiText});}).then(function(d){
+ function done(d,fresh){
   a.feedbackDocUrl=d.url;a.feedbackDocAt=new Date().toISOString();
   all.forEach(function(x){if(attId(x)===attemptId){x.feedbackDocUrl=d.url;x.feedbackDocAt=a.feedbackDocAt;}});
   if(btn){btn.disabled=false;btn.textContent='Open Google Doc';btn.className='vm-btn vm-btn-ghost vm-btn-sm';btn.onclick=function(){window.open(d.url,'_blank','noopener');};}
-  VM.toast(d.shared===false?'Google Doc created. Student sharing may need to be enabled by the teacher.':'Google Doc created and shared with the student.','ok',5000);
-  window.open(d.url,'_blank','noopener');
+  feedbackToast(d,'teacher');window.open(d.url,'_blank','noopener');
+ }
+ if(btn){btn.disabled=true;btn.textContent='Checking…';}
+ // one document per attempt: if the student (or another tab) already made it, just open it, no AI key or new file needed
+ call('ielts.feedbackDoc.create',{attemptId:attemptId,checkOnly:true}).then(function(d){
+  if(d.existing&&d.url)return done(d);
+  var keys=aiKeys();
+  if(!keys){if(btn){btn.disabled=false;btn.textContent='Create Google Doc';}VM.alert('To create a Google Doc with personalised explanations, save a Gemini or Groq API key in Settings on this device. The key stays in this browser and is sent directly to the AI provider.',{title:'AI key needed',ok:'Open AI settings'}).then(function(){aiSettings();});return;}
+  if(btn)btn.textContent='Creating…';
+  return callAI(keys,teacherFeedbackPrompt(a)).then(function(t){var aiText=String(t||'').trim();if(!aiText)throw new Error('The AI returned empty feedback. Try again.');return call('ielts.feedbackDoc.create',{attemptId:attemptId,aiText:aiText});}).then(done);
  }).catch(function(e){if(btn){btn.disabled=false;btn.textContent='Create Google Doc';}say(e.message||'Could not create the feedback document.');});
 }
 function openClassFeedbackDoc(attemptId,btn){
@@ -2015,7 +2023,7 @@ function openClassFeedbackDoc(attemptId,btn){
  try{win.document.title='Opening Google Doc…';win.document.body.innerHTML='<p style="font:16px Arial,sans-serif;padding:24px">Checking document access…</p>';}catch(e){}
  if(btn){btn.disabled=true;btn.textContent='Opening…';}
  var timeout=new Promise(function(_,reject){setTimeout(function(){reject(new Error('The document access check timed out. Opening the saved Google Doc link directly.'));},25000);});
- Promise.race([call('ielts.feedbackDoc.create',{attemptId:a.id,aiText:''}),timeout]).then(function(d){win.location.href=d.url||a.feedbackDocUrl;}).catch(function(e){win.location.href=a.feedbackDocUrl;VM.toast(e.message,'warn',6000);}).then(function(){if(btn){btn.disabled=false;btn.textContent='Open Google Doc';}});
+ Promise.race([call('ielts.feedbackDoc.create',{attemptId:attId(a),checkOnly:true}),timeout]).then(function(d){win.location.href=d.url||a.feedbackDocUrl;}).catch(function(e){win.location.href=a.feedbackDocUrl;VM.toast(e.message,'warn',6000);}).then(function(){if(btn){btn.disabled=false;btn.textContent='Open Google Doc';}});
 }
 function drawReview(){
  var x=state.active,rv=state.review,a=rv.attempt,tel=rv.tel,ins=insightsOf(x,a,tel);
@@ -2035,6 +2043,7 @@ function drawReview(){
  document.getElementById('aiAgain').onclick=runAnalysis;
  document.getElementById('mkDoc').onclick=createFeedbackDoc;
  if(state.review&&state.review.attempt&&state.review.attempt.feedbackDocUrl)showDocBox(state.review.attempt.feedbackDocUrl);
+ else if(state.review&&state.review.attempt&&!isPrev()&&attId(state.review.attempt)){var ra=state.review.attempt;call('ielts.feedbackDoc.create',{attemptId:attId(ra),checkOnly:true}).then(function(d){if(d.existing&&d.url&&state.review&&state.review.attempt===ra){ra.feedbackDocUrl=d.url;showDocBox(d.url);}}).catch(function(){});}
  document.getElementById('openAiSettings').onclick=aiSettings;
 }
 
@@ -2074,16 +2083,22 @@ function showDocBox(url){
  document.getElementById('docView').onclick=function(){var f=document.getElementById('docFrame');if(f.style.display==='none'){f.src=url.replace(/\/edit.*$/,'/preview');f.style.display='block';this.textContent='Hide';}else{f.style.display='none';this.textContent='View here';}};
 }
 function createFeedbackDoc(){
- var rv=state.review;if(!rv||!rv.attempt)return;var a=rv.attempt;
+ var rv=state.review;if(!rv||!rv.attempt)return;var a=rv.attempt,aid=attId(a);
  if(isPrev())return say('The feedback document is not available in preview.');
  if(docUrlOk(a.feedbackDocUrl))return showDocBox(a.feedbackDocUrl);
- if(!aiKeys()){VM.alert('The feedback document includes personalised AI comments, which use your own AI key. Add a free Gemini or Groq key in AI settings, then click “Create feedback doc” again.',{title:'AI key needed',ok:'Open AI settings'}).then(function(){aiSettings();});return;}
- busy('Writing your AI feedback…');
- Promise.resolve(rv.aiText||runAnalysis()).then(function(){
-  if(!rv.aiText)throw new Error('The AI feedback could not be written. Check your key in AI settings and try again.');
-  busy('Creating your Google Doc…');
-  return call('ielts.feedbackDoc.create',{attemptId:a.id,aiText:rv.aiText});
- }).then(function(d){unbusy();a.feedbackDocUrl=d.url;state.attempts.forEach(function(x){if(x.id===a.id)x.feedbackDocUrl=d.url;});showDocBox(d.url);VM.toast(d.shared===false?'Document created, but it could not be shared by link. Ask your teacher.':'Feedback document created.',d.shared===false?'warn':'ok',5000);}).catch(function(e){unbusy();say(e.message);});
+ busy('Checking for an existing document…');
+ // your teacher may already have created it: then just open that one
+ call('ielts.feedbackDoc.create',{attemptId:aid,checkOnly:true}).then(function(d){
+  if(d.existing&&d.url){unbusy();a.feedbackDocUrl=d.url;state.attempts.forEach(function(x){if(attId(x)===aid)x.feedbackDocUrl=d.url;});showDocBox(d.url);feedbackToast(d,'student');return;}
+  unbusy();
+  if(!aiKeys()){VM.alert('The feedback document includes personalised AI comments, which use your own AI key. Add a free Gemini or Groq key in AI settings, then click “Create feedback doc” again.',{title:'AI key needed',ok:'Open AI settings'}).then(function(){aiSettings();});return;}
+  busy('Writing your AI feedback…');
+  return Promise.resolve(rv.aiText||runAnalysis()).then(function(){
+   if(!rv.aiText)throw new Error('The AI feedback could not be written. Check your key in AI settings and try again.');
+   busy('Creating your Google Doc…');
+   return call('ielts.feedbackDoc.create',{attemptId:aid,aiText:rv.aiText});
+  }).then(function(d2){unbusy();a.feedbackDocUrl=d2.url;state.attempts.forEach(function(x){if(attId(x)===aid)x.feedbackDocUrl=d2.url;});showDocBox(d2.url);feedbackToast(d2,'student');});
+ }).catch(function(e){unbusy();say(e.message);});
 }
 function runAnalysis(){
  var box=document.getElementById('aiFeedback'),rv=state.review,x=state.active;if(!box||!rv)return;
