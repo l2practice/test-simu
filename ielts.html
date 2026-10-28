@@ -535,6 +535,8 @@ body::before,body::after{display:none!important}   /* decorative background shap
 .rs-bar b{font-variant-numeric:tabular-nums}
 .gl-lbl{font-weight:800}
 .gl-chart-wrap,.rk-list{background:transparent}
+.dz-tip{position:fixed;display:none;z-index:600;max-width:min(380px,92vw);background:#12201A;color:#fff;padding:9px 12px;border-radius:12px;font-size:.8rem;line-height:1.5;white-space:pre-line;pointer-events:none;box-shadow:0 12px 30px -12px rgba(0,0,0,.5)}
+.dz-has-tip{cursor:help;outline-offset:3px}
 /* page titles inside panels */
 .il-panel>h3:first-child{font-size:1.15rem}
 /* motion: short, interruptible, and optional */
@@ -923,6 +925,14 @@ function drawGlanceFullTests(el,attempts,name){
  el.innerHTML='<h3 style="margin:0 0 4px">Full test scores</h3><p class="il-note">Each point is one full test. Vertical scale is correct answers out of 40; horizontal scale is attempt number.</p><div class="gl-legend"><span class="gl-leg"><i style="background:'+C_READ+'"></i>Reading</span><span class="gl-leg"><i style="background:'+C_LIST+'"></i>Listening</span><span class="il-note">Hover a point for test, score, date and time spent.</span></div><div class="gl-chart-wrap"><svg viewBox="0 0 '+w+' '+h+'" width="'+w+'" height="'+h+'" class="g-progress-svg gl-chart" role="img" aria-label="Full test correct answers by attempt">'+grid+'<line x1="'+pl+'" x2="'+(w-pr)+'" y1="'+Y(0)+'" y2="'+Y(0)+'" stroke="#C9D8D0"/> '+series+ticks.join('')+'<text x="'+((pl+w-pr)/2)+'" y="'+(h-5)+'" text-anchor="middle" font-size="10" fill="#5C7482">Number of attempts</text></svg><div class="gl-tip"></div></div>';
  bindChartTips(el.querySelector('.gl-chart-wrap'));
 }
+function dzTipEl(){var t=document.getElementById('dzTip');if(!t){t=document.createElement('div');t.id='dzTip';t.className='dz-tip';t.setAttribute('role','tooltip');document.body.appendChild(t);document.addEventListener('click',function(){t.style.display='none';});window.addEventListener('scroll',function(){t.style.display='none';},true);}return t;}
+function tipify(root){   // native title="" tooltips wait 1-2 s and never show on touch: show the text at once on hover, focus or tap
+ var tip=dzTipEl();
+ function show(t){var r=t.getBoundingClientRect();tip.textContent=t.getAttribute('data-tip');tip.style.display='block';var w=tip.offsetWidth,h=tip.offsetHeight,left=Math.max(8,Math.min(window.innerWidth-w-8,r.left+r.width/2-w/2)),top=r.top-h-10;if(top<8)top=r.bottom+10;tip.style.left=left+'px';tip.style.top=top+'px';}
+ function hide(){tip.style.display='none';}
+ Array.prototype.forEach.call(root.querySelectorAll('[title]'),function(t){var x=t.getAttribute('title');if(!x)return;t.setAttribute('data-tip',x);t.removeAttribute('title');t.classList.add('dz-has-tip');if(!t.hasAttribute('tabindex'))t.setAttribute('tabindex','0');
+  t.onpointerenter=function(e){if(e.pointerType==='mouse')show(t);};t.onpointerleave=function(e){if(e.pointerType==='mouse')hide();};t.onfocus=function(){show(t);};t.onblur=hide;t.onclick=function(e){show(t);e.stopPropagation();};});
+}
 function drawGlanceParts(el,attempts){
  function table(skill,count,label){var groups=individualPartGroups(attempts,skill),body='';
   groups.forEach(function(g,index){var deltas=[],cells=Array.apply(null,Array(count)).map(function(_,i){var list=g.parts[i+1]||[];if(!list.length)return '<td>—</td>';var first=list[0],last=list[list.length-1],tip=list.map(function(x,n){return g.title+' · '+label+' '+(i+1)+(list.length>1?' · practice '+(n+1):'')+' · '+x.ok+'/'+x.n+' correct ('+Math.round(x.score)+'%) · '+fmtStamp(x.attempt.completedAt)+' · '+fmtDurationSeconds(x.attempt.durationSeconds);}).join('\n');if(list.length>1)deltas.push(last.score-first.score);return '<td><span class="g-score-tip" tabindex="0" title="'+esc(tip)+'" aria-label="'+esc(tip.replace(/\n/g,', '))+'"><b>'+last.ok+'/'+last.n+'</b><div class="il-note">'+Math.round(last.score)+'%'+(list.length>1?' · '+list.length+' tries':'')+'</div></span></td>';}).join('');
@@ -931,7 +941,7 @@ function drawGlanceParts(el,attempts){
   var headers=Array.apply(null,Array(count)).map(function(_,i){return '<th>'+label+' '+(i+1)+'</th>';}).join('');
   return '<div class="il-panel"><h3 style="margin:0 0 8px">'+(skill==='reading'?'Reading':'Listening')+' · '+(skill==='reading'?'3 passages':'4 parts')+'</h3><div style="overflow:auto"><table class="vm-table g-stat-table"><thead><tr><th>Book · Test</th>'+headers+'<th>Change</th></tr></thead><tbody>'+(body||'<tr><td colspan="'+(count+2)+'" class="il-note">No individual-part attempts.</td></tr>')+'</tbody></table></div><p class="il-note">Same-book, same-test parts are grouped on one row. Hover a score to see its date, time and duration. Change compares repeat attempts of the same part.</p></div>';
  }
- el.innerHTML='<div class="g-task-student">'+table('reading',3,'Passage')+table('listening',4,'Part')+'</div>';
+ el.innerHTML='<div class="g-task-student">'+table('reading',3,'Passage')+table('listening',4,'Part')+'</div>';tipify(el);
 }
 function drawGlanceTaskTypes(el,attempts){
  function table(skill){var all=attempts.filter(function(a){return isTaskAttempt(a)&&a.skill===skill;}).sort(function(a,b){return String(a.completedAt).localeCompare(String(b.completedAt));}),offset=Math.max(0,all.length-20),rows=all.slice(offset),byType={},types=[];
@@ -942,7 +952,7 @@ function drawGlanceTaskTypes(el,attempts){
   var footer='<tr><th>Change vs first shown</th>'+rows.map(function(_,i){if(i===0)return '<td>—</td>';var deltas=types.map(function(t){var list=byType[t]||[],first=list[0],cur=list[i];return first&&cur?cur.pc-first.pc:null;}).filter(function(v){return v!==null;});return '<td><b>'+signedPoints(deltas.length?reportMean(deltas):null)+'</b></td>';}).join('')+'<td>pp</td></tr>';
   return '<div class="il-panel"><h3 style="margin:0 0 8px">'+(skill==='reading'?'Reading':'Listening')+' task types</h3><p class="il-note">Showing the latest '+Math.min(20,all.length)+' of '+all.length+' attempts. Hover a score for test, date and duration.</p>'+(types.length?'<div style="overflow:auto"><table class="vm-table g-stat-table"><thead><tr><th>Task type</th>'+heads+'<th>Change</th></tr></thead><tbody>'+body+footer+'</tbody></table></div>':'<div class="il-empty">No task-type attempts in this skill for the selected period.</div>')+'</div>';
  }
- el.innerHTML='<div class="g-task-student">'+table('reading')+table('listening')+'</div>';
+ el.innerHTML='<div class="g-task-student">'+table('reading')+table('listening')+'</div>';tipify(el);
 }
 
 /* ───────── Library: by test / by task type ───────── */
@@ -2081,6 +2091,11 @@ function feedbackToast(d,who){
  if(d.existing)return VM.toast(d.by==='teacher'&&who==='student'?'Your teacher already created this document. Opening it.':(d.by==='student'&&who==='teacher'?'The student already created this document. Opening it.':'This document already exists. Opening it.'),'ok',4000);
  VM.toast(d.shared==='link'?'Google Doc created. The student has no Google email on file, so anyone with the link can view it.':(d.shared?'Google Doc created and shared with '+(who==='teacher'?'the student':'your teacher')+'.':'Google Doc created. Sharing by email failed, please share it manually.'),d.shared?'ok':'warn',5000);
 }
+function feedbackCheck(attemptId){   // "does a document already exist?"; an Apps Script that has not been updated answers with an error, which only means "unknown"
+ return call('ielts.feedbackDoc.create',{attemptId:attemptId,checkOnly:true}).catch(function(e){
+  if(/Generate the AI feedback|Invalid IELTS attempt|not found|Unknown action/i.test(String(e&&e.message)))return{existing:false,unchecked:true};
+  throw e;});
+}
 function createTeacherFeedbackDoc(attemptId,btn){
  var cid=state.rs&&state.rs.classId,all=(state.rsCache&&state.rsCache[cid+'|all']&&state.rsCache[cid+'|all'].att)||[],a=all.filter(function(x){return attId(x)===attemptId;})[0];
  if(!a)return say('Could not find this attempt. Refresh the results and try again.');
@@ -2093,7 +2108,7 @@ function createTeacherFeedbackDoc(attemptId,btn){
  }
  if(btn){btn.disabled=true;btn.textContent='Checking…';}
  // one document per attempt: if the student (or another tab) already made it, just open it, no AI key or new file needed
- call('ielts.feedbackDoc.create',{attemptId:attemptId,checkOnly:true}).then(function(d){
+ feedbackCheck(attemptId).then(function(d){
   if(d.existing&&d.url)return done(d);
   var keys=aiKeys();
   if(!keys){if(btn){btn.disabled=false;btn.textContent='Create Google Doc';}VM.alert('To create a Google Doc with personalised explanations, save a Gemini or Groq API key in Settings on this device. The key stays in this browser and is sent directly to the AI provider.',{title:'AI key needed',ok:'Open AI settings'}).then(function(){aiSettings();});return;}
@@ -2173,7 +2188,7 @@ function createFeedbackDoc(){
  if(docUrlOk(a.feedbackDocUrl))return showDocBox(a.feedbackDocUrl);
  busy('Checking for an existing document…');
  // your teacher may already have created it: then just open that one
- call('ielts.feedbackDoc.create',{attemptId:aid,checkOnly:true}).then(function(d){
+ feedbackCheck(aid).then(function(d){
   if(d.existing&&d.url){unbusy();a.feedbackDocUrl=d.url;state.attempts.forEach(function(x){if(attId(x)===aid)x.feedbackDocUrl=d.url;});showDocBox(d.url);feedbackToast(d,'student');return;}
   unbusy();
   if(!aiKeys()){VM.alert('The feedback document includes personalised AI comments, which use your own AI key. Add a free Gemini or Groq key in AI settings, then click “Create feedback doc” again.',{title:'AI key needed',ok:'Open AI settings'}).then(function(){aiSettings();});return;}
