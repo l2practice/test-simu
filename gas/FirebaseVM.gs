@@ -177,6 +177,9 @@ function vmfbIeltsGradeAttempt(p) {
     if (!asg || asg.deleted || asg.kind !== 'ielts' || asg.classId !== user.classId) return { success:false, error:'Invalid in-class session.' };
     var okIds = ids.every(function(id){ return (asg.contentIds || []).indexOf(id) >= 0; });
     if (!okIds) return { success:false, error:'This test is not part of this in-class session.' };
+    // one submission per student per session: a double click or a retried request returns the attempt already saved
+    var prev = fsQuery('ieltsAttempts', [['uid', 'EQUAL', uid], ['assignmentId', 'EQUAL', assignmentId]], 1);
+    if (prev.length) return { success:true, data:Object.assign({ id:prev[0]._id }, prev[0]) };
     var startMs = new Date(asg.sessionStart).getTime();
     var baseEnd = asg.sessionEnd ? new Date(asg.sessionEnd).getTime() : startMs + (parseInt(asg.sessionDurationMin, 10) || 0) * 60000;
     var extAll = asg.extAll ? new Date(asg.extAll).getTime() : 0;

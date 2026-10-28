@@ -1286,7 +1286,7 @@ function inclassDialog(preIds){
   var same=picked.every(function(i){return i.book===picked[0].book&&String(i.test)===String(picked[0].test);}),full=same&&picked.length===partCount(skill);
   var title=titleFor('ic',picked,skill);
   this.disabled=true;var b=this;
-  call('ielts.inclass.create',{classId:classId,contentIds:picked.map(function(i){return i.id;}),title:title,sessionStart:start,sessionDurationMin:dur}).then(function(){VM.toast('In-class test assigned.','ok');drawInclassTeacher();}).catch(function(e){b.disabled=false;err.textContent=e.message;});
+  call('ielts.inclass.create',{classId:classId,contentIds:picked.map(function(i){return i.id;}),title:title,sessionStart:new Date(start).toISOString(),sessionDurationMin:dur}).then(function(){VM.toast('In-class test assigned.','ok');drawInclassTeacher();}).catch(function(e){b.disabled=false;err.textContent=e.message;});
  };
  el.scrollIntoView();
 }
@@ -1317,13 +1317,20 @@ function inclassResults(r){
 }
 
 /* ───────── In-class (student) ───────── */
+function syncSkew(){   // student's clock vs the server's (Date header), so the countdown and the auto-submit follow the teacher's clock
+ return fetch(location.href.split('#')[0],{method:'HEAD',cache:'no-store'}).then(function(r){var t=Date.parse(r.headers.get('Date')||'');if(t){var k=t-Date.now();if(Math.abs(k)<12*3600000)state.skew=k;}}).catch(function(){});
+}
+function nowMs(){return Date.now()+(state.skew||0);}
 function drawInclassStudent(into,sk){
  var host=into||null;
  if(!host){setTitle('In-class');root().innerHTML='<div class="ielts-wrap"><div class="ielts-hero"><h2>In-class tests</h2><p>Tests your teacher assigned to your class. You can only take them while the session is open.</p></div><div id="icList"></div></div>';host=document.getElementById('icList');}
  else host.innerHTML='<p class="il-note" style="margin-top:0">Tests your teacher assigned to your class. You can only take them while the session is open.</p><div id="icList"><div class="il-empty">Loading…</div></div>';
  var box=document.getElementById('icList');if(!into)box.innerHTML='<div class="il-empty">Loading…</div>';
- Promise.all([call('ielts.inclass.forStudent'),call('ielts.attempt.list')]).then(function(v){
+ Promise.all([call('ielts.inclass.forStudent'),call('ielts.attempt.list'),syncSkew()]).then(function(v){
   var rows=(v[0]||[]).filter(function(r){return !sk||r.skill===sk;});state.attempts=v[1]||[];
+  clearTimeout(state.icTimer);   // a session that has not started opens by itself when its time comes
+  var soon=rows.filter(function(r){return r.status==='upcoming'&&r.sessionStart;}).map(function(r){return new Date(r.sessionStart).getTime()-nowMs();}).filter(function(d){return d>-1000&&d<6*3600000;}).sort(function(a,b){return a-b;})[0];
+  if(soon!==undefined)state.icTimer=setTimeout(function(){if(document.getElementById('icList')&&!state.active)drawInclassStudent(into,sk);},soon+1500);
   box.innerHTML=rows.length?'<div class="il-grid">'+rows.map(function(r){
    var done=state.attempts.filter(function(a){return a.assignmentId===r.assignmentId;})[0];
    return '<article class="il-card"><span class="il-status il-status-'+esc(done?'done':r.status)+'">'+(done?'Submitted':sessionStatusText(r.status))+'</span><h3>'+esc(r.title)+'</h3><div class="il-meta">'+esc(r.skill)+' · '+r.sessionDurationMin+' min</div><div class="il-meta">Starts: '+fmtDT(r.sessionStart)+'<br>Ends: '+fmtDT(r.endsAt)+'</div>'+(done?'<div class="il-note">Practice score: '+(done.score===null?'—':done.score+'%')+' · '+done.correct+'/'+done.gradedCount+' correct</div>':'<button class="vm-btn vm-btn-primary" data-go="'+esc(r.assignmentId)+'"'+(r.status==='open'?'':' disabled')+'>'+(r.status==='upcoming'?'Not open yet':(r.status==='closed'?'Closed':'Start'))+'</button>')+'</article>';}).join('')+'</div>':'<div class="il-empty">Nothing has been assigned to your class yet.</div>';
@@ -1673,7 +1680,7 @@ function renderPractice(){
  if(!rv){
   state.warned={};
   var tick=function(){var c=document.getElementById('clock');if(!c)return;
-   var left=Math.round((state.assignment?(state.assignment.endMs-Date.now()):(state.run.startedMs+3600000-Date.now()))/1000);
+   var left=Math.round((state.assignment?(state.assignment.endMs-nowMs()):(state.run.startedMs+3600000-Date.now()))/1000);
    c.textContent='Time left '+fmtClock(left);
    c.className='exam-clock'+(left<=300?' w5':left<=600?' w10':left<=900?' w15':'');
    [[900,'15 minutes'],[600,'10 minutes'],[300,'5 minutes']].forEach(function(m){if(left<=m[0]&&left>m[0]-20&&!state.warned[m[0]]){state.warned[m[0]]=1;VM.toast(m[1]+' left.',m[0]===300?'err':'warn',4000);}});
