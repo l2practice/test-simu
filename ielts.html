@@ -1270,15 +1270,10 @@ function drawInclassTeacher(){
  function loadList(){
   call('ielts.inclass.list',{classId:document.getElementById('icClass').value||undefined}).then(function(rows){
    state.inclass=rows;var box=document.getElementById('icList');
-   box.innerHTML=rows.length?'<div class="il-panel" style="overflow:auto"><table class="vm-table"><thead><tr><th>Test</th><th>Class</th><th>Starts</th><th>Ends</th><th>Status</th><th></th></tr></thead><tbody>'+rows.map(function(r){var cn=(state.classes.filter(function(c){return c.classId===r.classId;})[0]||{}).className||r.classId;return '<tr><td><b>'+esc(r.title)+'</b><div class="il-note">'+esc(r.skill)+' · '+r.sessionDurationMin+' min</div></td><td>'+esc(cn)+'</td><td>'+fmtDT(r.sessionStart)+'</td><td>'+fmtDT(r.endsAt)+(r.extAll?'<div class="il-note">extended</div>':'')+'</td><td><span class="il-status il-status-'+esc(r.status)+'">'+sessionStatusText(r.status)+'</span></td><td class="il-actions"><button class="vm-btn vm-btn-ghost vm-btn-sm" data-ext="'+esc(r.assignmentId)+'">Extend</button><button class="vm-btn vm-btn-ghost vm-btn-sm" data-res="'+esc(r.assignmentId)+'">Results</button><button class="vm-btn vm-btn-ghost vm-btn-sm" data-del="'+esc(r.assignmentId)+'">Delete</button></td></tr>';}).join('')+'</tbody></table></div>':'<div class="il-empty">No in-class tests yet. Click “＋ Assign in-class test” to create one.</div>';
+   box.innerHTML=rows.length?'<div class="il-panel" style="overflow:auto"><table class="vm-table"><thead><tr><th>Test</th><th>Type</th><th>Class</th><th>Starts</th><th>Ends</th><th>Status</th><th></th></tr></thead><tbody>'+rows.map(function(r){var cn=(state.classes.filter(function(c){return c.classId===r.classId;})[0]||{}).className||r.classId;return '<tr><td><b>'+esc(r.title)+'</b><div class="il-note">'+esc(r.skill)+' · '+r.sessionDurationMin+' min</div></td><td>'+icKind(r)+'</td><td>'+esc(cn)+'</td><td>'+fmtDT(r.sessionStart)+'</td><td>'+fmtDT(r.endsAt)+(r.extAll?'<div class="il-note">extended</div>':'')+'</td><td><span class="il-status il-status-'+esc(r.status)+'">'+sessionStatusText(r.status)+'</span></td><td class="il-actions"><button class="vm-btn vm-btn-ghost vm-btn-sm" data-ext="'+esc(r.assignmentId)+'">Extend</button><button class="vm-btn vm-btn-ghost vm-btn-sm" data-res="'+esc(r.assignmentId)+'">Results</button><button class="vm-btn vm-btn-ghost vm-btn-sm" data-del="'+esc(r.assignmentId)+'">Delete</button></td></tr>';}).join('')+'</tbody></table></div>':'<div class="il-empty">No in-class tests yet. Click “＋ Assign in-class test” to create one.</div>';
    function rowOf(id){return rows.filter(function(r){return r.assignmentId===id;})[0];}
    qa('[data-ext]').forEach(function(b){b.onclick=function(){extendDialog(rowOf(b.getAttribute('data-ext')),loadList);};});
-   qa('[data-res]').forEach(function(b){b.onclick=function(){
-    var r=rowOf(b.getAttribute('data-res')),ms=(r.contentMeta||[]),same=ms.length&&ms.every(function(m){return m.book===ms[0].book&&String(m.test)===String(ms[0].test);}),full=same&&ms.length===partCount(r.skill);
-    var rs=state.rs=state.rs||{};rs.classId=r.classId;rs.src='inclass';rs.skill=r.skill;rs.view=r.taskType?'type':(full?'full':'parts');rs.type='';rs.lesson='';rs.student='';
-    var d0=new Date(r.sessionStart);d0.setDate(d0.getDate()-1);rs.fromDate=localDateInput(d0);rs.toDate=localDateInput(new Date(Math.max(Date.now(),new Date(r.endsAt).getTime())));
-    if(state.rsCache)delete state.rsCache[r.classId+'|all'];
-    location.hash='#results';};});
+   qa('[data-res]').forEach(function(b){b.onclick=function(){inclassResults(rowOf(b.getAttribute('data-res')));};});
    qa('[data-del]').forEach(function(b){b.onclick=function(){VM.confirm('Delete this in-class test? Submitted results are kept.',{danger:true,ok:'Delete'}).then(function(y){if(y)call('ielts.inclass.delete',{assignmentId:b.getAttribute('data-del')}).then(loadList).catch(function(e){say(e.message);});});};});
   }).catch(function(e){document.getElementById('icList').innerHTML='<div class="il-empty">'+esc(e.message)+'</div>';});
  }
@@ -1357,6 +1352,40 @@ function extendDialog(r,done){
  qa('[data-clear]').forEach(function(b){b.onclick=function(){send({clear:true});};});
  document.getElementById('exClose').onclick=function(){ex.innerHTML='';};
  ex.scrollIntoView();
+}
+
+
+function icKind(r){   // what the session is: whole test, individual part(s), or one task type
+ if(r.taskType){var tt=r.skill==='reading'&&r.taskType==='diagram-completion'?'Diagram Completion / Labelling':typeName(r.taskType);return '<b>Task type</b><div class="il-note">'+esc(tt)+'</div>';}
+ var ms=r.contentMeta||[],same=ms.length&&ms.every(function(m){return m.book===ms[0].book&&String(m.test)===String(ms[0].test);});
+ return same&&ms.length===partCount(r.skill)?'<b>Full test</b>':'<b>Individual part</b><div class="il-note">'+ms.length+' '+partWord(r.skill).toLowerCase()+(ms.length===1?'':'s')+'</div>';
+}
+function icSummary(att,roster){
+ var scored=att.filter(function(a){return typeof a.score==='number'&&isFinite(a.score);}),c=0,g=0;
+ att.forEach(function(a){c+=a.correct||0;g+=a.gradedCount||0;});
+ return{done:att.length,total:roster.length,avg:scored.length?Math.round(scored.reduce(function(n,a){return n+a.score;},0)/scored.length):null,rate:g?Math.round(c/g*100):null,correct:att.length?Math.round(c/att.length*10)/10:null,graded:att.length?Math.round(g/att.length*10)/10:null};
+}
+function icDetailHtml(r,att,roster){
+ var done={};att.forEach(function(a){done[a.studentId]=a;});
+ var absent=roster.filter(function(s){return !done[s.studentId];}),sm=icSummary(att,roster);
+ return '<p class="il-note">Submitted: '+sm.done+'/'+sm.total+' students'+(sm.avg===null?'':' · average score '+sm.avg+'% · '+sm.rate+'% correct')+'.</p><div style="overflow:auto"><table class="vm-table"><thead><tr><th>Student</th><th>Correct</th><th>Correct rate</th><th>Score</th><th>Time</th><th>Submitted</th></tr></thead><tbody>'+(att.length?att.slice().sort(function(a,b){return String(a.studentName).localeCompare(String(b.studentName));}).map(function(a){return '<tr><td>'+esc(a.studentName)+' <span class="il-note">'+esc(a.studentId)+'</span></td><td>'+(a.correct||0)+'/'+(a.gradedCount||0)+'</td><td>'+(a.gradedCount?Math.round((a.correct||0)/a.gradedCount*100)+'%':'—')+'</td><td>'+(a.score===null||a.score===undefined?'—':a.score+'%')+'</td><td>'+Math.max(1,Math.round((a.durationSeconds||0)/60))+' min</td><td>'+fmtDT(a.completedAt)+'</td></tr>';}).join(''):'<tr><td colspan="6">No submissions yet.</td></tr>')+'</tbody></table></div>'+(absent.length?'<p style="margin-top:12px"><b>Not submitted / absent ('+absent.length+'):</b> '+absent.map(function(s){return esc(s.name);}).join(', ')+'</p>':'');
+}
+function inclassResults(r){
+ var ex=document.getElementById('extra');ex.innerHTML='<div class="il-panel"><h3>Results · '+esc(r.title)+'</h3><div class="il-empty">Loading…</div></div>';
+ Promise.all([call('ielts.attempt.list',{classId:r.classId}),call('class.roster',{classId:r.classId})]).then(function(v){
+  var att=(v[0]||[]).filter(function(a){return a.assignmentId===r.assignmentId;});
+  ex.innerHTML='<div class="il-panel"><h3>Results · '+esc(r.title)+'</h3>'+icDetailHtml(r,att,v[1]||[])+'</div>';
+  ex.scrollIntoView();
+ }).catch(function(e){ex.innerHTML='<div class="il-panel il-error">'+esc(e.message)+'</div>';});
+}
+function drawResInclass(box,data,rs){
+ box.innerHTML='<div class="il-empty">Loading…</div>';
+ call('ielts.inclass.list',{classId:rs.classId}).then(function(rows){
+  rows=(rows||[]).filter(function(r){return rs.skill==='all'||r.skill===rs.skill;});
+  var by={};data.att.forEach(function(a){if(a.assignmentId)(by[a.assignmentId]=by[a.assignmentId]||[]).push(a);});
+  box.innerHTML='<p class="il-note" style="margin-top:0">Tests given in class. Each row is one session; click a row to see every student.</p><div class="il-panel" style="overflow:auto"><table class="vm-table"><thead><tr><th>Test</th><th>Type</th><th>Date</th><th>Students</th><th>Avg score</th><th>Correct rate</th><th>Correct / total</th></tr></thead><tbody>'+(rows.length?rows.map(function(r,i){var sm=icSummary(by[r.assignmentId]||[],data.roster);return '<tr class="ic-row" data-ic="'+i+'" style="cursor:pointer"><td><b>'+esc(r.title)+'</b><div class="il-note">'+esc(r.skill)+'</div></td><td>'+icKind(r)+'</td><td>'+fmtDT(r.sessionStart)+'</td><td>'+sm.done+'/'+sm.total+'</td><td>'+(sm.avg===null?'—':sm.avg+'%')+'</td><td>'+(sm.rate===null?'—':sm.rate+'%')+'</td><td>'+(sm.correct===null?'—':sm.correct+'/'+sm.graded+' <span class="il-note">average</span>')+'</td></tr><tr class="ic-det" id="icDet'+i+'" style="display:none"><td colspan="7"></td></tr>';}).join(''):'<tr><td colspan="7" class="il-empty">No in-class tests for this class yet.</td></tr>')+'</tbody></table></div>';
+  qa('.ic-row').forEach(function(tr){tr.onclick=function(){var i=+tr.getAttribute('data-ic'),d=document.getElementById('icDet'+i),open=d.style.display==='none';d.style.display=open?'':'none';if(open)d.firstChild.innerHTML=icDetailHtml(rows[i],by[rows[i].assignmentId]||[],data.roster);};});
+ }).catch(function(e){box.innerHTML='<div class="il-empty">'+esc(e.message)+'</div>';});
 }
 
 /* ───────── In-class (student) ───────── */
@@ -2668,9 +2697,8 @@ function teacherResults(){
  rs.includePartials=true;
  rs.fromDate=rs.fromDate||localDateInput(new Date(now.getTime()-29*86400000));rs.toDate=rs.toDate||localDateInput(now);
  state.rsCache=state.rsCache||{};
- ex.innerHTML='<div class="il-panel rs-panel" style="margin-top:16px"><h3 style="margin:0 0 10px">Class results</h3><div class="il-toolbar rs-filters"><select class="vm-select" id="rzClass" aria-label="Class"><option value="">Select a class</option>'+state.classes.map(function(c){return '<option value="'+esc(c.classId)+'"'+(c.classId===rs.classId?' selected':'')+'>'+esc(c.className)+'</option>';}).join('')+'</select><select class="vm-select" id="rzSkill" aria-label="Skill"><option value="all">Reading + Listening</option><option value="reading">Reading</option><option value="listening">Listening</option></select><select class="vm-select" id="rzSrc" aria-label="Source"><option value="all">All sessions</option><option value="inclass">In-class only</option><option value="practice">Practice only</option></select><label class="rs-date-label">From Date <input class="vm-input" id="rzFrom" type="date" value="'+esc(rs.fromDate)+'" aria-label="From Date"></label><label class="rs-date-label">To Date <input class="vm-input" id="rzTo" type="date" value="'+esc(rs.toDate)+'" aria-label="To Date"></label></div><div class="il-toolbar rs-nav"><div class="il-seg" id="rzView"><button data-v="full">Full test</button><button data-v="parts">Individual Part</button><button data-v="type">Task type</button></div><span class="il-spacer"></span><details class="rs-actions"><summary>More</summary><div class="rs-action-menu"><button class="vm-btn vm-btn-ghost vm-btn-sm" data-aux-view="classes">Compare classes</button><button class="vm-btn vm-btn-ghost vm-btn-sm" id="rzRep" title="Export a single-class progress report">Export report</button></div></details></div><div id="rzBody"></div></div>';
+ ex.innerHTML='<div class="il-panel rs-panel" style="margin-top:16px"><h3 style="margin:0 0 10px">Class results</h3><div class="il-toolbar rs-filters"><select class="vm-select" id="rzClass" aria-label="Class"><option value="">Select a class</option>'+state.classes.map(function(c){return '<option value="'+esc(c.classId)+'"'+(c.classId===rs.classId?' selected':'')+'>'+esc(c.className)+'</option>';}).join('')+'</select><select class="vm-select" id="rzSkill" aria-label="Skill"><option value="all">Reading + Listening</option><option value="reading">Reading</option><option value="listening">Listening</option></select><label class="rs-date-label">From Date <input class="vm-input" id="rzFrom" type="date" value="'+esc(rs.fromDate)+'" aria-label="From Date"></label><label class="rs-date-label">To Date <input class="vm-input" id="rzTo" type="date" value="'+esc(rs.toDate)+'" aria-label="To Date"></label></div><div class="il-toolbar rs-nav"><div class="il-seg" id="rzView"><button data-v="full">Full test</button><button data-v="parts">Individual Part</button><button data-v="type">Task type</button><button data-v="inclass">In-class</button></div><span class="il-spacer"></span><details class="rs-actions"><summary>More</summary><div class="rs-action-menu"><button class="vm-btn vm-btn-ghost vm-btn-sm" data-aux-view="classes">Compare classes</button><button class="vm-btn vm-btn-ghost vm-btn-sm" id="rzRep" title="Export a single-class progress report">Export report</button></div></details></div><div id="rzBody"></div></div>';
  document.getElementById('rzSkill').value=rs.skill;
- var srcSel=document.getElementById('rzSrc');srcSel.value=rs.src||'all';srcSel.onchange=function(){rs.src=this.value;rs.type='';rs.lesson='';if(data)render();};
  function setSeg(){qa('#rzView button').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-v')===rs.view);});var cs=document.getElementById('rzClass');if(cs)cs.style.display=rs.view==='classes'?'none':'';}
  setSeg();
  qa('#rzView button').forEach(function(b){b.onclick=function(){rs.view=b.getAttribute('data-v');rs.what=rs.view==='type'?'type':(rs.view==='parts'?'part':'full');rs.type='';rs.lesson='';rs.student='';setSeg();if(!data)load();else render();};});
@@ -2706,13 +2734,13 @@ function teacherResults(){
   var box=document.getElementById('rzBody');
   if(rs.view==='classes')return drawResClasses(box,rs,render);
   if(!data)return;
-  var srcAtt=data.att.filter(function(a){return rs.src==='inclass'?!!a.assignmentId:(rs.src==='practice'?!a.assignmentId:true);});
-  var shown={att:rsFilterAttempts(srcAtt,rs.fromDate,rs.toDate),roster:data.roster};
+  if(rs.view==='inclass')return drawResInclass(box,data,rs);
+  var shown={att:rsFilterAttempts(data.att,rs.fromDate,rs.toDate),roster:data.roster};
   if(rs.view==='attempts')return drawResAttempts(box,shown,rs);
   if(rs.view==='full')shown.att=shown.att.filter(function(a){return !isTaskAttempt(a)&&isFullAttempt(a);});
   else if(rs.view==='parts')shown.att=shown.att.filter(function(a){return !isTaskAttempt(a)&&!isFullAttempt(a);});
   drawResStudents(box,shown,rs,render);
-  if(rs.view==='type'){var heat=document.createElement('div');heat.className='il-panel rs-type-matrix';heat.innerHTML='<h3 style="margin:0 0 8px">Task type by student</h3><div id="rzTypeMatrix"></div>';box.appendChild(heat);drawResTypes(document.getElementById('rzTypeMatrix'),{att:rsFilterAttempts(srcAtt,rs.fromDate,rs.toDate),roster:data.roster},rs,render);}
+  if(rs.view==='type'){var heat=document.createElement('div');heat.className='il-panel rs-type-matrix';heat.innerHTML='<h3 style="margin:0 0 8px">Task type by student</h3><div id="rzTypeMatrix"></div>';box.appendChild(heat);drawResTypes(document.getElementById('rzTypeMatrix'),{att:rsFilterAttempts(data.att,rs.fromDate,rs.toDate),roster:data.roster},rs,render);}
  }
  load();
 }
