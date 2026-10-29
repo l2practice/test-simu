@@ -139,13 +139,21 @@ function fsCommit(writes) {
 // ════════════════════════════════════════════════════════════
 function vmfbIeltsVerifiedUser(idToken) {
   if (!idToken || !VMFB.API_KEY) return { success:false, error:'Missing Firebase sign-in.' };
-  var check = UrlFetchApp.fetch('https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=' + encodeURIComponent(VMFB.API_KEY), {
-    method:'post', contentType:'application/json', muteHttpExceptions:true, payload:JSON.stringify({idToken:idToken})
-  });
-  if (check.getResponseCode() !== 200) return { success:false, error:'Your session has expired.' };
-  var authData = JSON.parse(check.getContentText()), authUser = authData.users && authData.users[0];
-  if (!authUser || !authUser.localId) return { success:false, error:'Could not verify the account.' };
-  var uid = authUser.localId, user = fsGet('users/' + uid);
+  // the same token is checked on every request of a session, so the answer is kept for 5 minutes (saves one UrlFetch per call)
+  var cache = null, ck = '';
+  try { cache = CacheService.getScriptCache(); ck = 'vu_' + Utilities.base64EncodeWebSafe(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, idToken)).slice(0, 40); } catch (e) { cache = null; }
+  var uid = cache ? cache.get(ck) : null;
+  if (!uid) {
+    var check = UrlFetchApp.fetch('https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=' + encodeURIComponent(VMFB.API_KEY), {
+      method:'post', contentType:'application/json', muteHttpExceptions:true, payload:JSON.stringify({idToken:idToken})
+    });
+    if (check.getResponseCode() !== 200) return { success:false, error:'Your session has expired.' };
+    var authData = JSON.parse(check.getContentText()), authUser = authData.users && authData.users[0];
+    if (!authUser || !authUser.localId) return { success:false, error:'Could not verify the account.' };
+    uid = authUser.localId;
+    if (cache) { try { cache.put(ck, uid, 300); } catch (e) {} }
+  }
+  var user = fsGet('users/' + uid);
   if (!user || user.archived) return { success:false, error:'This account is not active.' };
   return { success:true, uid:uid, user:user };
 }
@@ -236,6 +244,11 @@ function vmfbIeltsGradeAttempt(p) {
 // Audio script of one Library item. Scripts live in ieltsAnswerKeys (never in the public content doc).
 // Any signed-in user can read the script of a published, approved Library item (the Audio Scripts page).
 function vmfbIeltsScriptGet(p) {
+  // an uncaught error here would reach the browser as a bare "Failed to fetch"; answer with the real reason instead
+  try { return vmfbIeltsScriptGet_(p); }
+  catch (e) { return { success:false, error:'The audio script could not be loaded (' + String(e && e.message || e).slice(0, 160) + '). Please try again in a minute.' }; }
+}
+function vmfbIeltsScriptGet_(p) {
   p = p || {};
   var verified = vmfbIeltsVerifiedUser(p.idToken);
   if (!verified.success) return verified;

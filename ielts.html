@@ -1060,7 +1060,10 @@ function openScript(id,label){
  function ready(d,mine){cur.script=d.script||'';cur.mine=(!teacher&&mine&&mine.text!=null)?mine.text:null;show();}
  var mineP=teacher?Promise.resolve(null):call('ielts.script.mine',{id:id}).catch(function(){return null;});
  if(SCRIPT_CACHE[id])return mineP.then(function(mn){ready(SCRIPT_CACHE[id],mn);});
- Promise.all([call('ielts.script.get',{id:id}),mineP]).then(function(v){SCRIPT_CACHE[id]=v[0];ready(v[0],v[1]);}).catch(function(e){var b=document.getElementById('scBody');if(b)b.innerHTML='<p class="il-error">'+esc(e.message)+'</p>';});
+ function load(){var b0=document.getElementById('scBody');if(b0)b0.innerHTML='<div class="il-empty">Loading…</div>';
+  Promise.all([call('ielts.script.get',{id:id}),mineP]).then(function(v){SCRIPT_CACHE[id]=v[0];ready(v[0],v[1]);}).catch(function(e){var b=document.getElementById('scBody');if(!b)return;var net=/Failed to fetch|NetworkError|Load failed|Network error/i.test(String(e.message));b.innerHTML='<p class="il-error">'+esc(net?'Could not reach the server. Check your internet connection and try again.':e.message)+'</p><button class="vm-btn vm-btn-ghost vm-btn-sm" id="scRetry">Try again</button>';var rb=document.getElementById('scRetry');if(rb)rb.onclick=function(){load();};});
+ }
+ load();
 }
 function diffHtml(oldT,newT){   // word-level diff: added words highlighted, removed words struck through
  var A=String(oldT||'').match(/\s*\S+/g)||[],B=String(newT||'').match(/\s*\S+/g)||[];
