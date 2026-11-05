@@ -211,11 +211,14 @@ function vmfbIeltsGradeAttempt(p) {
   var input = Array.isArray(p.answers) ? p.answers.slice(0, questions.length) : [];
   while (input.length < questions.length) input.push('');
   function norm(v) { return String(v == null ? '' : v).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim(); }
+  // YES = TRUE, NO = FALSE, NG = NOT GIVEN, so a True/False and a Yes/No wording of the same group both mark correctly
+  function tfn(v) { var x = norm(v); return x === 'yes' ? 'true' : (x === 'no' ? 'false' : (x === 'ng' ? 'not given' : x)); }
   var correct = 0, graded = 0, responses = input.map(function(answer, i){
     var q = questions[i], accepted = Array.isArray(q.__accepted) ? q.__accepted : [];
     var opts = Array.isArray(q.options) ? q.options : [];
     var hit = accepted.length ? accepted.some(function(a){
       if (norm(a) === norm(answer)) return true;
+      if (q.type === 'true-false-not-given' || q.type === 'yes-no-not-given') { if (tfn(a) === tfn(answer)) return true; }
       var m = /^[A-Za-z]$/.exec(String(a).trim());
       return !!(m && opts.length && opts[m[0].toUpperCase().charCodeAt(0) - 65] != null && norm(opts[m[0].toUpperCase().charCodeAt(0) - 65]) === norm(answer));
     }) : null;
