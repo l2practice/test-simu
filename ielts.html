@@ -617,7 +617,12 @@ function load(){
  setExam(false);root().innerHTML='<div class="il-empty">Loading…</div>';
  if(!load._checked){load._checked=true;return call('auth.whoami').then(function(w){var cur=VM.session.get()||{};if(w&&w.role&&w.role!==cur.role){VM.session.patch({role:w.role});location.reload();return;}return load();}).catch(function(){return load();});}
  var second=teacher?call('class.list'):call('ielts.attempt.list');
- return Promise.all([call('ielts.content.list'),second,call('ielts.folder.list').catch(function(){return [];})]).then(function(v){state.items=v[0]||[];state.folders=v[2]||[];state.loaded=true;if(teacher)state.classes=v[1]||[];else state.attempts=v[1]||[];render();}).catch(function(e){root().innerHTML='<div class="il-empty">'+esc(e.message)+'</div>';});
+ return Promise.all([call('ielts.content.list'),second,call('ielts.folder.list').catch(function(){return [];})]).then(function(v){state.items=v[0]||[];state.folders=v[2]||[];state.loaded=true;if(teacher)state.classes=v[1]||[];else state.attempts=v[1]||[];render();if(teacher)tidyYesNo();}).catch(function(e){root().innerHTML='<div class="il-empty">'+esc(e.message)+'</div>';});
+}
+function tidyYesNo(){   // once per browser: re-type Yes/No and True/False groups whose answer key says otherwise
+ var k='ielts_tyfix_v1',done=false;try{done=!!localStorage.getItem(k);}catch(e){}
+ if(done)return;
+ call('ielts.types.repair').then(function(r){try{localStorage.setItem(k,'1');}catch(e){}if(r&&r.fixed){VM.toast('Fixed the Yes/No and True/False question type in '+r.fixed+' test'+(r.fixed===1?'':'s')+'.','ok',6000);state.loaded=false;load();}}).catch(function(){});
 }
 function setExam(on){document.body.classList.toggle('exam-mode',!!on);if(!on)document.body.classList.remove('skill-reading','skill-listening','exam-dark','exam-hc');}
 function setSkillTheme(s){document.body.classList.remove('skill-reading','skill-listening');if(s==='reading'||s==='listening')document.body.classList.add('skill-'+s);tbUpdate();}
@@ -1425,8 +1430,11 @@ function drawResultsPage(){
 /* ───────── Auto-classify pasted questions + answers ───────── */
 function detectType(instr, hasOptions, hasBlank){
  var t=String(instr||'').toLowerCase();
- if(/true\W+false\W+(or\W+|and\W+)?not given/.test(t)||(/\btrue\b[\s\S]*\bfalse\b[\s\S]*not given/.test(t)&&/agree|statement|information/.test(t)))return 'true-false-not-given';
- if(/yes\W+no\W+(or\W+|and\W+)?not given/.test(t)||(/\byes\b[\s\S]*\bno\b[\s\S]*not given/.test(t)&&/agree|statement|views|claims/.test(t)))return 'yes-no-not-given';
+ var isTF=/true\W+false\W+(or\W+|and\W+)?not given/.test(t)||(/\btrue\b[\s\S]*\bfalse\b[\s\S]*not given/.test(t)&&/agree|statement|information/.test(t));
+ var isYN=/yes\W+no\W+(or\W+|and\W+)?not given/.test(t)||(/\byes\b[\s\S]*\bno\b[\s\S]*not given/.test(t)&&/agree|statement|views|claims/.test(t));
+ if(isTF&&isYN)return t.search(/\byes\b/)<t.search(/\btrue\b/)?'yes-no-not-given':'true-false-not-given';   // both appear: the one the instruction names first
+ if(isTF)return 'true-false-not-given';
+ if(isYN)return 'yes-no-not-given';
  if(/list of headings|choose the correct heading/.test(t))return 'matching-headings';
  if(/label the (map|plan)|label the diagram|labell?ing|map below|plan below/.test(t)&&!/complete the/.test(t))return 'plan-map-diagram-labelling';
  if(/correct endings?\b|sentence endings|complete each sentence with the correct/.test(t))return 'matching-features';
@@ -1637,7 +1645,7 @@ function stopTimer(){if(timerId){clearInterval(timerId);timerId=null;}}
 function secLabel(x,i){var s=(x.sections||[])[i]||{};if(s.label)return s.label;return partWord(x.skill)+' '+(s.part||i+1);}
 function flatQs(x){var out=[];(x.sections||[]).forEach(function(s,p){(s.questions||[]).forEach(function(q,k){var n=out.length+1;out.push({q:q,part:p,k:k,n:n,num:x.sequential?n:(q.number||n)});});});return out;}
 function partRange(flat,p){var a=flat.filter(function(f){return f.part===p;});return a.length?{from:a[0].num,to:a[a.length-1].num,count:a.length}:{from:0,to:0,count:0};}
-function qOptions(q){if(q.options&&q.options.length)return q.options;if(q.type==='true-false-not-given')return['TRUE','FALSE','NOT GIVEN'];if(q.type==='yes-no-not-given')return['YES','NO','NOT GIVEN'];return[];}
+function qOptions(q){if(q.type==='true-false-not-given')return['TRUE','FALSE','NOT GIVEN'];if(q.type==='yes-no-not-given')return['YES','NO','NOT GIVEN'];return q.options&&q.options.length?q.options:[];}
 function letterOf(i){return String.fromCharCode(65+i);}
 function optValue(q,o,i){
  if(q.type==='matching-headings'){var m=/^([ivxIVX]+)\b/.exec(o);return m?m[1].toLowerCase():o;}

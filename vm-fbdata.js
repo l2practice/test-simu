@@ -827,6 +827,17 @@ async function vocabToday(p) {
 // ════════════════════════════════════════════
 // IELTS READING / LISTENING LIBRARY + ATTEMPTS
 // ════════════════════════════════════════════
+// True/False/Not Given and Yes/No/Not Given look alike; the answer key tells which one a group really is (YES/NO vs TRUE/FALSE)
+function tfynFix(q) {
+  if (q.type !== 'true-false-not-given' && q.type !== 'yes-no-not-given') return false;
+  const a = (Array.isArray(q.answers) ? q.answers : []).map(v => String(v).trim().toLowerCase());
+  const yn = a.some(v => v === 'yes' || v === 'no'), tf = a.some(v => v === 'true' || v === 'false');
+  const want = yn && !tf ? 'yes-no-not-given' : (tf && !yn ? 'true-false-not-given' : q.type);
+  let changed = false;
+  if (want !== q.type) { q.type = want; changed = true; }
+  if (Array.isArray(q.options) && q.options.length) { q.options = []; changed = true; }   // the standard choices are built from the type
+  return changed;
+}
 function cleanIeltsContent(p) {
   const skill = p.skill === 'listening' ? 'listening' : 'reading';
   const sections = Array.isArray(p.sections) ? p.sections.slice(0, 4) : [];
@@ -841,6 +852,7 @@ function cleanIeltsContent(p) {
       if (!str(q.prompt) || !types.includes(q.type)) throw new Error('A question is missing its text or has an invalid task type.');
       if (!Array.isArray(q.answers)) q.answers = q.answer ? [q.answer] : [];
       q.answers = q.answers.map(str).filter(Boolean);
+      tfynFix(q);
       q.options = Array.isArray(q.options) ? q.options.map(str).filter(Boolean) : [];
       q.instruction = str(q.instruction).slice(0, 4000);
       q.number = Number(q.number) || 0;
@@ -975,6 +987,32 @@ async function ieltsContentGet(p) {
   }
   d.canEdit = canEdit;
   return ok(canEdit ? d : publicIelts(d));
+}
+async function ieltsTypesRepair() {   // one-off tidy-up of existing tests whose Yes/No and True/False groups were mixed up
+  const u = await teacher();
+  const snap = await fs.collection('ieltsContent').where('teacherUid', '==', u.uid).get();
+  let fixed = 0;
+  for (const d of docs(snap)) {
+    if (d.archived || d.skill !== 'reading') continue;
+    const need = (d.sections || []).some(sec => (sec.questions || []).some(q => q.type === 'true-false-not-given' || q.type === 'yes-no-not-given'));
+    if (!need) continue;
+    const key = await fs.doc('ieltsAnswerKeys/' + d._id).get();
+    if (!key.exists) continue;
+    let changed = false;
+    (d.sections || []).forEach((sec, si) => {
+      const ks = (key.data().sections || [])[si] || {};
+      (sec.questions || []).forEach((q, qi) => {
+        const v = (ks.answers || [])[qi], tmp = { type: q.type, options: q.options, answers: Array.isArray(v) ? v : ((v && v.a) || []) };
+        if (tfynFix(tmp)) { q.type = tmp.type; q.options = tmp.options; changed = true; }
+      });
+    });
+    if (!changed) continue;
+    const taskTypes = Array.from(new Set((d.sections || []).flatMap(sec => (sec.questions || []).map(q => q.type))));
+    await fs.doc('ieltsContent/' + d._id).update({ sections: d.sections, taskTypes, updatedAt: nowIso() });
+    await idxPatch(d.book, d._id, { taskTypes });
+    fixed++;
+  }
+  return ok({ fixed });
 }
 async function ieltsContentApprove(p) {
   const u = await teacher(), ref = fs.doc('ieltsContent/' + str(p.id)), s = await ref.get();
@@ -1363,7 +1401,7 @@ const ACTIONS = {
   'translate.stats': translateStats, 'translate.myProgress': translateMyProgress,
   'readwise.save': readwiseSave, 'readwise.list': readwiseList, 'readwise.get': readwiseGet, 'readwise.delete': readwiseDelete,
   'ielts.inclass.create': ieltsInclassCreate, 'ielts.inclass.list': ieltsInclassList, 'ielts.inclass.forStudent': ieltsInclassForStudent, 'ielts.inclass.delete': ieltsInclassDelete,
-  'ielts.content.approve': ieltsContentApprove, 'ielts.content.setFolder': ieltsContentSetFolder, 'ielts.folder.list': ieltsFolderList, 'ielts.folder.create': ieltsFolderCreate, 'ielts.folder.delete': ieltsFolderDelete, 'ielts.content.save': ieltsContentSave, 'ielts.content.list': ieltsContentList, 'ielts.content.get': ieltsContentGet, 'ielts.content.archive': ieltsContentArchive,
+  'ielts.content.approve': ieltsContentApprove, 'ielts.types.repair': ieltsTypesRepair, 'ielts.content.setFolder': ieltsContentSetFolder, 'ielts.folder.list': ieltsFolderList, 'ielts.folder.create': ieltsFolderCreate, 'ielts.folder.delete': ieltsFolderDelete, 'ielts.content.save': ieltsContentSave, 'ielts.content.list': ieltsContentList, 'ielts.content.get': ieltsContentGet, 'ielts.content.archive': ieltsContentArchive,
   'ielts.feedbackDoc.create': async p => { await authReady(); const cur = auth.currentUser; if (!cur) return fail('SESSION_EXPIRED'); return gas('ielts.feedbackDoc', { idToken: await cur.getIdToken(), attemptId: str(p.attemptId), aiText: String(p.aiText || '') }); },
   'ielts.attempt.save': ieltsAttemptSave, 'ielts.attempt.list': ieltsAttemptList,
   'ielts.report.create': ieltsReportCreate, 'ielts.report.list': ieltsReportList, 'ielts.report.update': ieltsReportUpdate,
