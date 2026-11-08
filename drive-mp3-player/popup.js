@@ -73,6 +73,7 @@ const el = {
   waveWrap: $('waveWrap'),
   waveTip: $('waveTip'),
   autoCacheToggle: $('autoCacheToggle'),
+  autoNextToggle: $('autoNextToggle'),
   maxAgeSelect: $('maxAgeSelect'),
   maxSizeSelect: $('maxSizeSelect'),
   cleanNowBtn: $('cleanNowBtn'),
@@ -913,6 +914,7 @@ async function loadCleanupSettings() {
     el.maxAgeSelect.value = String(s.maxAgeDays);
     el.maxSizeSelect.value = String(Math.round(s.maxBytes / MB));
     el.autoCacheToggle.checked = !!s.autoCache;
+    el.autoNextToggle.checked = !!s.autoNext;
     app.autoCache = !!s.autoCache;
     renderList();
   } catch (e) {
@@ -924,7 +926,8 @@ async function onCleanupSettingChange() {
   await saveSettings({
     maxAgeDays: Number(el.maxAgeSelect.value),
     maxBytes: Number(el.maxSizeSelect.value) * MB,
-    autoCache: el.autoCacheToggle.checked
+    autoCache: el.autoCacheToggle.checked,
+    autoNext: el.autoNextToggle.checked
   });
   app.autoCache = el.autoCacheToggle.checked;
   renderList();
@@ -934,6 +937,7 @@ async function onCleanupSettingChange() {
 el.maxAgeSelect.addEventListener('change', onCleanupSettingChange);
 el.maxSizeSelect.addEventListener('change', onCleanupSettingChange);
 el.autoCacheToggle.addEventListener('change', onCleanupSettingChange);
+el.autoNextToggle.addEventListener('change', onCleanupSettingChange);
 el.cleanNowBtn.addEventListener('click', () => cleanup(true));
 
 // ---------- Trình phát ----------

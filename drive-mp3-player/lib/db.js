@@ -14,7 +14,8 @@ export const MB = 1024 * 1024;
 export const DEFAULT_SETTINGS = {
   maxBytes: 500 * MB, // 0 = không giới hạn
   maxAgeDays: 90, // 0 = không tự xóa theo thời gian
-  autoCache: false // true = tự lưu file vào máy khi phát lần đầu (để nghe offline)
+  autoCache: false, // true = tự lưu file vào máy khi phát lần đầu (để nghe offline)
+  autoNext: true // true = hết một file thì tự phát file kế tiếp trong danh sách
 };
 
 let dbPromise = null;

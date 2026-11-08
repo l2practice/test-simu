@@ -537,7 +537,14 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 ['play', 'pause', 'ended', 'durationchange', 'seeked', 'playing', 'waiting'].forEach((ev) =>
   audio.addEventListener(ev, () => update(ev === 'pause' || ev === 'ended'))
 );
-audio.addEventListener('ended', () => {
+audio.addEventListener('ended', async () => {
+  // Respect the "Auto-play next file" setting (Settings > Playback)
+  try {
+    const { autoNext } = await getSettings();
+    if (!autoNext) return;
+  } catch (e) {
+    /* if settings cannot be read, keep the default behaviour */
+  }
   nextTrack(true).catch(() => {});
 });
 audio.addEventListener('timeupdate', () => update(false));

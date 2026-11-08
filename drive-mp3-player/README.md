@@ -37,6 +37,7 @@ drive-mp3-player/
 - **Duyệt theo thư mục Drive (không tải cả Drive):** tab *Drive* mở ra màn chọn thư mục: dán link thư mục (`https://drive.google.com/drive/folders/...`) rồi bấm Open, hoặc bấm *Browse My Drive*. Trong thư mục hiển thị thư mục con (bấm để vào, nút ← để quay lại) và các file MP3; chỉ lấy danh sách của thư mục đang mở. Nút ☆ để ghim thư mục, ghim xong nó nằm sẵn ở mục *Pinned folders*. Extension nhớ thư mục bạn mở lần cuối. Ô tìm kiếm chỉ tìm trong thư mục đang mở; hàng đợi, chọn nhiều file và upload (vào đúng thư mục đang mở, nếu bật tùy chọn lưu lên Drive) đều theo thư mục đó.
 - **Đăng nhập lâu dài:** với `CLIENT_SECRET` trong `config.js`, extension lưu refresh token và tự gia hạn access token (1 giờ) ở nền, bạn không phải đăng nhập lại. Lỗi mạng tạm thời không làm bạn bị đăng xuất. Trạng thái hiện ở ⚙ Settings → Connect Google Drive.
 - **Thời gian từng file:** file mới thêm được đo thời lượng ngay; file cũ chưa có sẽ được đo ở nền khi mở popup. Dòng tóm tắt phía trên danh sách hiển thị *số file • Total • Remaining* của hàng đợi. Ở thanh phát có thêm thời gian còn lại của bài đang nghe. Nút ✕ góc phải thanh phát để đóng trình phát.
+- **Auto-play next file:** công tắc trong ⚙ Settings → Playback (mặc định bật). Bật: hết một file thì tự phát file kế trong danh sách đã chọn. Tắt: dừng sau mỗi file, bạn bấm ▶ cho file tiếp theo.
 - **Upload nhiều file:** nút ⬆ cho chọn nhiều MP3 cùng lúc. File được thêm vào cuối tab *Saved offline* và **không tự phát**; bạn kéo biểu tượng ⋮⋮ để sắp xếp thứ tự, rồi bấm vào một file để bắt đầu, các file sau tự phát nối tiếp theo thứ tự đó.
 - **Giao diện tiếng Anh:** toàn bộ chữ trong extension đã chuyển sang tiếng Anh. Mỗi file chỉ chiếm một hàng: tên, thời lượng • dung lượng, nhãn `local` (file tải từ máy tính) và biểu tượng máy tính xanh (đã lưu trên máy, nghe được offline).
 - **Cửa sổ nổi + thu nhỏ:** nút ⧉ trên thanh tiêu đề mở extension thành cửa sổ riêng, không tự đóng khi bạn bấm sang tab/ứng dụng khác. Trong cửa sổ đó, nút ▬ thu nhỏ còn mỗi thanh phát, bấm lại để mở rộng.
@@ -108,7 +109,7 @@ Lưu ý khi cập nhật từ bản cũ chưa có `key`: ID đổi, bạn phải
 
 | Hiện tượng | Cách xử lý |
 |---|---|
-| `redirect_uri_mismatch` | Redirect URI trong OAuth client không khớp. Mở ⚙ Cài đặt trong popup, bấm Sao chép, dán lại vào Authorized redirect URIs (nếu bạn đổi tên/di chuyển thư mục thì Extension ID đổi, phải cập nhật lại). |
+| `redirect_uri_mismatch` | Từ bản có `key` cố định, URI phải là `https://gofimhhhodpjkckaacplfcpinajcoepi.chromiumapp.org/` (thêm vào **Authorized redirect URIs** của OAuth client, không phải JavaScript origins). Nếu vẫn lỗi: Redirect URI trong OAuth client không khớp. Mở ⚙ Cài đặt trong popup, bấm Sao chép, dán lại vào Authorized redirect URIs (nếu bạn đổi tên/di chuyển thư mục thì Extension ID đổi, phải cập nhật lại). |
 | `Client ID is not configured` | Chưa điền `CLIENT_ID` trong `config.js`, hoặc chưa Reload extension. |
 | `client_secret is missing` / `invalid_client` | `CLIENT_SECRET` trong `config.js` sai hoặc không thuộc cùng OAuth client với `CLIENT_ID`. |
 | Bị yêu cầu đăng nhập lại sau ~7 ngày | App đang ở trạng thái *Testing*; chuyển sang *In production* (xem Bước 2). |
