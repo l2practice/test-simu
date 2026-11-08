@@ -28,7 +28,7 @@ drive-mp3-player/
 - **Upload:** chọn file MP3 từ máy → lưu vào bộ nhớ extension và phát. Tick "Đồng thời lưu bản sao lên Google Drive" nếu muốn upload thêm lên Drive (giữ popup mở đến khi xong).
 - **Lưu ý:** Chrome đóng offscreen document sau ~30 giây không phát âm thanh. Vị trí nghe được lưu lại, nên bấm Play lại sẽ tiếp tục đúng chỗ cũ.
 
-## Bước 1: Cài extension vvào Chrome (để lấy Extension ID)
+## Bước 1: Cài extension vào Chrome (để lấy Extension ID)
 
 1. Mở `chrome://extensions`.
 2. Bật **Developer mode** (góc trên bên phải).
