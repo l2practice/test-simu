@@ -1,5 +1,5 @@
 import { formatTime, formatBytes } from './lib/util.js';
-import { listFiles, putFile, deleteFile, clearAll, getSettings, saveSettings, MB } from './lib/db.js';
+import { listFiles, putFile, deleteFile, clearAll, getSettings, saveSettings, setOrder, lastUsed, MB } from './lib/db.js';
 import { runCleanup } from './lib/cleanup.js';
 import { getToken, signOut, listMp3, uploadFile } from './lib/drive.js';
 
@@ -52,6 +52,7 @@ const el = {
   selCancelBtn: $('selCancelBtn'),
   redirectUri: $('redirectUri'),
   copyUriBtn: $('copyUriBtn'),
+  reorderHint: $('reorderHint'),
   waveCanvas: $('waveCanvas'),
   waveWrap: $('waveWrap'),
   waveTip: $('waveTip'),
@@ -98,6 +99,7 @@ const app = {
   autoCache: false,
   selectMode: false,
   selected: new Set(),
+  dragId: null,
   compact: store.get('compact', false),
   peaks: null, // { id, data } dạng sóng của bài đang mở
   dragging: false
@@ -171,7 +173,7 @@ function render() {
   el.settingsBtn.hidden = false;
   el.signOutBtn.hidden = !app.signedIn;
 
-  el.guestTitle.textContent = `Nghe các file đã lưu Offline (${app.cached.length} file)`;
+  el.guestTitle.textContent = `Listen to offline files (${app.cached.length} ${app.cached.length === 1 ? 'file' : 'files'})`;
 
   if (view === 'list') {
     renderTabs();
@@ -185,8 +187,18 @@ function totalCachedSize() {
   return app.cached.reduce((sum, r) => sum + (r.size || 0), 0);
 }
 
+/** Danh sách đã lưu theo thứ tự người dùng sắp xếp; file chưa có thứ tự xếp sau, mới nghe gần đây hơn lên trước. */
+function sortedCached() {
+  return app.cached.slice().sort((a, b) => {
+    const ao = a.order ?? Infinity;
+    const bo = b.order ?? Infinity;
+    if (ao !== bo) return ao - bo;
+    return lastUsed(b) - lastUsed(a);
+  });
+}
+
 function localOnlyFiles() {
-  return app.cached.filter((r) => r.source === 'local');
+  return sortedCached().filter((r) => r.source === 'local');
 }
 
 function renderTabs() {
@@ -195,10 +207,10 @@ function renderTabs() {
   el.tabAll.hidden = !both;
 
   const allCount = localOnlyFiles().length + app.driveFiles.length;
-  el.tabAll.textContent = `Tất cả (${allCount}${app.nextPageToken ? '+' : ''})`;
+  el.tabAll.textContent = `All (${allCount}${app.nextPageToken ? '+' : ''})`;
 
   const size = app.cached.length ? ` • ${formatBytes(totalCachedSize())}` : '';
-  el.tabCached.textContent = `Đã lưu Offline (${app.cached.length})${size}`;
+  el.tabCached.textContent = `Saved offline (${app.cached.length})${size}`;
 
   el.tabAll.classList.toggle('active', tab === 'all');
   el.tabCached.classList.toggle('active', tab === 'cached');
@@ -208,8 +220,8 @@ function renderTabs() {
 
 function renderSettings() {
   el.storageInfo.textContent = app.cached.length
-    ? `${app.cached.length} file • ${formatBytes(totalCachedSize())} đang lưu trên máy`
-    : 'Chưa có file nào được lưu trên máy.';
+    ? `${app.cached.length} ${app.cached.length === 1 ? 'file' : 'files'} • ${formatBytes(totalCachedSize())} stored on this device`
+    : 'No files are stored on this device.';
   el.clearAllBtn.disabled = app.cached.length === 0;
   el.uploadOpt.hidden = !app.signedIn;
 }
@@ -224,7 +236,7 @@ function matchQuery(name) {
 function visibleFiles() {
   const map = cachedMap();
   if (currentTab() === 'cached') {
-    return app.cached
+    return sortedCached()
       .filter((r) => matchQuery(r.name))
       .map((r) => ({ id: r.id, name: r.name, size: r.size, duration: r.duration, source: r.source }));
   }
@@ -242,6 +254,10 @@ const SVG_CHECK =
   '<svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg>';
 const SVG_CLOUD =
   '<svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M19.35 10.04A7.49 7.49 0 0 0 12 4C9.11 4 6.6 5.64 5.35 8.04A5.994 5.994 0 0 0 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/></svg>';
+const SVG_MONITOR =
+  '<svg viewBox="0 0 24 24" width="15" height="15"><path fill="currentColor" d="M20 3H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h6v2H8v2h8v-2h-2v-2h6a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm0 12H4V5h16v10z"/></svg>';
+const SVG_CLOUD_SM =
+  '<svg viewBox="0 0 24 24" width="15" height="15"><path fill="currentColor" d="M19.35 10.04A7.49 7.49 0 0 0 12 4C9.11 4 6.6 5.64 5.35 8.04A5.994 5.994 0 0 0 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/></svg>';
 const SVG_TRASH =
   '<svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>';
 
@@ -250,6 +266,8 @@ function renderList() {
   const map = cachedMap();
   const currentId = app.player && app.player.track ? app.player.track.id : null;
   const frag = document.createDocumentFragment();
+  const reorderable = currentTab() === 'cached' && !app.query && !app.selectMode && files.length > 1;
+  el.reorderHint.hidden = !reorderable;
 
   files.forEach((f) => {
     const rec = map.get(f.id);
@@ -265,33 +283,75 @@ function renderList() {
       li.appendChild(box);
     }
 
-    const icon = document.createElement('div');
-    icon.className = 'status-icon' + (rec ? ' cached' : '');
-    icon.innerHTML = rec ? SVG_CHECK : SVG_CLOUD;
-    icon.title = rec ? 'Đã lưu — nghe được khi offline' : 'Trên Google Drive — cần mạng để tải';
+    if (reorderable) {
+      const grip = document.createElement('span');
+      grip.className = 'grip';
+      grip.textContent = '⋮⋮';
+      grip.title = 'Drag to reorder';
+      li.appendChild(grip);
+      li.draggable = true;
+      li.addEventListener('dragstart', (e) => {
+        app.dragId = f.id;
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', f.id);
+        li.classList.add('dragging');
+      });
+      li.addEventListener('dragend', () => {
+        app.dragId = null;
+        li.classList.remove('dragging');
+        clearDropMarks();
+      });
+      li.addEventListener('dragover', (e) => {
+        if (!app.dragId || app.dragId === f.id) return;
+        e.preventDefault();
+        const r = li.getBoundingClientRect();
+        clearDropMarks();
+        li.classList.add(e.clientY > r.top + r.height / 2 ? 'drop-after' : 'drop-before');
+      });
+      li.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        const after = li.classList.contains('drop-after');
+        clearDropMarks();
+        if (app.dragId && app.dragId !== f.id) await moveItem(files.map((x) => x.id), app.dragId, f.id, after);
+      });
+    }
 
-    const info = document.createElement('div');
-    info.className = 'file-info';
+    // One compact row: name on the left, small info on the right
     const name = document.createElement('div');
     name.className = 'file-name';
     name.textContent = f.name;
     name.title = f.name;
+
     const meta = document.createElement('div');
     meta.className = 'file-meta';
     const parts = [];
     if (f.duration) parts.push(formatTime(f.duration));
     if (f.size) parts.push(formatBytes(f.size));
-    if (f.source === 'local') parts.push('Từ máy tính');
-    parts.push(rec ? 'Đã lưu Offline' : 'Trên Drive');
-    meta.textContent = parts.join(' • ');
-    info.append(name, meta);
-    li.append(icon, info);
+    if (parts.length) {
+      const text = document.createElement('span');
+      text.textContent = parts.join(' • ');
+      meta.appendChild(text);
+    }
+    if (f.source === 'local') {
+      const chip = document.createElement('span');
+      chip.className = 'chip';
+      chip.textContent = 'local';
+      chip.title = 'Uploaded from your computer';
+      meta.appendChild(chip);
+    }
+    const state = document.createElement('span');
+    state.className = 'state-icon' + (rec ? ' cached' : '');
+    state.innerHTML = rec ? SVG_MONITOR : SVG_CLOUD_SM;
+    state.title = rec ? 'Saved on this device, available offline' : 'On Google Drive, needs internet to play';
+    meta.appendChild(state);
+
+    li.append(name, meta);
 
     if (rec && !app.selectMode) {
       const del = document.createElement('button');
       del.className = 'trash-btn';
-      del.title = 'Xóa khỏi bộ nhớ máy để giải phóng dung lượng';
-      del.setAttribute('aria-label', 'Xóa khỏi bộ nhớ máy');
+      del.title = 'Remove from this device to free up space';
+      del.setAttribute('aria-label', 'Remove from this device');
       del.innerHTML = SVG_TRASH;
       del.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -326,7 +386,7 @@ function renderSelectBar(files) {
   const n = files.filter((f) => app.selected.has(f.id)).length;
   el.selCount.textContent = String(n);
   el.selPlayBtn.disabled = n === 0;
-  el.selAllBtn.textContent = n === files.length && n > 0 ? 'Bỏ chọn' : 'Chọn tất cả';
+  el.selAllBtn.textContent = n === files.length && n > 0 ? 'Deselect all' : 'Select all';
 }
 
 function setSelectMode(on) {
@@ -356,6 +416,19 @@ el.selPlayBtn.addEventListener('click', () => {
   playTrack(picked[0], picked);
 });
 
+function clearDropMarks() {
+  el.fileList.querySelectorAll('.drop-before, .drop-after').forEach((n) => n.classList.remove('drop-before', 'drop-after'));
+}
+
+async function moveItem(ids, dragId, targetId, after) {
+  const next = ids.filter((id) => id !== dragId);
+  const at = next.indexOf(targetId);
+  if (at < 0) return;
+  next.splice(at + (after ? 1 : 0), 0, dragId);
+  await setOrder(next);
+  await refreshCache();
+}
+
 function emptyBox(title, text, btnLabel, onClick) {
   const box = el.emptyState;
   box.replaceChildren();
@@ -378,17 +451,17 @@ function renderEmpty(count) {
   if (count > 0) return;
 
   if (currentTab() === 'cached') {
-    if (app.query) emptyBox('Không tìm thấy file nào', 'Thử từ khóa khác.');
-    else if (app.autoCache) emptyBox('Chưa có file nào được lưu', 'File sẽ tự động được lưu khi bạn phát lần đầu (cần mạng).');
-    else emptyBox('Chưa có file nào được lưu', 'Đang tắt tự lưu nên file chỉ phát tạm. Bật "Lưu file để nghe offline" trong ⚙ Cài đặt nếu muốn nghe khi không có mạng.');
+    if (app.query) emptyBox('No files found', 'Try a different keyword.');
+    else if (app.autoCache) emptyBox('No saved files yet', 'Files are saved automatically the first time you play them (needs internet).');
+    else emptyBox('No saved files yet', 'Auto-save is off, so files only play temporarily. Turn on "Save files for offline listening" in ⚙ Settings to listen without internet.');
   } else if (app.driveLoading) {
-    emptyBox('Đang tải danh sách…', '');
+    emptyBox('Loading list…', '');
   } else if (app.driveError) {
-    emptyBox('Không tải được danh sách', app.driveError, 'Thử lại', () => loadDrive(true));
+    emptyBox('Could not load the list', app.driveError, 'Try again', () => loadDrive(true));
   } else if (app.query) {
-    emptyBox('Không tìm thấy file nào', 'Thử từ khóa khác.');
+    emptyBox('No files found', 'Try a different keyword.');
   } else {
-    emptyBox('Drive chưa có file MP3', 'Bạn có thể dùng nút Upload để thêm file.');
+    emptyBox('No MP3 files on Drive', 'Use the Upload button to add files.');
   }
 }
 
@@ -439,21 +512,21 @@ async function refreshCache() {
 async function removeFromCache(file) {
   const rec = cachedMap().get(file.id);
   if (rec && rec.source === 'local') {
-    if (!confirm(`"${rec.name}" là file tải từ máy tính và chỉ tồn tại trong bộ nhớ extension. Xóa sẽ mất hẳn. Tiếp tục?`)) return;
+    if (!confirm(`"${rec.name}" was uploaded from your computer and only exists in the extension's storage. Deleting it is permanent. Continue?`)) return;
   }
   await deleteFile(file.id);
-  toast('Đã xóa khỏi bộ nhớ máy');
+  toast('Removed from this device');
   await refreshCache();
 }
 
 async function removeAllCache() {
   const hasLocal = app.cached.some((r) => r.source === 'local');
   const msg = hasLocal
-    ? 'Xóa TẤT CẢ file đã lưu? Các file tải từ máy tính (không có trên Drive) sẽ mất hẳn.'
-    : 'Xóa tất cả file đã lưu để giải phóng dung lượng? (File trên Drive vẫn còn nguyên)';
+    ? 'Delete ALL saved files? Files uploaded from your computer (not on Drive) will be lost permanently.'
+    : 'Delete all saved files to free up space? (Files on Drive are not affected)';
   if (!confirm(msg)) return;
   await clearAll();
-  toast('Đã xóa toàn bộ bộ nhớ đệm');
+  toast('Cache cleared');
   await refreshCache();
 }
 
@@ -563,7 +636,7 @@ function currentProgress() {
 
 function describeRemoved(removed) {
   const bytes = removed.reduce((sum, r) => sum + r.size, 0);
-  return `Đã tự xóa ${removed.length} file cũ (${formatBytes(bytes)})`;
+  return `Automatically removed ${removed.length} old ${removed.length === 1 ? 'file' : 'files'} (${formatBytes(bytes)})`;
 }
 
 async function cleanup(showWhenEmpty = false) {
@@ -578,7 +651,7 @@ async function cleanup(showWhenEmpty = false) {
     await refreshCache();
     toast(describeRemoved(removed), 4500);
   } else if (showWhenEmpty) {
-    toast('Không có file nào cần dọn');
+    toast('Nothing to clean up');
   }
 }
 
@@ -626,9 +699,9 @@ function renderPlayer() {
   } else if (p.loading) {
     const pct = Math.round((p.progress || 0) * 100);
     el.nowPlaying.textContent =
-      p.progress > 0 && p.progress < 1 ? (p.saving ? `Đang tải xuống & lưu offline… ${pct}%` : `Đang tải xuống… ${pct}%`) : `Đang chuẩn bị: ${track.name}`;
+      p.progress > 0 && p.progress < 1 ? (p.saving ? `Downloading and saving offline… ${pct}%` : `Downloading… ${pct}%`) : `Preparing: ${track.name}`;
   } else {
-    el.nowPlaying.textContent = `${p.playing ? 'Đang phát' : 'Tạm dừng'}: ${track.name}`;
+    el.nowPlaying.textContent = `${p.playing ? 'Now playing' : 'Paused'}: ${track.name}`;
   }
   el.nowPlaying.title = track.name;
   renderSpeed();
@@ -661,7 +734,7 @@ function renderPlayer() {
 const SPEEDS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
 
 function speedLabel(v) {
-  return v === 1 ? 'Chuẩn' : String(v);
+  return v === 1 ? 'Normal' : String(v);
 }
 
 function currentSpeed() {
@@ -811,7 +884,7 @@ async function signIn() {
     await getToken({ interactive: true });
     await afterSignedIn();
   } catch (err) {
-    toast('Đăng nhập thất bại: ' + (err.message || err) + ' — xem ⚙ Cài đặt để lấy Redirect URI.', 8000);
+    toast('Sign-in failed: ' + (err.message || err) + ' (see ⚙ Settings for the Redirect URI)', 8000);
   }
 }
 
@@ -824,7 +897,7 @@ async function doSignOut() {
   app.driveFiles = [];
   app.nextPageToken = '';
   render();
-  toast('Đã đăng xuất. File đã lưu offline vẫn còn trên máy.');
+  toast('Signed out. Files saved offline are still on this device.');
 }
 
 el.googleBtn.addEventListener('click', signIn);
@@ -879,7 +952,7 @@ el.uploadToDrive.checked = store.get('uploadToDrive', false);
 el.uploadToDrive.addEventListener('change', () => store.set('uploadToDrive', el.uploadToDrive.checked));
 el.uploadBtn.addEventListener('click', () => el.fileInput.click());
 
-async function addOneFile(file, toDrive) {
+async function addOneFile(file, toDrive, order) {
   let id = 'local-' + crypto.randomUUID();
   let name = file.name;
   let size = file.size;
@@ -893,45 +966,59 @@ async function addOneFile(file, toDrive) {
       size = up.size || file.size;
       source = 'drive';
     } catch (err) {
-      toast('Upload Drive lỗi cho "' + file.name + '", chỉ lưu trên máy: ' + (err.message || err), 5000);
+      toast('Drive upload failed for "' + file.name + '", saved on this device only: ' + (err.message || err), 5000);
     }
   }
-  await putFile({ id, name, size, blob: file, cachedAt: Date.now(), source });
+  await putFile({ id, name, size, blob: file, cachedAt: Date.now(), source, order });
   return { id, name, size, source };
 }
 
 el.fileInput.addEventListener('change', async () => {
-  const files = Array.from(el.fileInput.files || []).filter(
-    (f) => /\.mp3$/i.test(f.name) || f.type === 'audio/mpeg'
-  );
-  const skipped = (el.fileInput.files || []).length - files.length;
+  const picked = Array.from(el.fileInput.files || []);
+  const files = picked.filter((f) => /\.mp3$/i.test(f.name) || f.type === 'audio/mpeg');
+  const skipped = picked.length - files.length;
   el.fileInput.value = '';
   if (!files.length) {
-    toast('Vui lòng chọn file MP3');
+    toast('Please choose MP3 files');
     return;
   }
 
-  const toDrive = app.signedIn && el.uploadToDrive.checked && isOnline();
-  if (app.signedIn && el.uploadToDrive.checked && !isOnline()) {
-    toast('Đang offline — chỉ lưu trên máy, không upload lên Drive được.');
+  const wantsDrive = app.signedIn && el.uploadToDrive.checked;
+  const toDrive = wantsDrive && isOnline();
+  if (wantsDrive && !isOnline()) toast('You are offline: saving on this device only, not uploading to Drive.');
+
+  // Fix the current order first so new files are appended at the end of the list
+  const existing = sortedCached();
+  try {
+    await setOrder(existing.map((r) => r.id));
+  } catch (e) {
+    /* ignore */
   }
 
   const added = [];
   for (let i = 0; i < files.length; i++) {
-    toast(`Đang xử lý ${i + 1}/${files.length}: ${files[i].name}` + (toDrive ? ' (giữ popup mở đến khi xong)' : ''), 60000);
+    toast(
+      `Processing ${i + 1}/${files.length}: ${files[i].name}` + (toDrive ? ' (keep this window open until done)' : ''),
+      60000
+    );
     try {
-      added.push(await addOneFile(files[i], toDrive));
+      added.push(await addOneFile(files[i], toDrive, existing.length + added.length));
     } catch (err) {
-      toast('Không lưu được "' + files[i].name + '": ' + (err.message || err), 5000);
+      toast('Could not save "' + files[i].name + '": ' + (err.message || err), 5000);
     }
   }
   if (!added.length) return;
 
   await refreshCache();
   if (added.some((t) => t.source === 'drive') && driveAvailable()) loadDrive(true);
-  toast(`Đã thêm ${added.length} file` + (skipped ? ` (bỏ qua ${skipped} file không phải MP3)` : '') + ' — đang phát lần lượt', 4000);
-  if (added.some((t) => t.source === 'local')) setTab('cached');
-  playTrack(added[0], added); // hàng đợi = các file vừa chọn, theo thứ tự
+  if (added.some((t) => t.source === 'local') || !driveAvailable()) setTab('cached');
+  // Do not auto-play: let the user arrange the order and press play themselves
+  toast(
+    `Added ${added.length} file${added.length > 1 ? 's' : ''}` +
+      (skipped ? ` (${skipped} non-MP3 skipped)` : '') +
+      '. Drag ⋮⋮ to arrange, then press a file to play.',
+    6000
+  );
 });
 
 // ---------- Tin nhắn từ offscreen + mạng ----------
@@ -986,8 +1073,8 @@ function applyCompact(resize) {
     isWindow && app.compact
       ? '<path fill="currentColor" d="M5 5h14v14H5V5zm2 2v10h10V7H7z"/>'
       : '<path fill="currentColor" d="M19 13H5v-2h14v2z"/>';
-  el.miniBtn.title = app.compact ? 'Mở rộng' : 'Thu nhỏ';
-  if (resize && isWindow) resizeWindowTo(400, app.compact ? 270 : 640);
+  el.miniBtn.title = app.compact ? 'Expand' : 'Minimize';
+  if (resize && isWindow) resizeWindowTo(400, app.compact ? 255 : 640);
   renderPlayer();
 }
 
@@ -1002,14 +1089,14 @@ el.miniBtn.addEventListener('click', () => {
 try {
   el.redirectUri.textContent = chrome.identity.getRedirectURL();
 } catch (e) {
-  el.redirectUri.textContent = '(không đọc được)';
+  el.redirectUri.textContent = '(unavailable)';
 }
 el.copyUriBtn.addEventListener('click', async () => {
   try {
     await navigator.clipboard.writeText(el.redirectUri.textContent);
-    toast('Đã sao chép Redirect URI');
+    toast('Redirect URI copied');
   } catch (e) {
-    toast('Hãy bôi đen và sao chép thủ công');
+    toast('Select the text and copy it manually');
   }
 });
 

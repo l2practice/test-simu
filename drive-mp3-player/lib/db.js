@@ -1,7 +1,7 @@
 // Bộ nhớ đệm MP3 bằng IndexedDB. Popup, offscreen document và service worker
 // cùng origin (chrome-extension://<id>) nên dùng chung một database.
 //
-// Store "files": { id, name, size, blob, cachedAt, lastPlayedAt, duration, peaks, source }
+// Store "files": { id, name, size, blob, cachedAt, lastPlayedAt, duration, peaks, order, source }
 // Store "meta":  { key, value }  (lưu cài đặt dọn dẹp)
 
 const DB_NAME = 'drive-mp3-cache';
@@ -94,4 +94,24 @@ export async function getSettings() {
 
 export function saveSettings(settings) {
   return tx(META, 'readwrite', (store) => store.put({ key: 'settings', value: settings }));
+}
+
+/** Gán thứ tự phát thủ công: ids[0] đứng đầu danh sách. */
+export function setOrder(ids) {
+  return openDb().then(
+    (db) =>
+      new Promise((resolve, reject) => {
+        const t = db.transaction(FILES, 'readwrite');
+        const store = t.objectStore(FILES);
+        ids.forEach((id, i) => {
+          const g = store.get(id);
+          g.onsuccess = () => {
+            if (g.result) store.put({ ...g.result, order: i });
+          };
+        });
+        t.oncomplete = () => resolve();
+        t.onerror = () => reject(t.error);
+        t.onabort = () => reject(t.error || new Error('Transaction aborted'));
+      })
+  );
 }

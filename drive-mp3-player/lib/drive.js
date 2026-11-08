@@ -11,7 +11,7 @@ export async function getToken({ interactive = false, invalidate = null } = {}) 
     interactive,
     invalidate
   });
-  if (!res || res.error) throw new Error((res && res.error) || 'Không kết nối được service worker');
+  if (!res || res.error) throw new Error((res && res.error) || 'Could not reach the extension service worker');
   return res.token;
 }
 

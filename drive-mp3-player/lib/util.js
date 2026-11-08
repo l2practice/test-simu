@@ -25,5 +25,5 @@ export function formatDate(iso) {
   if (!iso) return '';
   const d = typeof iso === 'number' ? new Date(iso) : new Date(iso);
   if (isNaN(d)) return '';
-  return d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  return d.toLocaleDateString('en-US', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }

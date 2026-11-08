@@ -23,7 +23,7 @@ async function ensureOffscreen() {
   creatingOffscreen = chrome.offscreen.createDocument({
     url: OFFSCREEN_URL,
     reasons: ['AUDIO_PLAYBACK'],
-    justification: 'Phát file MP3 liên tục khi cửa sổ popup bị đóng.'
+    justification: 'Keep playing MP3 audio while the popup window is closed.'
   });
   try {
     await creatingOffscreen;
@@ -44,7 +44,7 @@ let tokenInFlight = null;
 function oauthConfig() {
   const cfg = (chrome.runtime.getManifest().oauth2) || {};
   if (!cfg.client_id || cfg.client_id.startsWith('YOUR_CLIENT_ID')) {
-    throw new Error('Chưa cấu hình Client ID trong manifest.json (xem README).');
+    throw new Error('Client ID is not configured in manifest.json (see README).');
   }
   return cfg;
 }
@@ -74,18 +74,18 @@ function launchAuth(interactive) {
   return new Promise((resolve, reject) => {
     chrome.identity.launchWebAuthFlow({ url, interactive: !!interactive }, (responseUrl) => {
       if (chrome.runtime.lastError || !responseUrl) {
-        reject(new Error((chrome.runtime.lastError && chrome.runtime.lastError.message) || 'Đăng nhập bị hủy'));
+        reject(new Error((chrome.runtime.lastError && chrome.runtime.lastError.message) || 'Sign-in was cancelled'));
         return;
       }
       const hash = new URL(responseUrl).hash.replace(/^#/, '');
       const res = new URLSearchParams(hash);
       if (res.get('error')) {
-        reject(new Error('Google trả về lỗi: ' + res.get('error')));
+        reject(new Error('Google returned an error: ' + res.get('error')));
         return;
       }
       const token = res.get('access_token');
       if (!token) {
-        reject(new Error('Không nhận được access token'));
+        reject(new Error('No access token received'));
         return;
       }
       const expiresIn = Number(res.get('expires_in')) || 3600;

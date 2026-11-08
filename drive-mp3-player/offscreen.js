@@ -177,7 +177,7 @@ function waitForMetadata() {
     };
     const onErr = () => {
       cleanup();
-      reject(new Error('Không giải mã được file MP3'));
+      reject(new Error('Could not decode the MP3 file'));
     };
     const cleanup = () => {
       audio.removeEventListener('loadedmetadata', onOk);
@@ -223,8 +223,8 @@ async function loadTrack(track, { autoplay = true, startAt = 0 } = {}) {
     let blob = record && record.blob;
 
     if (!blob) {
-      if (track.source === 'local') throw new Error('Không tìm thấy file đã lưu trên máy');
-      if (!navigator.onLine) throw new Error('Đang offline và file này chưa được lưu để nghe offline');
+      if (track.source === 'local') throw new Error('Saved file not found on this device');
+      if (!navigator.onLine) throw new Error('You are offline and this file is not saved for offline listening');
 
       const { autoCache } = await getSettings();
       state.saving = !!autoCache;
@@ -400,7 +400,7 @@ async function handle(msg) {
       return { ok: true };
     case 'setSpeed': {
       const v = Number(msg.speed);
-      if (!SPEEDS.includes(v)) return { error: 'Tốc độ không hợp lệ' };
+      if (!SPEEDS.includes(v)) return { error: 'Invalid playback speed' };
       state.speed = v;
       applySpeed();
       try {
@@ -439,7 +439,7 @@ audio.addEventListener('ended', () => {
 audio.addEventListener('timeupdate', () => update(false));
 audio.addEventListener('error', () => {
   if (!audio.src) return;
-  state.error = 'Lỗi phát âm thanh';
+  state.error = 'Audio playback error';
   state.playing = false;
   broadcast();
 });

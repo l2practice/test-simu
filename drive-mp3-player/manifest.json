@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Drive MP3 Player",
   "version": "1.0.0",
-  "description": "Nghe MP3 từ Google Drive: phát nền, tua ±5s, cache offline, upload file từ máy.",
+  "description": "Listen to MP3 files from Google Drive: background playback, ±5s skip, offline cache, upload from your computer.",
   "minimum_chrome_version": "109",
   "action": {
     "default_title": "Drive MP3 Player",
