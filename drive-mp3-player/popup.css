@@ -934,3 +934,16 @@ html.compact #signOutBtn {
   background: var(--card-border);
   border-radius: 4px;
 }
+
+/* Long error messages and URLs must wrap instead of causing horizontal scroll */
+.empty {
+  overflow-wrap: anywhere;
+}
+
+.empty .retry-btn {
+  margin-top: 8px;
+}
+
+.list-area {
+  overflow-x: hidden;
+}

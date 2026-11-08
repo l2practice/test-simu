@@ -486,7 +486,25 @@ function renderEmpty(count) {
   } else if (app.driveLoading) {
     emptyBox('Loading list…', '');
   } else if (app.driveError) {
-    emptyBox('Could not load the list', app.driveError, 'Try again', () => loadDrive(true));
+    const disabled = /has not been used|is disabled|SERVICE_DISABLED/i.test(app.driveError);
+    if (disabled) {
+      // Drive API is not enabled in the user's Google Cloud project: explain and link to the fix
+      const project = (app.driveError.match(/project[= ](\d{6,})/i) || [])[1];
+      const url = 'https://console.developers.google.com/apis/api/drive.googleapis.com/overview' + (project ? '?project=' + project : '');
+      emptyBox(
+        'Google Drive API is not enabled',
+        'Enable it for your Google Cloud project, wait a minute or two, then try again.',
+        'Open the Enable page',
+        () => window.open(url, '_blank')
+      );
+      const retry = document.createElement('button');
+      retry.className = 'retry-btn';
+      retry.textContent = 'Try again';
+      retry.addEventListener('click', () => loadDrive(true));
+      el.emptyState.appendChild(retry);
+    } else {
+      emptyBox('Could not load the list', app.driveError, 'Try again', () => loadDrive(true));
+    }
   } else if (app.query) {
     emptyBox('No files found', 'Try a different keyword.');
   } else {
