@@ -18,8 +18,26 @@ let state = {
   error: null,
   queue: [], // danh sách bài đang mở (để tự chuyển bài)
   index: -1,
-  mode: readMode() // 'normal' | 'repeat-one' | 'shuffle'
+  mode: readMode(), // 'normal' | 'repeat-one' | 'shuffle'
+  speed: readSpeed() // tốc độ phát 0.25 – 2
 };
+
+const SPEEDS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
+
+function readSpeed() {
+  try {
+    const v = Number(localStorage.getItem('speed'));
+    return SPEEDS.includes(v) ? v : 1;
+  } catch (e) {
+    return 1;
+  }
+}
+
+function applySpeed() {
+  audio.defaultPlaybackRate = state.speed;
+  audio.playbackRate = state.speed;
+  audio.preservesPitch = true; // đổi tốc độ nhưng giữ nguyên cao độ giọng, giống YouTube
+}
 
 function readMode() {
   try {
@@ -163,6 +181,7 @@ async function loadTrack(track, { autoplay = true, startAt = 0 } = {}) {
 
     objectUrl = URL.createObjectURL(blob);
     audio.src = objectUrl;
+    applySpeed();
     audio.load();
     await waitForMetadata();
     if (seq !== loadSeq) return;
@@ -298,6 +317,19 @@ async function handle(msg) {
       }
       broadcast();
       return { ok: true };
+    case 'setSpeed': {
+      const v = Number(msg.speed);
+      if (!SPEEDS.includes(v)) return { error: 'Tốc độ không hợp lệ' };
+      state.speed = v;
+      applySpeed();
+      try {
+        localStorage.setItem('speed', String(v));
+      } catch (e) {
+        /* bỏ qua */
+      }
+      broadcast();
+      return { ok: true };
+    }
     case 'seek':
       seekTo(msg.time);
       return { ok: true };

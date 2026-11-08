@@ -1,22 +1,17 @@
 :root {
-  --bg: #0d121b;
-  --panel: #151c28;
-  --row: #1a2230;
-  --row-hover: #212b3b;
-  --border: #263145;
-  --text: #eef2fa;
-  --soft: #8d9ab3;
-  --accent: #3b9eff;
-  --accent-soft: rgba(59, 158, 255, 0.16);
-  --ok: #34d399;
+  --bg1: #120d2b;
+  --bg2: #1d1448;
+  --card: rgba(255, 255, 255, 0.06);
+  --card-border: rgba(160, 130, 255, 0.22);
+  --hover: rgba(140, 110, 255, 0.16);
+  --accent: #7c5cff;
+  --accent2: #a78bfa;
+  --accent-grad: linear-gradient(135deg, #7c5cff, #b57cff);
+  --text: #f1eeff;
+  --soft: #a9a3c9;
+  --ok: #4ade80;
   --warn: #f59e0b;
-  --danger: #ff6b7a;
-}
-
-/* Khi offline đổi sang tông cam như mockup */
-:root[data-net='offline'] {
-  --accent: #f59e0b;
-  --accent-soft: rgba(245, 158, 11, 0.16);
+  --danger: #ff7b8a;
 }
 
 * {
@@ -40,7 +35,7 @@ body {
   flex-direction: column;
   font: 13px/1.4 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   color: var(--text);
-  background: var(--bg);
+  background: radial-gradient(120% 80% at 0% 0%, var(--bg2) 0%, var(--bg1) 70%);
   overflow: hidden;
 }
 
@@ -62,8 +57,8 @@ button:disabled {
   align-items: center;
   justify-content: space-between;
   padding: 10px 14px;
-  background: var(--panel);
-  border-bottom: 1px solid var(--border);
+  background: transparent;
+  border-bottom: 1px solid var(--card-border);
 }
 
 .brand {
@@ -74,8 +69,15 @@ button:disabled {
   font-weight: 700;
 }
 
-.brand-icon {
-  color: var(--accent);
+.logo {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--accent-grad);
+  color: #fff;
+  font-size: 16px;
 }
 
 .top-actions {
@@ -116,7 +118,7 @@ button:disabled {
 }
 
 .icon-btn:hover {
-  background: var(--row-hover);
+  background: var(--hover);
   color: var(--text);
 }
 
@@ -145,7 +147,7 @@ button:disabled {
   justify-content: center;
   gap: 14px;
   padding: 0 28px 24px;
-  background: radial-gradient(90% 60% at 50% 25%, rgba(59, 158, 255, 0.18), transparent 70%);
+  background: radial-gradient(90% 60% at 50% 25%, rgba(124, 92, 255, 0.28), transparent 70%);
 }
 
 .hero {
@@ -182,7 +184,7 @@ button:disabled {
 .guest-btn {
   width: 100%;
   padding: 9px 14px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--card-border);
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.08);
   text-align: center;
@@ -214,9 +216,9 @@ button:disabled {
   align-items: center;
   gap: 8px;
   padding: 0 10px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--card-border);
   border-radius: 10px;
-  background: var(--panel);
+  background: var(--card);
   color: var(--soft);
 }
 
@@ -245,8 +247,8 @@ button:disabled {
 .upload-btn {
   width: 38px;
   height: 38px;
-  border: 1px solid var(--border);
-  background: var(--panel);
+  border: 1px solid var(--card-border);
+  background: var(--card);
 }
 
 .tabs {
@@ -254,7 +256,7 @@ button:disabled {
   display: flex;
   gap: 4px;
   padding: 0 12px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--card-border);
 }
 
 .tab {
@@ -268,8 +270,8 @@ button:disabled {
 }
 
 .tab.active {
-  color: var(--accent);
-  border-bottom-color: var(--accent);
+  color: var(--text);
+  border-bottom-color: var(--accent2);
 }
 
 /* ===== Danh sách ===== */
@@ -285,7 +287,7 @@ button:disabled {
 }
 
 .list-area::-webkit-scrollbar-thumb {
-  background: var(--border);
+  background: var(--card-border);
   border-radius: 3px;
 }
 
@@ -304,17 +306,17 @@ button:disabled {
   gap: 10px;
   padding: 8px 10px;
   border-radius: 10px;
-  background: var(--row);
+  background: var(--card);
   cursor: pointer;
 }
 
 .file-item:hover {
-  background: var(--row-hover);
+  background: var(--hover);
 }
 
 .file-item.playing {
-  background: var(--row-hover);
-  box-shadow: inset 0 0 0 1px var(--accent);
+  background: var(--hover);
+  box-shadow: inset 3px 0 0 var(--accent2);
 }
 
 .status-icon {
@@ -391,9 +393,9 @@ button:disabled {
   display: block;
   margin: 10px auto 2px;
   padding: 7px 16px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--card-border);
   border-radius: 8px;
-  background: var(--panel);
+  background: var(--card);
 }
 
 /* ===== Cài đặt ===== */
@@ -415,9 +417,9 @@ button:disabled {
 .card {
   flex: none;
   padding: 12px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--card-border);
   border-radius: 12px;
-  background: var(--panel);
+  background: var(--card);
 }
 
 .card h3 {
@@ -466,10 +468,11 @@ button:disabled {
 
 /* ===== Thanh phát ===== */
 .player-bar {
+  position: relative;
   flex: none;
-  padding: 10px 14px 12px;
-  background: var(--panel);
-  border-top: 1px solid var(--border);
+  margin: 6px 12px 12px;
+  padding: 10px 12px 10px;
+  border-radius: 14px;
 }
 
 .now-playing {
@@ -533,23 +536,23 @@ input[type='range']:disabled {
 }
 
 .skip:hover:not(:disabled) {
-  background: var(--row-hover);
+  background: var(--hover);
 }
 
 .play-btn {
   display: grid;
   place-items: center;
-  width: 52px;
-  height: 52px;
-  border: 2px solid var(--accent);
+  width: 54px;
+  height: 54px;
+  border: none;
   border-radius: 50%;
-  background: var(--accent-soft);
-  color: var(--accent);
+  background: var(--accent-grad);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(124, 92, 255, 0.45);
 }
 
 .play-btn:hover:not(:disabled) {
-  background: var(--accent);
-  color: #fff;
+  filter: brightness(1.12);
 }
 
 .toast {
@@ -560,8 +563,78 @@ input[type='range']:disabled {
   padding: 9px 12px;
   border-radius: 10px;
   background: #05080d;
-  border: 1px solid var(--border);
+  border: 1px solid var(--card-border);
   color: #fff;
   font-size: 12px;
   z-index: 10;
+}
+
+/* ===== Tốc độ phát (giống YouTube) ===== */
+.speed-wrap {
+  position: absolute;
+  right: 12px;
+  bottom: 18px;
+  z-index: 5;
+}
+
+.speed-btn {
+  min-width: 44px;
+  padding: 5px 8px;
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  background: var(--card);
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.speed-btn:hover {
+  background: var(--hover);
+}
+
+.speed-menu {
+  position: absolute;
+  right: 0;
+  bottom: 38px;
+  width: 150px;
+  padding: 6px;
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  background: #1b1440;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.55);
+}
+
+.speed-title {
+  padding: 4px 8px 6px;
+  font-size: 11.5px;
+  color: var(--soft);
+}
+
+.speed-opt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 8px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  text-align: left;
+}
+
+.speed-opt:hover {
+  background: var(--hover);
+}
+
+.speed-check {
+  width: 14px;
+  visibility: hidden;
+  color: var(--accent2);
+}
+
+.speed-opt.active {
+  font-weight: 700;
+}
+
+.speed-opt.active .speed-check {
+  visibility: visible;
 }

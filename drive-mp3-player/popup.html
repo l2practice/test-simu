@@ -10,9 +10,7 @@
     <!-- Thanh tiêu đề -->
     <header class="topbar">
       <div class="brand">
-        <svg class="brand-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-          <path fill="currentColor" d="M12 3a9 9 0 0 0-9 9v6a3 3 0 0 0 3 3h1a1 1 0 0 0 1-1v-6a1 1 0 0 0-1-1H5v-1a7 7 0 0 1 14 0v1h-3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h1a3 3 0 0 0 3-3v-6a9 9 0 0 0-9-9z" />
-        </svg>
+        <span class="logo" aria-hidden="true">♪</span>
         <span class="brand-name">Drive MP3 Player</span>
       </div>
       <div class="top-actions">
@@ -111,12 +109,18 @@
     </section>
 
     <!-- Thanh phát cố định ở dưới -->
-    <footer id="playerBar" class="player-bar" hidden>
+    <footer id="playerBar" class="player-bar card" hidden>
       <div id="nowPlaying" class="now-playing"></div>
       <div class="timeline">
         <span id="timeCurrent" class="time">0:00</span>
         <input id="seekBar" type="range" min="0" max="1000" step="1" value="0" disabled aria-label="Thanh tiến trình" />
         <span id="timeTotal" class="time">0:00</span>
+      </div>
+      <div id="speedWrap" class="speed-wrap">
+        <button id="speedBtn" class="speed-btn" title="Tốc độ phát (Shift + &lt; / &gt;)" aria-haspopup="true" aria-expanded="false">1x</button>
+        <div id="speedMenu" class="speed-menu" role="menu" hidden>
+          <div class="speed-title">Tốc độ phát</div>
+        </div>
       </div>
       <div class="controls">
         <button id="backSkip" class="skip" title="Tua lùi 5 giây (←)" disabled>

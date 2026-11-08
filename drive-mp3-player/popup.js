@@ -40,6 +40,9 @@ const el = {
   playBtn: $('playBtn'),
   iconPlay: $('iconPlay'),
   iconPause: $('iconPause'),
+  speedWrap: $('speedWrap'),
+  speedBtn: $('speedBtn'),
+  speedMenu: $('speedMenu'),
   toast: $('toast')
 };
 
@@ -394,6 +397,7 @@ function renderPlayer() {
     el.nowPlaying.textContent = `${p.playing ? 'Đang phát' : 'Tạm dừng'}: ${track.name}`;
   }
   el.nowPlaying.title = track.name;
+  renderSpeed();
 
   const busy = !!p.loading;
   el.playBtn.disabled = busy;
@@ -415,6 +419,71 @@ function renderPlayer() {
   el.fileList.querySelectorAll('.file-item').forEach((li) => {
     li.classList.toggle('playing', li.dataset.id === track.id);
   });
+}
+
+// ---------- Tốc độ phát (giống YouTube) ----------
+
+const SPEEDS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
+
+function speedLabel(v) {
+  return v === 1 ? 'Chuẩn' : String(v);
+}
+
+function currentSpeed() {
+  return (app.player && app.player.speed) || 1;
+}
+
+function renderSpeed() {
+  const cur = currentSpeed();
+  el.speedBtn.textContent = cur + 'x';
+  el.speedMenu.querySelectorAll('.speed-opt').forEach((b) => {
+    const active = Number(b.dataset.speed) === cur;
+    b.classList.toggle('active', active);
+    b.setAttribute('aria-checked', String(active));
+  });
+}
+
+function setSpeed(v) {
+  if (app.player) app.player.speed = v;
+  renderSpeed();
+  closeSpeedMenu();
+  sendPlayer('setSpeed', { speed: v });
+}
+
+function closeSpeedMenu() {
+  el.speedMenu.hidden = true;
+  el.speedBtn.setAttribute('aria-expanded', 'false');
+}
+
+SPEEDS.forEach((v) => {
+  const b = document.createElement('button');
+  b.className = 'speed-opt';
+  b.dataset.speed = String(v);
+  b.setAttribute('role', 'menuitemradio');
+  const check = document.createElement('span');
+  check.className = 'speed-check';
+  check.textContent = '✓';
+  const label = document.createElement('span');
+  label.textContent = speedLabel(v);
+  b.append(check, label);
+  b.addEventListener('click', () => setSpeed(v));
+  el.speedMenu.appendChild(b);
+});
+
+el.speedBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  const open = el.speedMenu.hidden;
+  el.speedMenu.hidden = !open;
+  el.speedBtn.setAttribute('aria-expanded', String(open));
+});
+document.addEventListener('click', (e) => {
+  if (!el.speedWrap.contains(e.target)) closeSpeedMenu();
+});
+
+function stepSpeed(dir) {
+  const i = SPEEDS.indexOf(currentSpeed());
+  const next = SPEEDS[Math.min(SPEEDS.length - 1, Math.max(0, i + dir))];
+  if (next !== currentSpeed()) setSpeed(next);
 }
 
 function toTrack(file) {
@@ -472,7 +541,13 @@ el.seekBar.addEventListener('pointerup', () => setTimeout(() => (app.dragging = 
 document.addEventListener('keydown', (e) => {
   const tag = (e.target && e.target.tagName) || '';
   if (tag === 'INPUT' && e.target.type !== 'range') return;
-  if (e.code === 'Space') {
+  if (e.shiftKey && (e.key === '>' || e.key === '.')) {
+    e.preventDefault();
+    stepSpeed(1);
+  } else if (e.shiftKey && (e.key === '<' || e.key === ',')) {
+    e.preventDefault();
+    stepSpeed(-1);
+  } else if (e.code === 'Space') {
     e.preventDefault();
     if (!el.playBtn.disabled) sendPlayer('toggle');
   } else if (e.code === 'ArrowLeft' && tag !== 'INPUT') {
