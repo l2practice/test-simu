@@ -3,6 +3,7 @@
 
 import { getFile, putFile } from './lib/db.js';
 import { downloadFile } from './lib/drive.js';
+import { runCleanup } from './lib/cleanup.js';
 
 const audio = document.getElementById('player');
 const LAST_KEY = 'lastState';
@@ -249,6 +250,8 @@ async function loadTrack(track, { autoplay = true, startAt = 0 } = {}) {
         cachedAt: Date.now(),
         source: 'drive'
       });
+      // Giữ tổng dung lượng dưới giới hạn (không xóa bài vừa tải)
+      await runCleanup({ protectIds: [track.id] }).catch(() => {});
       notifyCacheChanged();
     }
     if (seq !== loadSeq) return;
@@ -273,6 +276,8 @@ async function loadTrack(track, { autoplay = true, startAt = 0 } = {}) {
     if (isFinite(audio.duration) && !(record && record.duration)) {
       patchRecord(track.id, { duration: audio.duration }).then(notifyCacheChanged);
     }
+    // Ghi nhận lần nghe gần nhất để tính hạn 90 ngày
+    if (autoplay) patchRecord(track.id, { lastPlayedAt: Date.now() });
     // Tính dạng sóng ở nền, không chặn việc phát nhạc
     ensurePeaks(track, blob, record, seq);
 

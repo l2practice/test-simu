@@ -688,3 +688,35 @@ button:disabled {
   pointer-events: none;
   z-index: 6;
 }
+
+.field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.field select {
+  min-width: 130px;
+  padding: 6px 8px;
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  background: #1b1440;
+  color: var(--text);
+  font: inherit;
+}
+
+.ghost-btn {
+  width: 100%;
+  margin-top: 8px;
+  padding: 8px;
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  background: transparent;
+  font-weight: 600;
+}
+
+.ghost-btn:hover {
+  background: var(--hover);
+}

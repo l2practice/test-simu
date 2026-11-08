@@ -1,5 +1,6 @@
 import { formatTime, formatBytes } from './lib/util.js';
-import { listFiles, putFile, deleteFile, clearAll } from './lib/db.js';
+import { listFiles, putFile, deleteFile, clearAll, getSettings, saveSettings, MB } from './lib/db.js';
+import { runCleanup } from './lib/cleanup.js';
 import { getToken, signOut, listMp3, uploadFile } from './lib/drive.js';
 
 const $ = (id) => document.getElementById(id);
@@ -43,6 +44,9 @@ const el = {
   waveCanvas: $('waveCanvas'),
   waveWrap: $('waveWrap'),
   waveTip: $('waveTip'),
+  maxAgeSelect: $('maxAgeSelect'),
+  maxSizeSelect: $('maxSizeSelect'),
+  cleanNowBtn: $('cleanNowBtn'),
   speedWrap: $('speedWrap'),
   speedBtn: $('speedBtn'),
   speedMenu: $('speedMenu'),
@@ -483,6 +487,51 @@ function currentProgress() {
   return p && p.duration > 0 ? Math.min(1, (p.currentTime || 0) / p.duration) : 0;
 }
 
+// ---------- Tự động dọn dẹp ----------
+
+function describeRemoved(removed) {
+  const bytes = removed.reduce((sum, r) => sum + r.size, 0);
+  return `Đã tự xóa ${removed.length} file cũ (${formatBytes(bytes)})`;
+}
+
+async function cleanup(showWhenEmpty = false) {
+  const protectIds = app.player && app.player.track ? [app.player.track.id] : [];
+  let removed = [];
+  try {
+    removed = await runCleanup({ protectIds });
+  } catch (e) {
+    /* bỏ qua */
+  }
+  if (removed.length) {
+    await refreshCache();
+    toast(describeRemoved(removed), 4500);
+  } else if (showWhenEmpty) {
+    toast('Không có file nào cần dọn');
+  }
+}
+
+async function loadCleanupSettings() {
+  try {
+    const s = await getSettings();
+    el.maxAgeSelect.value = String(s.maxAgeDays);
+    el.maxSizeSelect.value = String(Math.round(s.maxBytes / MB));
+  } catch (e) {
+    /* bỏ qua */
+  }
+}
+
+async function onCleanupSettingChange() {
+  await saveSettings({
+    maxAgeDays: Number(el.maxAgeSelect.value),
+    maxBytes: Number(el.maxSizeSelect.value) * MB
+  });
+  await cleanup();
+}
+
+el.maxAgeSelect.addEventListener('change', onCleanupSettingChange);
+el.maxSizeSelect.addEventListener('change', onCleanupSettingChange);
+el.cleanNowBtn.addEventListener('click', () => cleanup(true));
+
 // ---------- Trình phát ----------
 
 function renderPlayer() {
@@ -825,6 +874,8 @@ window.addEventListener('offline', render);
 async function init() {
   render();
   await refreshCache();
+  await loadCleanupSettings();
+  cleanup();
 
   try {
     await ensureOffscreen();

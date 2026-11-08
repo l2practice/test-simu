@@ -97,6 +97,32 @@
         <p class="muted small">File trên Google Drive không bị ảnh hưởng. Bạn có thể tải lại bằng cách phát lần nữa.</p>
       </div>
 
+      <div class="card">
+        <h3>Tự động dọn dẹp</h3>
+        <label class="field">
+          <span>Xóa file không nghe sau</span>
+          <select id="maxAgeSelect">
+            <option value="30">30 ngày</option>
+            <option value="60">60 ngày</option>
+            <option value="90">90 ngày</option>
+            <option value="180">180 ngày</option>
+            <option value="0">Không bao giờ</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Dung lượng tối đa</span>
+          <select id="maxSizeSelect">
+            <option value="250">250 MB</option>
+            <option value="500">500 MB</option>
+            <option value="1024">1 GB</option>
+            <option value="2048">2 GB</option>
+            <option value="0">Không giới hạn</option>
+          </select>
+        </label>
+        <p class="muted small">Khi vượt giới hạn, file nghe lâu nhất bị xóa trước. File tải từ máy tính (không có trên Drive) và bài nghe gần nhất không bao giờ bị tự xóa.</p>
+        <button id="cleanNowBtn" class="ghost-btn">Dọn dẹp ngay</button>
+      </div>
+
       <div id="uploadOpt" class="card" hidden>
         <h3>Upload</h3>
         <label class="check-row">

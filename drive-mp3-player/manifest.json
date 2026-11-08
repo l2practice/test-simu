@@ -19,9 +19,15 @@
     "128": "icons/icon128.png"
   },
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background.js",
+    "type": "module"
   },
-  "permissions": ["identity", "offscreen", "unlimitedStorage"],
+  "permissions": [
+    "identity",
+    "offscreen",
+    "unlimitedStorage",
+    "alarms"
+  ],
   "host_permissions": [
     "https://www.googleapis.com/*",
     "https://oauth2.googleapis.com/*"

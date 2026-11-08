@@ -1,6 +1,8 @@
 // Service worker: điều phối offscreen document (nơi phát nhạc) và lấy token Google.
 // Service worker có thể bị Chrome tắt bất cứ lúc nào nên KHÔNG giữ trạng thái phát nhạc ở đây.
 
+import { runCleanup } from './lib/cleanup.js';
+
 const OFFSCREEN_URL = 'offscreen.html';
 let creatingOffscreen = null;
 
@@ -92,4 +94,17 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   })().then(sendResponse, (err) => sendResponse({ error: err.message || String(err) }));
 
   return true; // phản hồi bất đồng bộ
+});
+
+// ---------- Dọn cache định kỳ (mỗi ngày một lần) ----------
+
+function scheduleCleanup() {
+  chrome.alarms.create('cache-cleanup', { delayInMinutes: 1, periodInMinutes: 24 * 60 });
+}
+
+chrome.runtime.onInstalled.addListener(scheduleCleanup);
+chrome.runtime.onStartup.addListener(scheduleCleanup);
+
+chrome.alarms.onAlarm.addListener((alarm) => {
+  if (alarm.name === 'cache-cleanup') runCleanup().catch(() => {});
 });
