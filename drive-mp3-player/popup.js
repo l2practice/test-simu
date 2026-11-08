@@ -321,7 +321,7 @@ function renderList() {
   }
   const reorderable = currentTab() === 'cached' && !app.query && !app.selectMode && files.length > 1;
   if (reorderable) {
-    el.reorderHint.textContent = 'Drag ⋮⋮ to set the play order, then press a file to start.';
+    el.reorderHint.textContent = 'Drag ⋮⋮ to set the play order. Press a file to load it, then press ▶ to play.';
     el.reorderHint.hidden = false;
   } else if (onDrive && files.length > 0 && !app.selectMode) {
     el.reorderHint.textContent =
@@ -425,7 +425,7 @@ function renderList() {
 
     li.addEventListener('click', () => {
       if (app.selectMode) togglePick(f.id);
-      else playTrack(f, onDrive ? [f] : files); // on Drive: only the file you pressed, never the whole folder
+      else openTrack(f, onDrive ? [f] : files); // loads it paused: audio starts only when you press ▶
     });
     frag.appendChild(li);
   });
@@ -479,7 +479,7 @@ el.selPlayBtn.addEventListener('click', () => {
   const fromDrive = currentTab() === 'all';
   setSelectMode(false);
   // Files picked on Drive are downloaded and kept in "Saved offline" while they play
-  playTrack(picked[0], picked, { save: fromDrive });
+  openTrack(picked[0], picked, { save: fromDrive, autoplay: true }); // you pressed a Play button
   if (fromDrive) toast(`Saving ${picked.length} file${picked.length > 1 ? 's' : ''} to Saved offline while they play…`, 4000);
 });
 
@@ -1064,7 +1064,8 @@ function toTrack(file) {
   };
 }
 
-function playTrack(file, list, opts = {}) {
+/** Puts a file in the player. It only starts playing if opts.autoplay is true (an explicit Play button). */
+function openTrack(file, list, opts = {}) {
   const track = toTrack(file);
   // Hàng đợi = danh sách đang hiển thị, hết bài sẽ tự chuyển bài kế
   const queue = (list && list.length ? list : [file]).slice(0, 300).map(toTrack);
@@ -1082,7 +1083,7 @@ function playTrack(file, list, opts = {}) {
   };
   if (app.peaks && app.peaks.id !== track.id) app.peaks = null;
   renderPlayer();
-  sendPlayer('load', { track, queue, autoplay: true, startAt: 0, save: !!opts.save }).then((res) => {
+  sendPlayer('load', { track, queue, autoplay: !!opts.autoplay, startAt: 0, save: !!opts.save }).then((res) => {
     if (res && res.error) toast(res.error);
   });
 }
@@ -1329,7 +1330,7 @@ el.fileInput.addEventListener('change', async () => {
   toast(
     `Added ${added.length} file${added.length > 1 ? 's' : ''}` +
       (skipped ? ` (${skipped} non-MP3 skipped)` : '') +
-      '. Drag ⋮⋮ to arrange, then press a file to play.',
+      '. Drag ⋮⋮ to arrange, press a file to load it, then press ▶ to play.',
     6000
   );
 });
