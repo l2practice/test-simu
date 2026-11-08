@@ -32,7 +32,20 @@ const el = {
   cacheFooter: $('cacheFooter'),
   cacheInfo: $('cacheInfo'),
   clearAllBtn: $('clearAllBtn'),
-  toast: $('toast')
+  toast: $('toast'),
+  prevBtn: $('prevBtn'),
+  nextBtn: $('nextBtn'),
+  shuffleBtn: $('shuffleBtn'),
+  repeatBtn: $('repeatBtn'),
+  repeatOne: $('repeatOne'),
+  bars: $('bars'),
+  tabSettings: $('tabSettings'),
+  listView: $('listView'),
+  settingsView: $('settingsView'),
+  eqToggle: $('eqToggle'),
+  eqBands: $('eqBands'),
+  eqReset: $('eqReset'),
+  themeDots: $('themeDots')
 };
 
 const store = {
@@ -131,6 +144,14 @@ function renderPlayer() {
   el.backBtn.disabled = !track || p.loading;
   el.fwdBtn.disabled = !track || p.loading;
   el.seekBar.disabled = !track || p.loading;
+  el.prevBtn.disabled = !track || p.loading;
+  el.nextBtn.disabled = !track || p.loading;
+  const mode = (p && p.mode) || 'normal';
+  el.shuffleBtn.setAttribute('aria-pressed', String(mode === 'shuffle'));
+  el.repeatBtn.setAttribute('aria-pressed', String(mode === 'repeat-one'));
+  el.repeatOne.hidden = mode !== 'repeat-one';
+  document.querySelectorAll('.mode-btn').forEach((b) => b.classList.toggle('active', b.dataset.mode === mode));
+  if (!(p && p.playing)) resetBars();
   el.iconPlay.hidden = !!(p && p.playing);
   el.iconPause.hidden = !(p && p.playing);
   el.playBtn.title = p && p.playing ? 'Tạm dừng (Space)' : 'Phát (Space)';
@@ -155,18 +176,24 @@ function onPlayerState(state) {
   renderPlayer();
 }
 
-function playTrack(file) {
+function toTrack(file) {
   const cached = cachedMap().get(file.id);
-  const track = {
+  return {
     id: file.id,
     name: file.name,
     size: file.size || (cached && cached.size) || 0,
     source: file.source || (cached && cached.source) || 'drive'
   };
+}
+
+function playTrack(file, list) {
+  const track = toTrack(file);
+  // Hàng đợi = danh sách đang hiển thị (đã lọc theo tìm kiếm)
+  const queue = (list && list.length ? list : [file]).slice(0, 300).map(toTrack);
   // Cập nhật giao diện ngay, không chờ offscreen phản hồi
   app.player = { ...(app.player || {}), track, loading: true, loaded: false, playing: false, progress: 0, currentTime: 0, duration: 0, error: null };
   renderPlayer();
-  sendPlayer('load', { track, autoplay: true, startAt: 0 }).then((res) => {
+  sendPlayer('load', { track, queue, autoplay: true, startAt: 0 }).then((res) => {
     if (res && res.error) toast(res.error);
   });
 }
@@ -296,7 +323,7 @@ function renderList() {
       li.appendChild(del);
     }
 
-    li.addEventListener('click', () => playTrack(f));
+    li.addEventListener('click', () => playTrack(f, files));
     frag.appendChild(li);
   });
 
@@ -388,10 +415,14 @@ async function loadDrive(reset) {
 function setTab(tab) {
   app.tab = tab;
   store.set('tab', tab);
-  el.tabDrive.classList.toggle('active', tab === 'drive');
-  el.tabCached.classList.toggle('active', tab === 'cached');
-  el.tabDrive.setAttribute('aria-selected', String(tab === 'drive'));
-  el.tabCached.setAttribute('aria-selected', String(tab === 'cached'));
+  const tabs = { drive: el.tabDrive, cached: el.tabCached, settings: el.tabSettings };
+  Object.entries(tabs).forEach(([name, btn]) => {
+    btn.classList.toggle('active', tab === name);
+    btn.setAttribute('aria-selected', String(tab === name));
+  });
+  el.listView.hidden = tab === 'settings';
+  el.settingsView.hidden = tab !== 'settings';
+  if (tab === 'settings') return;
   if (tab === 'drive' && app.signedIn && isOnline() && app.driveFiles.length === 0) {
     loadDrive(true);
   } else {
@@ -401,6 +432,7 @@ function setTab(tab) {
 
 el.tabDrive.addEventListener('click', () => setTab('drive'));
 el.tabCached.addEventListener('click', () => setTab('cached'));
+el.tabSettings.addEventListener('click', () => setTab('settings'));
 
 el.searchInput.addEventListener('input', () => {
   app.query = el.searchInput.value;
@@ -512,7 +544,7 @@ el.fileInput.addEventListener('change', async () => {
   } else {
     setTab('cached');
   }
-  playTrack({ id, name, size, source });
+  playTrack({ id, name, size, source }, app.cached.map((r) => ({ id: r.id, name: r.name, size: r.size, source: r.source })));
 });
 
 // ---------- Điều khiển phát ----------
@@ -520,6 +552,102 @@ el.fileInput.addEventListener('change', async () => {
 el.playBtn.addEventListener('click', () => sendPlayer('toggle'));
 el.backBtn.addEventListener('click', () => sendPlayer('skip', { delta: -5 }));
 el.fwdBtn.addEventListener('click', () => sendPlayer('skip', { delta: 5 }));
+el.prevBtn.addEventListener('click', () => sendPlayer('prev'));
+el.nextBtn.addEventListener('click', () => sendPlayer('next'));
+
+function currentMode() {
+  return (app.player && app.player.mode) || 'normal';
+}
+
+function setMode(mode) {
+  if (app.player) app.player.mode = mode;
+  renderPlayer();
+  sendPlayer('setMode', { mode });
+}
+
+el.shuffleBtn.addEventListener('click', () => setMode(currentMode() === 'shuffle' ? 'normal' : 'shuffle'));
+el.repeatBtn.addEventListener('click', () => setMode(currentMode() === 'repeat-one' ? 'normal' : 'repeat-one'));
+document.querySelectorAll('.mode-btn').forEach((b) => b.addEventListener('click', () => setMode(b.dataset.mode)));
+
+// ---------- Thanh sóng nhạc ----------
+
+const BAR_COUNT = 16;
+for (let i = 0; i < BAR_COUNT; i++) el.bars.appendChild(document.createElement('span'));
+
+function drawBars(levels) {
+  const spans = el.bars.children;
+  for (let i = 0; i < spans.length; i++) {
+    const v = levels && levels[i] != null ? levels[i] : 0;
+    spans[i].style.height = Math.max(3, Math.round(v * 26)) + 'px';
+  }
+}
+
+function resetBars() {
+  drawBars(null);
+}
+
+// ---------- Equalizer ----------
+
+const EQ_LABELS = ['60Hz', '230Hz', '910Hz', '3.6kHz', '14kHz'];
+let eq = store.get('eq', null);
+if (!eq || !Array.isArray(eq.gains) || eq.gains.length !== EQ_LABELS.length) {
+  eq = { enabled: false, gains: EQ_LABELS.map(() => 0) };
+}
+
+function saveEq() {
+  store.set('eq', eq);
+  sendPlayer('setEq', { eq });
+}
+
+function renderEq() {
+  el.eqToggle.checked = eq.enabled;
+  el.eqBands.classList.toggle('off', !eq.enabled);
+  el.eqBands.querySelectorAll('input').forEach((input, i) => {
+    input.value = String(eq.gains[i]);
+  });
+}
+
+EQ_LABELS.forEach((label, i) => {
+  const wrap = document.createElement('div');
+  wrap.className = 'eq-band';
+  const input = document.createElement('input');
+  input.type = 'range';
+  input.min = '-12';
+  input.max = '12';
+  input.step = '1';
+  input.setAttribute('aria-label', 'Equalizer ' + label);
+  input.addEventListener('input', () => {
+    eq.gains[i] = Number(input.value);
+    saveEq();
+  });
+  const name = document.createElement('span');
+  name.textContent = label;
+  wrap.append(input, name);
+  el.eqBands.appendChild(wrap);
+});
+
+el.eqToggle.addEventListener('change', () => {
+  eq.enabled = el.eqToggle.checked;
+  renderEq();
+  saveEq();
+});
+el.eqReset.addEventListener('click', () => {
+  eq.gains = EQ_LABELS.map(() => 0);
+  renderEq();
+  saveEq();
+});
+
+// ---------- Giao diện (theme) ----------
+
+function applyTheme(theme) {
+  document.documentElement.dataset.theme = theme;
+  el.themeDots.querySelectorAll('.theme-dot').forEach((d) => d.classList.toggle('active', d.dataset.theme === theme));
+  store.set('theme', theme);
+}
+
+el.themeDots.querySelectorAll('.theme-dot').forEach((d) => d.addEventListener('click', () => applyTheme(d.dataset.theme)));
+applyTheme(store.get('theme', 'purple'));
+renderEq();
 
 // Thanh tiến trình: kéo thả để chọn vị trí, thả ra mới tua thật.
 el.seekBar.addEventListener('pointerdown', () => (app.dragging = true));
@@ -559,6 +687,7 @@ document.addEventListener('keydown', (e) => {
 chrome.runtime.onMessage.addListener((msg) => {
   if (!msg || msg.target !== 'popup') return false;
   if (msg.type === 'state') onPlayerState(msg.state);
+  else if (msg.type === 'viz') drawBars(msg.levels);
   else if (msg.type === 'cacheChanged') refreshCache();
   return false;
 });
@@ -589,6 +718,7 @@ async function init() {
   // Đồng bộ với trình phát đang chạy nền
   try {
     await ensureOffscreen();
+    await sendPlayer('setEq', { eq });
     const res = await sendPlayer('getState');
     if (res && res.state) onPlayerState(res.state);
   } catch (e) {

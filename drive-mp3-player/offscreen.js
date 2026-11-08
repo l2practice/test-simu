@@ -15,8 +15,106 @@ let state = {
   progress: 0, // tiến độ tải 0..1
   currentTime: 0,
   duration: 0,
-  error: null
+  error: null,
+  queue: [], // danh sách bài đang mở (để tự chuyển bài)
+  index: -1,
+  mode: readMode() // 'normal' | 'repeat-one' | 'shuffle'
 };
+
+function readMode() {
+  try {
+    const m = localStorage.getItem('mode');
+    return m === 'repeat-one' || m === 'shuffle' ? m : 'normal';
+  } catch (e) {
+    return 'normal';
+  }
+}
+
+// ---------- Equalizer + phân tích phổ (Web Audio) ----------
+
+const BANDS = [
+  { f: 60, type: 'lowshelf' },
+  { f: 230, type: 'peaking' },
+  { f: 910, type: 'peaking' },
+  { f: 3600, type: 'peaking' },
+  { f: 14000, type: 'highshelf' }
+];
+let ctx = null;
+let filters = [];
+let analyser = null;
+let eq = readEq();
+
+function readEq() {
+  try {
+    const v = JSON.parse(localStorage.getItem('eq') || 'null');
+    if (v && Array.isArray(v.gains) && v.gains.length === BANDS.length) return v;
+  } catch (e) {
+    /* bỏ qua */
+  }
+  return { enabled: false, gains: BANDS.map(() => 0) };
+}
+
+function applyEq() {
+  filters.forEach((f, i) => {
+    f.gain.value = eq.enabled ? Number(eq.gains[i]) || 0 : 0;
+  });
+}
+
+function ensureGraph() {
+  if (ctx) return;
+  try {
+    ctx = new AudioContext();
+    const src = ctx.createMediaElementSource(audio);
+    filters = BANDS.map((b) => {
+      const f = ctx.createBiquadFilter();
+      f.type = b.type;
+      f.frequency.value = b.f;
+      f.Q.value = 1;
+      return f;
+    });
+    analyser = ctx.createAnalyser();
+    analyser.fftSize = 256;
+    analyser.smoothingTimeConstant = 0.75;
+    let node = src;
+    filters.forEach((f) => {
+      node.connect(f);
+      node = f;
+    });
+    node.connect(analyser);
+    analyser.connect(ctx.destination);
+    applyEq();
+  } catch (e) {
+    ctx = null;
+  }
+}
+
+async function resumeGraph() {
+  ensureGraph();
+  if (ctx && ctx.state === 'suspended') {
+    try {
+      await ctx.resume();
+    } catch (e) {
+      /* bỏ qua */
+    }
+  }
+}
+
+// Gửi mức âm thanh ~10 lần/giây cho popup vẽ thanh sóng nhạc.
+const LEVEL_BARS = 16;
+setInterval(() => {
+  if (!analyser || audio.paused) return;
+  const data = new Uint8Array(analyser.frequencyBinCount);
+  analyser.getByteFrequencyData(data);
+  const usable = 96; // ~0–18 kHz
+  const per = usable / LEVEL_BARS;
+  const levels = [];
+  for (let i = 0; i < LEVEL_BARS; i++) {
+    let sum = 0;
+    for (let j = 0; j < per; j++) sum += data[Math.floor(i * per + j)];
+    levels.push(Math.min(1, sum / per / 200));
+  }
+  chrome.runtime.sendMessage({ target: 'popup', type: 'viz', levels }).catch(() => {});
+}, 100);
 
 let objectUrl = null;
 let loadSeq = 0;
@@ -39,7 +137,8 @@ function persist(force = false) {
       JSON.stringify({
         track: state.track,
         currentTime: state.currentTime,
-        duration: state.duration
+        duration: state.duration,
+        queue: state.queue
       })
     );
   } catch (e) {
@@ -98,6 +197,7 @@ async function loadTrack(track, { autoplay = true, startAt = 0 } = {}) {
   state = {
     ...state,
     track,
+    index: state.queue.findIndex((t) => t.id === track.id),
     playing: false,
     loading: true,
     loaded: false,
@@ -162,6 +262,7 @@ async function loadTrack(track, { autoplay = true, startAt = 0 } = {}) {
     state.progress = 1;
     syncFromAudio();
 
+    await resumeGraph();
     if (autoplay) await audio.play();
     update(true);
   } catch (err) {
@@ -182,7 +283,45 @@ async function play() {
     await loadTrack(state.track, { autoplay: true, startAt: state.currentTime });
     return;
   }
+  await resumeGraph();
   await audio.play();
+}
+
+function pickNext(auto) {
+  const q = state.queue;
+  if (!q.length) return null;
+  if (state.mode === 'shuffle') {
+    if (q.length === 1) return q[0];
+    let i;
+    do {
+      i = Math.floor(Math.random() * q.length);
+    } while (i === state.index);
+    return q[i];
+  }
+  const i = state.index + 1;
+  if (i < q.length) return q[i];
+  return auto ? null : q[0]; // tự phát hết danh sách thì dừng; bấm Next thì quay vòng
+}
+
+async function nextTrack(auto = false) {
+  if (auto && state.mode === 'repeat-one') {
+    audio.currentTime = 0;
+    await audio.play();
+    return;
+  }
+  const next = pickNext(auto);
+  if (next) await loadTrack(next, { autoplay: true });
+}
+
+async function prevTrack() {
+  if (state.loaded && audio.currentTime > 3) {
+    seekTo(0);
+    return;
+  }
+  const q = state.queue;
+  if (!q.length) return;
+  const i = state.index <= 0 ? q.length - 1 : state.index - 1;
+  await loadTrack(q[i], { autoplay: true });
 }
 
 function pause() {
@@ -206,6 +345,7 @@ async function handle(msg) {
       syncFromAudio();
       return { state };
     case 'load':
+      if (Array.isArray(msg.queue)) state.queue = msg.queue.slice(0, 300);
       await loadTrack(msg.track, { autoplay: msg.autoplay !== false, startAt: msg.startAt || 0 });
       return { ok: true };
     case 'play':
@@ -217,6 +357,25 @@ async function handle(msg) {
     case 'toggle':
       if (state.playing) pause();
       else await play();
+      return { ok: true };
+    case 'next':
+      await nextTrack(false);
+      return { ok: true };
+    case 'prev':
+      await prevTrack();
+      return { ok: true };
+    case 'setMode':
+      state.mode = msg.mode;
+      try {
+        localStorage.setItem('mode', msg.mode);
+      } catch (e) {
+        /* bỏ qua */
+      }
+      broadcast();
+      return { ok: true };
+    case 'setEq':
+      eq = msg.eq;
+      applyEq();
       return { ok: true };
     case 'seek':
       seekTo(msg.time);
@@ -240,6 +399,9 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 ['play', 'pause', 'ended', 'durationchange', 'seeked', 'playing', 'waiting'].forEach((ev) =>
   audio.addEventListener(ev, () => update(ev === 'pause' || ev === 'ended'))
 );
+audio.addEventListener('ended', () => {
+  nextTrack(true).catch(() => {});
+});
 audio.addEventListener('timeupdate', () => update(false));
 audio.addEventListener('error', () => {
   if (!audio.src) return;
@@ -277,6 +439,8 @@ if ('mediaSession' in navigator) {
   set('pause', () => pause());
   set('seekbackward', () => seekTo(audio.currentTime - 5));
   set('seekforward', () => seekTo(audio.currentTime + 5));
+  set('nexttrack', () => nextTrack(false));
+  set('previoustrack', () => prevTrack());
   set('seekto', (d) => seekTo(d.seekTime));
 }
 
@@ -294,6 +458,8 @@ if ('mediaSession' in navigator) {
   state.track = last.track;
   state.currentTime = last.currentTime || 0;
   state.duration = last.duration || 0;
+  state.queue = Array.isArray(last.queue) ? last.queue : [];
+  state.index = state.queue.findIndex((t) => t.id === last.track.id);
 
   // Nếu file đã có trong cache, nạp sẵn ở trạng thái tạm dừng để hiện đúng thời lượng.
   try {

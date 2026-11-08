@@ -1,16 +1,16 @@
 <!doctype html>
-<html lang="vi">
+<html lang="vi" data-theme="purple">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Drive MP3 Player</title>
+    <title>Music Player</title>
     <link rel="stylesheet" href="popup.css" />
   </head>
   <body>
     <header class="topbar">
       <div class="brand">
         <span class="logo" aria-hidden="true">♪</span>
-        <span class="brand-name">Drive MP3</span>
+        <span class="brand-name">Music Player</span>
       </div>
       <div class="account">
         <span id="accountEmail" class="account-email" hidden></span>
@@ -19,15 +19,17 @@
       </div>
     </header>
 
-    <div id="offlineBanner" class="banner" hidden>
-      Đang offline — chỉ có thể phát các file đã lưu.
-    </div>
+    <div id="offlineBanner" class="banner" hidden>Đang offline — chỉ có thể phát các file đã lưu.</div>
 
     <!-- Trình phát -->
-    <section class="player" aria-label="Trình phát">
-      <div class="now-playing">
-        <div id="trackTitle" class="track-title">Chưa chọn bài hát</div>
-        <div id="trackStatus" class="track-status">Chọn một file bên dưới để nghe</div>
+    <section class="player card" aria-label="Trình phát">
+      <div class="np-row">
+        <div class="art" aria-hidden="true"><span>♪</span></div>
+        <div class="np-info">
+          <div id="trackTitle" class="track-title">Chưa chọn bài hát</div>
+          <div id="trackStatus" class="track-status">Chọn một file bên dưới để nghe</div>
+          <div id="bars" class="bars" aria-hidden="true"></div>
+        </div>
       </div>
 
       <div class="timeline">
@@ -37,25 +39,30 @@
       </div>
 
       <div class="controls">
+        <button id="shuffleBtn" class="ctrl ctrl-sm" title="Phát ngẫu nhiên" aria-pressed="false">
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M10.6 9.2 5.4 4 4 5.4l5.2 5.2 1.4-1.4zM14.5 4l2.1 2.1L4 18.6 5.4 20 18 7.4 20.1 9.5V4h-5.6zm.3 10.8-1.4 1.4 2.7 2.7L14.5 21h5.6v-5.6l-2.1 2.1-3.2-2.7z"/></svg>
+        </button>
+        <button id="prevBtn" class="ctrl" title="Bài trước" disabled>
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg>
+        </button>
         <button id="backBtn" class="ctrl" title="Tua lùi 5 giây (←)" disabled>
-          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-            <path fill="currentColor" d="M12 5V2L7 6l5 4V7a6 6 0 1 1-6 6H4a8 8 0 1 0 8-8z" />
-          </svg>
-          <span class="ctrl-label">5s</span>
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12 5V2L7 6l5 4V7a6 6 0 1 1-6 6H4a8 8 0 1 0 8-8z" /></svg>
+          <span class="ctrl-label">5</span>
         </button>
         <button id="playBtn" class="ctrl ctrl-play" title="Phát / Tạm dừng (Space)" disabled>
-          <svg id="iconPlay" viewBox="0 0 24 24" width="30" height="30" aria-hidden="true">
-            <path fill="currentColor" d="M8 5v14l11-7z" />
-          </svg>
-          <svg id="iconPause" viewBox="0 0 24 24" width="30" height="30" aria-hidden="true" hidden>
-            <path fill="currentColor" d="M6 5h4v14H6zM14 5h4v14h-4z" />
-          </svg>
+          <svg id="iconPlay" viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path fill="currentColor" d="M8 5v14l11-7z" /></svg>
+          <svg id="iconPause" viewBox="0 0 24 24" width="30" height="30" aria-hidden="true" hidden><path fill="currentColor" d="M6 5h4v14H6zM14 5h4v14h-4z" /></svg>
         </button>
         <button id="fwdBtn" class="ctrl" title="Tua tới 5 giây (→)" disabled>
-          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-            <path fill="currentColor" d="M12 5V2l5 4-5 4V7a6 6 0 1 0 6 6h2a8 8 0 1 1-8-8z" />
-          </svg>
-          <span class="ctrl-label">5s</span>
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12 5V2l5 4-5 4V7a6 6 0 1 0 6 6h2a8 8 0 1 1-8-8z" /></svg>
+          <span class="ctrl-label">5</span>
+        </button>
+        <button id="nextBtn" class="ctrl" title="Bài tiếp" disabled>
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M16 6h2v12h-2zM6 18l8.5-6L6 6z"/></svg>
+        </button>
+        <button id="repeatBtn" class="ctrl ctrl-sm" title="Lặp lại một bài" aria-pressed="false">
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M7 7h10v3l4-4-4-4v3H5v6h2zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2z"/></svg>
+          <span id="repeatOne" class="ctrl-label" hidden>1</span>
         </button>
       </div>
     </section>
@@ -64,32 +71,68 @@
     <nav class="tabs" role="tablist">
       <button id="tabDrive" class="tab active" role="tab" aria-selected="true">Google Drive</button>
       <button id="tabCached" class="tab" role="tab" aria-selected="false">
-        Đã lưu offline <span id="cachedCount" class="count">0</span>
+        Đã lưu <span id="cachedCount" class="count">0</span>
       </button>
+      <button id="tabSettings" class="tab" role="tab" aria-selected="false">Cài đặt</button>
     </nav>
 
-    <!-- Tìm kiếm + upload -->
-    <div class="toolbar">
-      <input id="searchInput" class="search" type="search" placeholder="Tìm theo tên file…" autocomplete="off" />
-      <button id="uploadBtn" class="btn btn-secondary" title="Chọn file MP3 từ máy tính">⬆ Upload</button>
-      <input id="fileInput" type="file" accept=".mp3,audio/mpeg" hidden />
+    <div id="listView" class="view">
+      <div class="toolbar">
+        <input id="searchInput" class="search" type="search" placeholder="Tìm theo tên file…" autocomplete="off" />
+        <button id="uploadBtn" class="btn btn-secondary" title="Chọn file MP3 từ máy tính">⬆ Upload</button>
+        <input id="fileInput" type="file" accept=".mp3,audio/mpeg" hidden />
+      </div>
+      <label id="driveUploadRow" class="check-row" hidden>
+        <input id="uploadToDrive" type="checkbox" />
+        <span>Đồng thời lưu bản sao lên Google Drive</span>
+      </label>
+
+      <main id="listArea" class="list-area">
+        <ul id="fileList" class="file-list"></ul>
+        <div id="emptyState" class="empty" hidden></div>
+        <button id="loadMoreBtn" class="btn btn-secondary load-more" hidden>Tải thêm</button>
+      </main>
+
+      <footer id="cacheFooter" class="cache-footer" hidden>
+        <span id="cacheInfo"></span>
+        <button id="clearAllBtn" class="btn btn-danger btn-small">Xóa tất cả</button>
+      </footer>
     </div>
-    <label id="driveUploadRow" class="check-row" hidden>
-      <input id="uploadToDrive" type="checkbox" />
-      <span>Đồng thời lưu bản sao lên Google Drive</span>
-    </label>
 
-    <!-- Danh sách -->
-    <main id="listArea" class="list-area">
-      <ul id="fileList" class="file-list"></ul>
-      <div id="emptyState" class="empty" hidden></div>
-      <button id="loadMoreBtn" class="btn btn-secondary load-more" hidden>Tải thêm</button>
-    </main>
+    <!-- Cài đặt: chế độ phát, equalizer, giao diện -->
+    <div id="settingsView" class="view settings" hidden>
+      <section class="card">
+        <h3>Chế độ phát</h3>
+        <div class="mode-grid">
+          <button class="mode-btn" data-mode="normal">Tuần tự</button>
+          <button class="mode-btn" data-mode="repeat-one">Lặp một bài</button>
+          <button class="mode-btn" data-mode="shuffle">Ngẫu nhiên</button>
+        </div>
+        <p class="hint">Hết bài, extension tự chuyển sang bài kế tiếp trong danh sách đang mở.</p>
+      </section>
 
-    <footer id="cacheFooter" class="cache-footer" hidden>
-      <span id="cacheInfo"></span>
-      <button id="clearAllBtn" class="btn btn-danger btn-small">Xóa tất cả</button>
-    </footer>
+      <section class="card">
+        <div class="card-head">
+          <h3>Equalizer</h3>
+          <label class="switch"><input id="eqToggle" type="checkbox" /><span class="slider"></span></label>
+        </div>
+        <div id="eqBands" class="eq-bands"></div>
+        <button id="eqReset" class="btn btn-ghost btn-small">Đặt lại</button>
+      </section>
+
+      <section class="card">
+        <h3>Giao diện</h3>
+        <div id="themeDots" class="theme-dots">
+          <button class="theme-dot" data-theme="purple" title="Tím" aria-label="Tím"></button>
+          <button class="theme-dot" data-theme="slate" title="Xám đêm" aria-label="Xám đêm"></button>
+          <button class="theme-dot" data-theme="blue" title="Xanh dương" aria-label="Xanh dương"></button>
+          <button class="theme-dot" data-theme="amber" title="Cam" aria-label="Cam"></button>
+          <button class="theme-dot" data-theme="teal" title="Xanh lục" aria-label="Xanh lục"></button>
+        </div>
+      </section>
+
+      <p class="about">Music Player v1.0.0 — nhạc từ Google Drive, nghe được cả khi offline</p>
+    </div>
 
     <div id="toast" class="toast" role="status" hidden></div>
 
