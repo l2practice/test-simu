@@ -57,10 +57,11 @@ drive-mp3-player/
 3. **APIs & Services → OAuth consent screen** (hoặc *Google Auth Platform*):
    - User type: **External**.
    - Điền App name, User support email, Developer contact email.
-   - **Scopes → Add or remove scopes**, thêm:
+   - **Data Access → Add or remove scopes** (menu bên trái của Google Auth Platform), thêm 2 scope. Nếu không thấy trong bảng, cuộn xuống ô **Manually add scopes**, dán từng dòng rồi bấm **Add to table → Update → Save**:
      - `https://www.googleapis.com/auth/drive.readonly` (xem danh sách + tải file)
      - `https://www.googleapis.com/auth/drive.file` (chỉ để upload file lên Drive)
-   - **Test users → Add users**: thêm chính email Google bạn sẽ dùng để đăng nhập.
+   - Không thấy scope Drive nào trong bảng thường là do chưa **Enable Google Drive API** (bước 2). Với dùng cá nhân, bước khai báo scope không bắt buộc: extension tự xin 2 quyền này khi bạn đăng nhập.
+   - **Audience → Test users → Add users**: thêm chính email Google bạn sẽ dùng để đăng nhập.
    - **Quan trọng để không phải đăng nhập lại mỗi 7 ngày:** ở trạng thái *Testing*, Google tự hủy refresh token sau 7 ngày. Hãy vào OAuth consent screen → **Publish app** (chuyển sang *In production*). Với dùng cá nhân bạn không cần gửi Google xác minh; chỉ sẽ thấy màn cảnh báo "Google hasn't verified this app" khi đăng nhập lần đầu (Advanced → Go to ...).
 4. **APIs & Services → Credentials → Create credentials → OAuth client ID**:
    - Application type: **Web application** (KHÔNG chọn "Chrome extension": loại đó chỉ chạy trên Chrome, không chạy trên Edge).
