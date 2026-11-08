@@ -50,6 +50,12 @@ const el = {
   selAllBtn: $('selAllBtn'),
   selPlayBtn: $('selPlayBtn'),
   selCancelBtn: $('selCancelBtn'),
+  helpToggle: $('helpToggle'),
+  signInHelp: $('signInHelp'),
+  helpUri: $('helpUri'),
+  helpClient: $('helpClient'),
+  helpCopy: $('helpCopy'),
+  helpOpen: $('helpOpen'),
   redirectUri: $('redirectUri'),
   copyUriBtn: $('copyUriBtn'),
   folderBar: $('folderBar'),
@@ -1155,7 +1161,7 @@ async function signIn() {
     await getToken({ interactive: true });
     await afterSignedIn();
   } catch (err) {
-    toast('Sign-in failed: ' + (err.message || err) + ' (see ⚙ Settings for the Redirect URI)', 8000);
+    toast('Sign-in failed: ' + (err.message || err) + ' (see "Having trouble signing in?")', 8000);
   }
 }
 
@@ -1418,9 +1424,41 @@ el.copyUriBtn.addEventListener('click', async () => {
   }
 });
 
+// ---------- Sign-in help (shows exactly what Google will be asked to accept) ----------
+
+let helpClientId = '';
+
+el.helpToggle.addEventListener('click', () => {
+  const open = el.signInHelp.hidden;
+  el.signInHelp.hidden = !open;
+  el.helpToggle.setAttribute('aria-expanded', String(open));
+});
+
+el.helpCopy.addEventListener('click', async () => {
+  try {
+    await navigator.clipboard.writeText(el.helpUri.textContent);
+    toast('Redirect URI copied');
+  } catch (e) {
+    toast('Select the text and copy it manually');
+  }
+});
+
+el.helpOpen.addEventListener('click', () => {
+  const project = helpClientId.split('-')[0];
+  const url = 'https://console.cloud.google.com/auth/clients' + (/^\d+$/.test(project) ? '?project=' + project : '');
+  window.open(url, '_blank');
+});
+
 async function showAuthInfo() {
   try {
     const info = await getAuthInfo();
+    helpClientId = info.clientId || '';
+    el.helpClient.textContent = helpClientId || '(not set in config.js)';
+    try {
+      el.helpUri.textContent = chrome.identity.getRedirectURL();
+    } catch (e) {
+      el.helpUri.textContent = '(unavailable)';
+    }
     el.authInfo.textContent = info.persistent
       ? 'Stay-signed-in is ON (refresh token). You should not need to sign in again unless you revoke access.'
       : 'Stay-signed-in is OFF: sign-in lasts about 1 hour per token. Add CLIENT_SECRET in config.js to stay signed in (see README).';

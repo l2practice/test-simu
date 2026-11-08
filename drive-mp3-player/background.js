@@ -209,6 +209,7 @@ async function getToken({ interactive, invalidate }) {
 async function authInfo() {
   const auth = await readAuth();
   return {
+    clientId: CLIENT_ID,
     persistent: !!CLIENT_SECRET,
     hasRefreshToken: !!auth.refreshToken,
     signedIn: !!(auth.refreshToken || (auth.accessToken && auth.expiresAt > Date.now()))

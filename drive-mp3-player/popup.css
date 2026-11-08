@@ -1105,3 +1105,43 @@ html.compact #signOutBtn {
   font-size: 11px;
   color: var(--ok);
 }
+
+/* Sign-in help on the login screen */
+.link-btn {
+  margin-top: 4px;
+  border: none;
+  background: transparent;
+  color: var(--accent2);
+  font-size: 12px;
+  text-decoration: underline;
+}
+
+.sign-in-help {
+  width: 100%;
+  margin-top: 4px;
+  padding: 10px;
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  background: var(--card);
+  font-size: 12px;
+}
+
+.sign-in-help p {
+  margin: 0 0 6px;
+}
+
+.sign-in-help .help-label {
+  margin: 8px 0 3px;
+  color: var(--soft);
+  font-size: 11px;
+}
+
+.help-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.help-actions .ghost-btn {
+  margin-top: 4px;
+  font-size: 12px;
+}

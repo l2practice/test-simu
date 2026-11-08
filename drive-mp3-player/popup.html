@@ -72,6 +72,18 @@
         <span id="guestTitle">Listen to offline files</span>
         <small>for when you have no connection</small>
       </button>
+      <button id="helpToggle" class="link-btn" aria-expanded="false">Having trouble signing in?</button>
+      <div id="signInHelp" class="sign-in-help" hidden>
+        <p>Google must know this extension's <b>Redirect URI</b>. In Google Cloud open <b>Google Auth Platform → Clients →</b> your client → <b>Authorized redirect URIs → Add URI</b>, paste the line below exactly, <b>Save</b>, wait about 5 minutes and try again.</p>
+        <p class="help-label">Redirect URI used by this extension</p>
+        <code id="helpUri" class="uri"></code>
+        <p class="help-label">Client ID used by this extension</p>
+        <code id="helpClient" class="uri"></code>
+        <div class="help-actions">
+          <button id="helpCopy" class="ghost-btn">Copy Redirect URI</button>
+          <button id="helpOpen" class="ghost-btn">Open Google Cloud</button>
+        </div>
+      </div>
     </section>
 
     <!-- 2 + 3. File list (online / offline) -->
