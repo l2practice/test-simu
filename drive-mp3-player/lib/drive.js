@@ -67,31 +67,63 @@ export async function getUserInfo() {
   return data.user || {};
 }
 
-/** Liệt kê file MP3. Trả về { files, nextPageToken }. */
-export async function listMp3({ query = '', pageToken = '' } = {}) {
-  let q = "(mimeType='audio/mpeg' or name contains '.mp3') and trashed=false";
+export const FOLDER_MIME = 'application/vnd.google-apps.folder';
+
+/**
+ * Accepts a Drive folder link or a bare folder ID and returns the ID.
+ * Examples: https://drive.google.com/drive/folders/<id>?usp=sharing,
+ *           https://drive.google.com/drive/u/0/folders/<id>, https://drive.google.com/open?id=<id>, <id>
+ */
+export function parseFolderId(input) {
+  const text = String(input || '').trim();
+  if (!text) return '';
+  const folders = text.match(/\/folders\/([A-Za-z0-9_-]+)/);
+  if (folders) return folders[1];
+  const idParam = text.match(/[?&]id=([A-Za-z0-9_-]+)/);
+  if (idParam) return idParam[1];
+  if (/^[A-Za-z0-9_-]{15,}$/.test(text)) return text;
+  const file = text.match(/\/d\/([A-Za-z0-9_-]+)/);
+  return file ? file[1] : '';
+}
+
+/** Folder name check: throws if the ID is not a folder or is not accessible. */
+export async function getFolderInfo(id) {
+  const res = await driveFetch(
+    `${API}/files/${encodeURIComponent(id)}?fields=id,name,mimeType&supportsAllDrives=true`
+  );
+  if (res.status === 404) throw new Error('Folder not found, or your Google account has no access to it.');
+  await throwIfError(res);
+  const data = await res.json();
+  if (data.mimeType !== FOLDER_MIME) throw new Error('That link is a file, not a folder. Paste a folder link.');
+  return { id: data.id, name: data.id === id && id === 'root' ? 'My Drive' : data.name };
+}
+
+/** Lists the sub-folders and MP3 files directly inside a folder. Returns { folders, files, nextPageToken }. */
+export async function listFolder({ folderId, query = '', pageToken = '' }) {
+  let q =
+    `'${escapeQuery(folderId)}' in parents and trashed=false and ` +
+    `(mimeType='${FOLDER_MIME}' or mimeType='audio/mpeg' or name contains '.mp3')`;
   if (query.trim()) q += ` and name contains '${escapeQuery(query.trim())}'`;
 
   const params = new URLSearchParams({
     q,
-    pageSize: '50',
-    orderBy: 'modifiedTime desc',
-    fields: 'nextPageToken,files(id,name,size,modifiedTime,mimeType)'
+    pageSize: '100',
+    orderBy: 'folder,name',
+    fields: 'nextPageToken,files(id,name,size,modifiedTime,mimeType)',
+    supportsAllDrives: 'true',
+    includeItemsFromAllDrives: 'true'
   });
   if (pageToken) params.set('pageToken', pageToken);
 
   const res = await driveFetch(`${API}/files?${params}`);
   await throwIfError(res);
   const data = await res.json();
-  const files = (data.files || [])
-    .filter((f) => /\.mp3$/i.test(f.name) || f.mimeType === 'audio/mpeg')
-    .map((f) => ({
-      id: f.id,
-      name: f.name,
-      size: Number(f.size) || 0,
-      modifiedTime: f.modifiedTime
-    }));
-  return { files, nextPageToken: data.nextPageToken || '' };
+  const items = data.files || [];
+  const folders = items.filter((f) => f.mimeType === FOLDER_MIME).map((f) => ({ id: f.id, name: f.name }));
+  const files = items
+    .filter((f) => f.mimeType !== FOLDER_MIME && (/\.mp3$/i.test(f.name) || f.mimeType === 'audio/mpeg'))
+    .map((f) => ({ id: f.id, name: f.name, size: Number(f.size) || 0, modifiedTime: f.modifiedTime }));
+  return { folders, files, nextPageToken: data.nextPageToken || '' };
 }
 
 /** Tải toàn bộ file về dạng Blob, báo tiến độ 0..1 qua onProgress. */
@@ -123,8 +155,9 @@ export async function downloadFile(id, { size = 0, onProgress, signal } = {}) {
 }
 
 /** Upload file lên Drive (multipart). Trả về { id, name, size }. */
-export async function uploadFile(file) {
+export async function uploadFile(file, parentId) {
   const metadata = { name: file.name, mimeType: 'audio/mpeg' };
+  if (parentId && parentId !== 'root') metadata.parents = [parentId]; // upload into the open folder
   const boundary = 'drive_mp3_' + crypto.randomUUID();
   const body = new Blob([
     `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n`,
@@ -133,7 +166,7 @@ export async function uploadFile(file) {
     `\r\n--${boundary}--`
   ]);
 
-  const res = await driveFetch(`${UPLOAD_API}?uploadType=multipart&fields=id,name,size`, {
+  const res = await driveFetch(`${UPLOAD_API}?uploadType=multipart&supportsAllDrives=true&fields=id,name,size`, {
     method: 'POST',
     headers: { 'Content-Type': `multipart/related; boundary=${boundary}` },
     body

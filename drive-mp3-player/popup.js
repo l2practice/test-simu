@@ -1,7 +1,7 @@
 import { formatTime, formatBytes } from './lib/util.js';
 import { listFiles, getFile, putFile, deleteFile, clearAll, getSettings, saveSettings, setOrder, lastUsed, MB } from './lib/db.js';
 import { runCleanup } from './lib/cleanup.js';
-import { getToken, signOut, listMp3, uploadFile, getAuthInfo } from './lib/drive.js';
+import { getToken, signOut, listFolder, getFolderInfo, parseFolderId, uploadFile, getAuthInfo } from './lib/drive.js';
 
 const $ = (id) => document.getElementById(id);
 const el = {
@@ -52,6 +52,17 @@ const el = {
   selCancelBtn: $('selCancelBtn'),
   redirectUri: $('redirectUri'),
   copyUriBtn: $('copyUriBtn'),
+  folderBar: $('folderBar'),
+  folderUpBtn: $('folderUpBtn'),
+  folderName: $('folderName'),
+  pinBtn: $('pinBtn'),
+  folderPicker: $('folderPicker'),
+  folderLink: $('folderLink'),
+  openFolderBtn: $('openFolderBtn'),
+  folderLinkError: $('folderLinkError'),
+  myDriveBtn: $('myDriveBtn'),
+  pinsTitle: $('pinsTitle'),
+  pinList: $('pinList'),
   reorderHint: $('reorderHint'),
   listSummary: $('listSummary'),
   closeTrackBtn: $('closeTrackBtn'),
@@ -95,6 +106,10 @@ const app = {
   tab: store.get('tab', 'all'), // 'all' | 'cached'
   query: '',
   driveFiles: [],
+  driveFolders: [], // sub-folders of the open folder
+  folder: null, // the open Drive folder { id, name } or null (start screen)
+  folderStack: [], // folders we came from, for the Back button
+  pins: store.get('pins', []),
   nextPageToken: '',
   driveLoading: false,
   driveError: '',
@@ -210,8 +225,7 @@ function renderTabs() {
   const both = driveAvailable();
   el.tabAll.hidden = !both;
 
-  const allCount = localOnlyFiles().length + app.driveFiles.length;
-  el.tabAll.textContent = `All (${allCount}${app.nextPageToken ? '+' : ''})`;
+  el.tabAll.textContent = app.folder ? `Drive (${app.driveFiles.length}${app.nextPageToken ? '+' : ''})` : 'Drive';
 
   const size = app.cached.length ? ` • ${formatBytes(totalCachedSize())}` : '';
   el.tabCached.textContent = `Saved offline (${app.cached.length})${size}`;
@@ -244,14 +258,10 @@ function visibleFiles() {
       .filter((r) => matchQuery(r.name))
       .map((r) => ({ id: r.id, name: r.name, size: r.size, duration: r.duration, source: r.source }));
   }
-  const local = localOnlyFiles()
-    .filter((r) => matchQuery(r.name))
-    .map((r) => ({ id: r.id, name: r.name, size: r.size, duration: r.duration, source: 'local' }));
-  const drive = app.driveFiles.map((f) => {
+  return app.driveFiles.map((f) => {
     const rec = map.get(f.id);
     return { id: f.id, name: f.name, size: f.size, duration: rec && rec.duration, source: 'drive' };
   });
-  return local.concat(drive);
 }
 
 const SVG_CHECK =
@@ -266,10 +276,48 @@ const SVG_TRASH =
   '<svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>';
 
 function renderList() {
+  const onDrive = currentTab() === 'all';
+  const showPicker = onDrive && !app.folder;
+  el.folderPicker.hidden = !showPicker;
+  el.folderBar.hidden = !(onDrive && app.folder);
+  el.searchInput.disabled = showPicker;
+  el.searchInput.placeholder = showPicker ? 'Open a folder to search it…' : 'Search MP3 files…';
+  if (showPicker) {
+    renderPicker();
+    el.fileList.replaceChildren();
+    el.emptyState.hidden = true;
+    el.loadMoreBtn.hidden = true;
+    el.reorderHint.hidden = true;
+    el.listSummary.hidden = true;
+    renderSelectBar([]);
+    return;
+  }
+  if (onDrive && app.folder) renderFolderBar();
+
   const files = visibleFiles();
   const map = cachedMap();
   const currentId = app.player && app.player.track ? app.player.track.id : null;
   const frag = document.createDocumentFragment();
+
+  // Sub-folders first (Drive tab only)
+  if (onDrive) {
+    app.driveFolders.forEach((folder) => {
+      const li = document.createElement('li');
+      li.className = 'file-item folder-item';
+      const glyph = document.createElement('span');
+      glyph.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M10 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-8l-2-2z"/></svg>';
+      const name = document.createElement('div');
+      name.className = 'file-name';
+      name.textContent = folder.name;
+      name.title = folder.name;
+      const chevron = document.createElement('span');
+      chevron.className = 'chevron';
+      chevron.textContent = '›';
+      li.append(glyph, name, chevron);
+      li.addEventListener('click', () => openFolder(folder.id, folder.name, { push: true }));
+      frag.appendChild(li);
+    });
+  }
   const reorderable = currentTab() === 'cached' && !app.query && !app.selectMode && files.length > 1;
   el.reorderHint.hidden = !reorderable;
   updateSummary();
@@ -374,7 +422,7 @@ function renderList() {
 
   el.fileList.replaceChildren(frag);
   renderSelectBar(files);
-  renderEmpty(files.length);
+  renderEmpty(files.length + (onDrive ? app.driveFolders.length : 0));
   el.loadMoreBtn.hidden = !(currentTab() === 'all' && app.nextPageToken && !app.driveLoading);
 }
 
@@ -508,18 +556,19 @@ function renderEmpty(count) {
   } else if (app.query) {
     emptyBox('No files found', 'Try a different keyword.');
   } else {
-    emptyBox('No MP3 files on Drive', 'Use the Upload button to add files.');
+    emptyBox('This folder is empty', 'No MP3 files or sub-folders here. Use the Upload button to add files.');
   }
 }
 
 async function loadDrive(reset) {
-  if (!driveAvailable()) {
+  if (!driveAvailable() || !app.folder) {
     render();
     return;
   }
   const seq = ++driveReqSeq;
   if (reset) {
     app.driveFiles = [];
+    app.driveFolders = [];
     app.nextPageToken = '';
   }
   app.driveLoading = true;
@@ -527,12 +576,14 @@ async function loadDrive(reset) {
   render();
 
   try {
-    const { files, nextPageToken } = await listMp3({
+    const { folders, files, nextPageToken } = await listFolder({
+      folderId: app.folder.id,
       query: app.query,
       pageToken: reset ? '' : app.nextPageToken
     });
     if (seq !== driveReqSeq) return;
     app.driveFiles = reset ? files : app.driveFiles.concat(files);
+    app.driveFolders = reset ? folders : app.driveFolders.concat(folders);
     app.nextPageToken = nextPageToken;
   } catch (err) {
     if (seq !== driveReqSeq) return;
@@ -544,6 +595,124 @@ async function loadDrive(reset) {
     }
   }
 }
+
+// ---------- Drive folders ----------
+
+function isPinned(id) {
+  return app.pins.some((p) => p.id === id);
+}
+
+function savePins() {
+  store.set('pins', app.pins);
+}
+
+function renderFolderBar() {
+  el.folderName.textContent = app.folder.name;
+  el.folderName.title = app.folder.name;
+  const pinned = isPinned(app.folder.id);
+  el.pinBtn.textContent = pinned ? '★' : '☆';
+  el.pinBtn.classList.toggle('pinned', pinned);
+  el.pinBtn.title = pinned ? 'Unpin this folder' : 'Pin this folder';
+}
+
+function renderPicker() {
+  el.pinsTitle.hidden = app.pins.length === 0;
+  const frag = document.createDocumentFragment();
+  app.pins.forEach((pin) => {
+    const li = document.createElement('li');
+    li.className = 'pin-item';
+    const glyph = document.createElement('span');
+    glyph.style.flex = 'none';
+    glyph.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" style="color:var(--accent2)"><path fill="currentColor" d="M10 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-8l-2-2z"/></svg>';
+    const name = document.createElement('span');
+    name.textContent = pin.name;
+    name.title = pin.name;
+    const remove = document.createElement('button');
+    remove.className = 'pin-remove';
+    remove.textContent = '✕';
+    remove.title = 'Remove from pinned folders';
+    remove.addEventListener('click', (e) => {
+      e.stopPropagation();
+      app.pins = app.pins.filter((p) => p.id !== pin.id);
+      savePins();
+      renderPicker();
+    });
+    li.append(glyph, name, remove);
+    li.addEventListener('click', () => openFolder(pin.id, pin.name));
+    frag.appendChild(li);
+  });
+  el.pinList.replaceChildren(frag);
+}
+
+async function openFolder(id, name, { push = false } = {}) {
+  if (push && app.folder) app.folderStack.push(app.folder);
+  app.folder = { id, name: name || '…' };
+  store.set('lastFolder', app.folder);
+  app.selected.clear();
+  app.selectMode = false;
+  app.query = '';
+  el.searchInput.value = '';
+  el.clearSearch.hidden = true;
+  await loadDrive(true);
+}
+
+function closeFolder() {
+  app.folder = null;
+  app.folderStack = [];
+  app.driveFiles = [];
+  app.driveFolders = [];
+  app.nextPageToken = '';
+  app.driveError = '';
+  store.set('lastFolder', null);
+  render();
+}
+
+async function goUp() {
+  const prev = app.folderStack.pop();
+  if (prev) await openFolder(prev.id, prev.name);
+  else closeFolder();
+}
+
+async function submitFolderLink() {
+  const id = parseFolderId(el.folderLink.value);
+  el.folderLinkError.hidden = true;
+  if (!id) {
+    el.folderLinkError.textContent = 'Paste a Google Drive folder link (drive.google.com/drive/folders/…).';
+    el.folderLinkError.hidden = false;
+    return;
+  }
+  el.openFolderBtn.disabled = true;
+  el.openFolderBtn.textContent = 'Opening…';
+  try {
+    const info = await getFolderInfo(id);
+    el.folderLink.value = '';
+    app.folderStack = [];
+    await openFolder(info.id, info.name);
+  } catch (err) {
+    el.folderLinkError.textContent = err.message || String(err);
+    el.folderLinkError.hidden = false;
+  } finally {
+    el.openFolderBtn.disabled = false;
+    el.openFolderBtn.textContent = 'Open';
+  }
+}
+
+el.openFolderBtn.addEventListener('click', submitFolderLink);
+el.folderLink.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') submitFolderLink();
+});
+el.myDriveBtn.addEventListener('click', () => {
+  app.folderStack = [];
+  openFolder('root', 'My Drive');
+});
+el.folderUpBtn.addEventListener('click', goUp);
+el.pinBtn.addEventListener('click', () => {
+  if (!app.folder) return;
+  if (isPinned(app.folder.id)) app.pins = app.pins.filter((p) => p.id !== app.folder.id);
+  else app.pins = app.pins.concat([{ id: app.folder.id, name: app.folder.name }]);
+  savePins();
+  renderFolderBar();
+});
 
 // ---------- Cache (IndexedDB) ----------
 
@@ -950,7 +1119,10 @@ async function afterSignedIn() {
   app.guest = false;
   store.set('signedIn', true);
   render();
-  await loadDrive(true);
+  // Reopen the folder you were last in; otherwise show the folder chooser
+  const last = store.get('lastFolder', null);
+  if (!app.folder && last && last.id) await openFolder(last.id, last.name);
+  else if (app.folder) await loadDrive(true);
 }
 
 async function signIn() {
@@ -969,6 +1141,10 @@ async function doSignOut() {
   app.settingsOpen = false;
   store.set('signedIn', false);
   app.driveFiles = [];
+  app.driveFolders = [];
+  app.folder = null;
+  app.folderStack = [];
+  store.set('lastFolder', null);
   app.nextPageToken = '';
   render();
   toast('Signed out. Files saved offline are still on this device.');
@@ -995,7 +1171,7 @@ el.clearAllBtn.addEventListener('click', removeAllCache);
 function setTab(tab) {
   app.tab = tab;
   store.set('tab', tab);
-  if (tab === 'all' && driveAvailable() && app.driveFiles.length === 0 && !app.driveLoading) loadDrive(true);
+  if (tab === 'all' && driveAvailable() && app.folder && app.driveFiles.length === 0 && app.driveFolders.length === 0 && !app.driveLoading) loadDrive(true);
   else render();
 }
 
@@ -1076,7 +1252,7 @@ async function addOneFile(file, toDrive, order) {
 
   if (toDrive) {
     try {
-      const up = await uploadFile(file);
+      const up = await uploadFile(file, app.folder && app.folder.id); // into the open folder, or My Drive
       id = up.id;
       name = up.name;
       size = up.size || file.size;
