@@ -10,7 +10,7 @@
     <!-- Title bar -->
     <header class="topbar">
       <div class="brand">
-        <span class="logo" aria-hidden="true">♪</span>
+        <span class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><polyline points="2.2,12.4 5.0,12.4 6.0,10.3 7.1,14.2 9.0,8.0 10.2,16.5 12.1,4.3 14.1,19.7 16.1,6.7 18.4,14.8 19.8,12.4 22.0,12.4" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" /></svg></span>
         <span class="brand-name">Drive MP3 Player</span>
       </div>
       <div class="top-actions">
@@ -38,14 +38,22 @@
     <!-- 1. Sign-in screen -->
     <section id="loginView" class="view login" hidden>
       <div class="hero" aria-hidden="true">
-        <svg viewBox="0 0 160 140" width="150" height="132">
-          <path d="M22 84V72a58 58 0 0 1 116 0v12" fill="none" stroke="#c7d7ff" stroke-width="9" stroke-linecap="round" />
-          <rect x="10" y="74" width="22" height="42" rx="11" fill="#c7d7ff" />
-          <rect x="128" y="74" width="22" height="42" rx="11" fill="#c7d7ff" />
-          <g transform="translate(48 38) scale(0.64)">
-            <polygon points="33,0 0,57 17,86 50,29" fill="#0f9d58" />
-            <polygon points="33,0 67,0 100,57 66,57" fill="#fbbc04" />
-            <polygon points="17,86 83,86 100,57 34,57" fill="#4285f4" />
+        <svg viewBox="130 130 480 480" width="160" height="160">
+          <!-- headband (teal) -->
+          <path d="M172 440V362a198 198 0 0 1 396 0v78" fill="none" stroke="#3E5C65" stroke-width="34" stroke-linecap="round" />
+          <path d="M172 440V362a198 198 0 0 1 396 0v78" fill="none" stroke="#62C0AF" stroke-width="22" stroke-linecap="round" />
+          <!-- outer ear cups (orange) -->
+          <rect x="150" y="425" width="52" height="164" rx="26" fill="#FF8F5A" stroke="#3E5C65" stroke-width="8" />
+          <rect x="538" y="425" width="52" height="164" rx="26" fill="#FF8F5A" stroke="#3E5C65" stroke-width="8" />
+          <!-- inner bars (teal) -->
+          <rect x="214" y="425" width="28" height="164" rx="14" fill="#62C0AF" stroke="#3E5C65" stroke-width="6" />
+          <rect x="498" y="425" width="28" height="164" rx="14" fill="#62C0AF" stroke="#3E5C65" stroke-width="6" />
+          <!-- Google G -->
+          <g transform="translate(262 305) scale(4.2)">
+            <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z" />
+            <path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z" />
+            <path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z" />
+            <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303c-.792 2.237-2.231 4.166-4.087 5.571l6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z" />
           </g>
         </svg>
       </div>
