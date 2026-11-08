@@ -30,92 +30,6 @@ function readMode() {
   }
 }
 
-// ---------- Equalizer + phân tích phổ (Web Audio) ----------
-
-const BANDS = [
-  { f: 60, type: 'lowshelf' },
-  { f: 230, type: 'peaking' },
-  { f: 910, type: 'peaking' },
-  { f: 3600, type: 'peaking' },
-  { f: 14000, type: 'highshelf' }
-];
-let ctx = null;
-let filters = [];
-let analyser = null;
-let eq = readEq();
-
-function readEq() {
-  try {
-    const v = JSON.parse(localStorage.getItem('eq') || 'null');
-    if (v && Array.isArray(v.gains) && v.gains.length === BANDS.length) return v;
-  } catch (e) {
-    /* bỏ qua */
-  }
-  return { enabled: false, gains: BANDS.map(() => 0) };
-}
-
-function applyEq() {
-  filters.forEach((f, i) => {
-    f.gain.value = eq.enabled ? Number(eq.gains[i]) || 0 : 0;
-  });
-}
-
-function ensureGraph() {
-  if (ctx) return;
-  try {
-    ctx = new AudioContext();
-    const src = ctx.createMediaElementSource(audio);
-    filters = BANDS.map((b) => {
-      const f = ctx.createBiquadFilter();
-      f.type = b.type;
-      f.frequency.value = b.f;
-      f.Q.value = 1;
-      return f;
-    });
-    analyser = ctx.createAnalyser();
-    analyser.fftSize = 256;
-    analyser.smoothingTimeConstant = 0.75;
-    let node = src;
-    filters.forEach((f) => {
-      node.connect(f);
-      node = f;
-    });
-    node.connect(analyser);
-    analyser.connect(ctx.destination);
-    applyEq();
-  } catch (e) {
-    ctx = null;
-  }
-}
-
-async function resumeGraph() {
-  ensureGraph();
-  if (ctx && ctx.state === 'suspended') {
-    try {
-      await ctx.resume();
-    } catch (e) {
-      /* bỏ qua */
-    }
-  }
-}
-
-// Gửi mức âm thanh ~10 lần/giây cho popup vẽ thanh sóng nhạc.
-const LEVEL_BARS = 16;
-setInterval(() => {
-  if (!analyser || audio.paused) return;
-  const data = new Uint8Array(analyser.frequencyBinCount);
-  analyser.getByteFrequencyData(data);
-  const usable = 96; // ~0–18 kHz
-  const per = usable / LEVEL_BARS;
-  const levels = [];
-  for (let i = 0; i < LEVEL_BARS; i++) {
-    let sum = 0;
-    for (let j = 0; j < per; j++) sum += data[Math.floor(i * per + j)];
-    levels.push(Math.min(1, sum / per / 200));
-  }
-  chrome.runtime.sendMessage({ target: 'popup', type: 'viz', levels }).catch(() => {});
-}, 100);
-
 let objectUrl = null;
 let loadSeq = 0;
 let abortCtl = null;
@@ -262,7 +176,19 @@ async function loadTrack(track, { autoplay = true, startAt = 0 } = {}) {
     state.progress = 1;
     syncFromAudio();
 
-    await resumeGraph();
+    // Ghi thời lượng vào bản ghi cache để popup hiển thị trong danh sách
+    if (isFinite(audio.duration)) {
+      getFile(track.id)
+        .then((rec) => {
+          if (rec && !rec.duration) {
+            putFile({ ...rec, duration: audio.duration }).then(() =>
+              chrome.runtime.sendMessage({ target: 'popup', type: 'cacheChanged' }).catch(() => {})
+            );
+          }
+        })
+        .catch(() => {});
+    }
+
     if (autoplay) await audio.play();
     update(true);
   } catch (err) {
@@ -283,7 +209,6 @@ async function play() {
     await loadTrack(state.track, { autoplay: true, startAt: state.currentTime });
     return;
   }
-  await resumeGraph();
   await audio.play();
 }
 
@@ -372,10 +297,6 @@ async function handle(msg) {
         /* bỏ qua */
       }
       broadcast();
-      return { ok: true };
-    case 'setEq':
-      eq = msg.eq;
-      applyEq();
       return { ok: true };
     case 'seek':
       seekTo(msg.time);

@@ -1,46 +1,46 @@
-import { formatTime, formatBytes, formatDate } from './lib/util.js';
-import { listFiles, getFile, putFile, deleteFile, clearAll } from './lib/db.js';
-import { getToken, signOut, getUserInfo, listMp3, uploadFile } from './lib/drive.js';
+import { formatTime, formatBytes } from './lib/util.js';
+import { listFiles, putFile, deleteFile, clearAll } from './lib/db.js';
+import { getToken, signOut, listMp3, uploadFile } from './lib/drive.js';
 
 const $ = (id) => document.getElementById(id);
 const el = {
-  accountEmail: $('accountEmail'),
-  signInBtn: $('signInBtn'),
+  netPill: $('netPill'),
+  netText: $('netText'),
+  settingsBtn: $('settingsBtn'),
   signOutBtn: $('signOutBtn'),
   offlineBanner: $('offlineBanner'),
-  trackTitle: $('trackTitle'),
-  trackStatus: $('trackStatus'),
-  timeCurrent: $('timeCurrent'),
-  timeTotal: $('timeTotal'),
-  seekBar: $('seekBar'),
-  backBtn: $('backBtn'),
-  playBtn: $('playBtn'),
-  fwdBtn: $('fwdBtn'),
-  iconPlay: $('iconPlay'),
-  iconPause: $('iconPause'),
-  tabDrive: $('tabDrive'),
-  tabCached: $('tabCached'),
-  cachedCount: $('cachedCount'),
+  loginView: $('loginView'),
+  listView: $('listView'),
+  settingsView: $('settingsView'),
+  googleBtn: $('googleBtn'),
+  guestBtn: $('guestBtn'),
+  guestTitle: $('guestTitle'),
   searchInput: $('searchInput'),
+  clearSearch: $('clearSearch'),
   uploadBtn: $('uploadBtn'),
   fileInput: $('fileInput'),
-  driveUploadRow: $('driveUploadRow'),
-  uploadToDrive: $('uploadToDrive'),
+  tabs: $('tabs'),
+  tabAll: $('tabAll'),
+  tabCached: $('tabCached'),
   fileList: $('fileList'),
   emptyState: $('emptyState'),
   loadMoreBtn: $('loadMoreBtn'),
-  cacheFooter: $('cacheFooter'),
-  cacheInfo: $('cacheInfo'),
+  backBtn: $('backBtn'),
+  storageInfo: $('storageInfo'),
   clearAllBtn: $('clearAllBtn'),
-  toast: $('toast'),
-  bars: $('bars'),
-  tabSettings: $('tabSettings'),
-  listView: $('listView'),
-  settingsView: $('settingsView'),
-  eqToggle: $('eqToggle'),
-  eqBands: $('eqBands'),
-  eqReset: $('eqReset'),
-  themeDots: $('themeDots')
+  uploadOpt: $('uploadOpt'),
+  uploadToDrive: $('uploadToDrive'),
+  playerBar: $('playerBar'),
+  nowPlaying: $('nowPlaying'),
+  timeCurrent: $('timeCurrent'),
+  timeTotal: $('timeTotal'),
+  seekBar: $('seekBar'),
+  backSkip: $('backSkip'),
+  fwdSkip: $('fwdSkip'),
+  playBtn: $('playBtn'),
+  iconPlay: $('iconPlay'),
+  iconPause: $('iconPause'),
+  toast: $('toast')
 };
 
 const store = {
@@ -63,14 +63,16 @@ const store = {
 
 const app = {
   signedIn: store.get('signedIn', false),
-  tab: store.get('tab', 'drive'), // 'drive' | 'cached'
+  guest: false, // người dùng chọn "Nghe các file đã lưu Offline" khi chưa đăng nhập
+  settingsOpen: false,
+  tab: store.get('tab', 'all'), // 'all' | 'cached'
   query: '',
   driveFiles: [],
   nextPageToken: '',
   driveLoading: false,
   driveError: '',
-  cached: [], // bản ghi đã lưu trong IndexedDB
-  player: null, // trạng thái từ offscreen
+  cached: [],
+  player: null,
   dragging: false
 };
 
@@ -80,15 +82,13 @@ let driveReqSeq = 0;
 
 // ---------- Tiện ích ----------
 
+const isOnline = () => navigator.onLine;
+
 function toast(message, ms = 3000) {
   el.toast.textContent = message;
   el.toast.hidden = false;
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => (el.toast.hidden = true), ms);
-}
-
-function isOnline() {
-  return navigator.onLine;
 }
 
 function cachedMap() {
@@ -111,79 +111,235 @@ async function sendPlayer(type, payload = {}) {
   }
 }
 
-// ---------- Trình phát ----------
+/** Danh sách được xem là "có Drive": đã đăng nhập và có mạng. */
+function driveAvailable() {
+  return app.signedIn && isOnline();
+}
 
-function renderPlayer() {
-  const p = app.player;
-  const track = p && p.track;
+function currentView() {
+  if (app.settingsOpen) return 'settings';
+  if (!app.signedIn && isOnline() && !app.guest) return 'login';
+  return 'list';
+}
 
-  el.trackTitle.textContent = track ? track.name.replace(/\.mp3$/i, '') : 'Chưa chọn bài hát';
-  el.trackTitle.title = track ? track.name : '';
-  el.trackStatus.classList.remove('error');
+function currentTab() {
+  return driveAvailable() ? app.tab : 'cached';
+}
 
-  if (!track) {
-    el.trackStatus.textContent = 'Chọn một file bên dưới để nghe';
-  } else if (p.error) {
-    el.trackStatus.textContent = p.error;
-    el.trackStatus.classList.add('error');
-  } else if (p.loading) {
-    const pct = Math.round((p.progress || 0) * 100);
-    el.trackStatus.textContent = p.progress > 0 && p.progress < 1 ? `Đang tải xuống và lưu offline… ${pct}%` : 'Đang chuẩn bị…';
-  } else if (p.playing) {
-    el.trackStatus.textContent = 'Đang phát';
+// ---------- Hiển thị khung ----------
+
+function render() {
+  const online = isOnline();
+  document.documentElement.dataset.net = online ? 'online' : 'offline';
+  el.offlineBanner.hidden = online;
+
+  const view = currentView();
+  el.loginView.hidden = view !== 'login';
+  el.listView.hidden = view !== 'list';
+  el.settingsView.hidden = view !== 'settings';
+
+  // Header: trạng thái mạng chỉ hiện khi không ở màn đăng nhập
+  el.netPill.hidden = view === 'login';
+  el.netText.textContent = online ? 'Online' : 'Offline';
+  el.settingsBtn.hidden = false;
+  el.signOutBtn.hidden = !app.signedIn;
+
+  el.guestTitle.textContent = `Nghe các file đã lưu Offline (${app.cached.length} file)`;
+
+  if (view === 'list') {
+    renderTabs();
+    renderList();
+  }
+  if (view === 'settings') renderSettings();
+  renderPlayer();
+}
+
+function totalCachedSize() {
+  return app.cached.reduce((sum, r) => sum + (r.size || 0), 0);
+}
+
+function localOnlyFiles() {
+  return app.cached.filter((r) => r.source === 'local');
+}
+
+function renderTabs() {
+  const tab = currentTab();
+  const both = driveAvailable();
+  el.tabAll.hidden = !both;
+
+  const allCount = localOnlyFiles().length + app.driveFiles.length;
+  el.tabAll.textContent = `Tất cả (${allCount}${app.nextPageToken ? '+' : ''})`;
+
+  const size = app.cached.length ? ` • ${formatBytes(totalCachedSize())}` : '';
+  el.tabCached.textContent = `Đã lưu Offline (${app.cached.length})${size}`;
+
+  el.tabAll.classList.toggle('active', tab === 'all');
+  el.tabCached.classList.toggle('active', tab === 'cached');
+  el.tabAll.setAttribute('aria-selected', String(tab === 'all'));
+  el.tabCached.setAttribute('aria-selected', String(tab === 'cached'));
+}
+
+function renderSettings() {
+  el.storageInfo.textContent = app.cached.length
+    ? `${app.cached.length} file • ${formatBytes(totalCachedSize())} đang lưu trên máy`
+    : 'Chưa có file nào được lưu trên máy.';
+  el.clearAllBtn.disabled = app.cached.length === 0;
+  el.uploadOpt.hidden = !app.signedIn;
+}
+
+// ---------- Danh sách ----------
+
+function matchQuery(name) {
+  const q = app.query.trim().toLowerCase();
+  return !q || name.toLowerCase().includes(q);
+}
+
+function visibleFiles() {
+  const map = cachedMap();
+  if (currentTab() === 'cached') {
+    return app.cached
+      .filter((r) => matchQuery(r.name))
+      .map((r) => ({ id: r.id, name: r.name, size: r.size, duration: r.duration, source: r.source }));
+  }
+  const local = localOnlyFiles()
+    .filter((r) => matchQuery(r.name))
+    .map((r) => ({ id: r.id, name: r.name, size: r.size, duration: r.duration, source: 'local' }));
+  const drive = app.driveFiles.map((f) => {
+    const rec = map.get(f.id);
+    return { id: f.id, name: f.name, size: f.size, duration: rec && rec.duration, source: 'drive' };
+  });
+  return local.concat(drive);
+}
+
+const SVG_CHECK =
+  '<svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg>';
+const SVG_CLOUD =
+  '<svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M19.35 10.04A7.49 7.49 0 0 0 12 4C9.11 4 6.6 5.64 5.35 8.04A5.994 5.994 0 0 0 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/></svg>';
+const SVG_TRASH =
+  '<svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>';
+
+function renderList() {
+  const files = visibleFiles();
+  const map = cachedMap();
+  const currentId = app.player && app.player.track ? app.player.track.id : null;
+  const frag = document.createDocumentFragment();
+
+  files.forEach((f) => {
+    const rec = map.get(f.id);
+    const li = document.createElement('li');
+    li.className = 'file-item' + (f.id === currentId ? ' playing' : '');
+    li.dataset.id = f.id;
+
+    const icon = document.createElement('div');
+    icon.className = 'status-icon' + (rec ? ' cached' : '');
+    icon.innerHTML = rec ? SVG_CHECK : SVG_CLOUD;
+    icon.title = rec ? 'Đã lưu — nghe được khi offline' : 'Trên Google Drive — cần mạng để tải';
+
+    const info = document.createElement('div');
+    info.className = 'file-info';
+    const name = document.createElement('div');
+    name.className = 'file-name';
+    name.textContent = f.name;
+    name.title = f.name;
+    const meta = document.createElement('div');
+    meta.className = 'file-meta';
+    const parts = [];
+    if (f.duration) parts.push(formatTime(f.duration));
+    if (f.size) parts.push(formatBytes(f.size));
+    if (f.source === 'local') parts.push('Từ máy tính');
+    parts.push(rec ? 'Đã lưu Offline' : 'Trên Drive');
+    meta.textContent = parts.join(' • ');
+    info.append(name, meta);
+    li.append(icon, info);
+
+    if (rec) {
+      const del = document.createElement('button');
+      del.className = 'trash-btn';
+      del.title = 'Xóa khỏi bộ nhớ máy để giải phóng dung lượng';
+      del.setAttribute('aria-label', 'Xóa khỏi bộ nhớ máy');
+      del.innerHTML = SVG_TRASH;
+      del.addEventListener('click', (e) => {
+        e.stopPropagation();
+        removeFromCache(f);
+      });
+      li.appendChild(del);
+    }
+
+    li.addEventListener('click', () => playTrack(f, files));
+    frag.appendChild(li);
+  });
+
+  el.fileList.replaceChildren(frag);
+  renderEmpty(files.length);
+  el.loadMoreBtn.hidden = !(currentTab() === 'all' && app.nextPageToken && !app.driveLoading);
+}
+
+function emptyBox(title, text, btnLabel, onClick) {
+  const box = el.emptyState;
+  box.replaceChildren();
+  const strong = document.createElement('strong');
+  strong.textContent = title;
+  box.appendChild(strong);
+  if (text) box.appendChild(document.createTextNode(text));
+  if (btnLabel) {
+    const b = document.createElement('button');
+    b.className = 'retry-btn';
+    b.textContent = btnLabel;
+    b.addEventListener('click', onClick);
+    box.appendChild(b);
+  }
+  box.hidden = false;
+}
+
+function renderEmpty(count) {
+  el.emptyState.hidden = true;
+  if (count > 0) return;
+
+  if (currentTab() === 'cached') {
+    if (app.query) emptyBox('Không tìm thấy file nào', 'Thử từ khóa khác.');
+    else emptyBox('Chưa có file nào được lưu', 'File sẽ tự động được lưu khi bạn phát lần đầu (cần mạng).');
+  } else if (app.driveLoading) {
+    emptyBox('Đang tải danh sách…', '');
+  } else if (app.driveError) {
+    emptyBox('Không tải được danh sách', app.driveError, 'Thử lại', () => loadDrive(true));
+  } else if (app.query) {
+    emptyBox('Không tìm thấy file nào', 'Thử từ khóa khác.');
   } else {
-    el.trackStatus.textContent = 'Đã tạm dừng';
+    emptyBox('Drive chưa có file MP3', 'Bạn có thể dùng nút Upload để thêm file.');
   }
+}
 
-  el.playBtn.disabled = !track || p.loading;
-  el.backBtn.disabled = !track || p.loading;
-  el.fwdBtn.disabled = !track || p.loading;
-  el.seekBar.disabled = !track || p.loading;
-  if (!(p && p.playing)) resetBars();
-  el.iconPlay.hidden = !!(p && p.playing);
-  el.iconPause.hidden = !(p && p.playing);
-  el.playBtn.title = p && p.playing ? 'Tạm dừng (Space)' : 'Phát (Space)';
-
-  const duration = p ? p.duration || 0 : 0;
-  const current = p ? p.currentTime || 0 : 0;
-  el.timeTotal.textContent = formatTime(duration);
-  if (!app.dragging) {
-    el.timeCurrent.textContent = formatTime(current);
-    el.seekBar.value = duration > 0 ? String(Math.round((current / duration) * 1000)) : '0';
+async function loadDrive(reset) {
+  if (!driveAvailable()) {
+    render();
+    return;
   }
+  const seq = ++driveReqSeq;
+  if (reset) {
+    app.driveFiles = [];
+    app.nextPageToken = '';
+  }
+  app.driveLoading = true;
+  app.driveError = '';
+  render();
 
-  // đánh dấu bài đang phát trong danh sách
-  const id = track ? track.id : null;
-  el.fileList.querySelectorAll('.file-item').forEach((li) => {
-    li.classList.toggle('playing', li.dataset.id === id);
-  });
-}
-
-function onPlayerState(state) {
-  app.player = state;
-  renderPlayer();
-}
-
-function toTrack(file) {
-  const cached = cachedMap().get(file.id);
-  return {
-    id: file.id,
-    name: file.name,
-    size: file.size || (cached && cached.size) || 0,
-    source: file.source || (cached && cached.source) || 'drive'
-  };
-}
-
-function playTrack(file, list) {
-  const track = toTrack(file);
-  // Hàng đợi = danh sách đang hiển thị (đã lọc theo tìm kiếm)
-  const queue = (list && list.length ? list : [file]).slice(0, 300).map(toTrack);
-  // Cập nhật giao diện ngay, không chờ offscreen phản hồi
-  app.player = { ...(app.player || {}), track, loading: true, loaded: false, playing: false, progress: 0, currentTime: 0, duration: 0, error: null };
-  renderPlayer();
-  sendPlayer('load', { track, queue, autoplay: true, startAt: 0 }).then((res) => {
-    if (res && res.error) toast(res.error);
-  });
+  try {
+    const { files, nextPageToken } = await listMp3({
+      query: app.query,
+      pageToken: reset ? '' : app.nextPageToken
+    });
+    if (seq !== driveReqSeq) return;
+    app.driveFiles = reset ? files : app.driveFiles.concat(files);
+    app.nextPageToken = nextPageToken;
+  } catch (err) {
+    if (seq !== driveReqSeq) return;
+    app.driveError = err.message || String(err);
+  } finally {
+    if (seq === driveReqSeq) {
+      app.driveLoading = false;
+      render();
+    }
+  }
 }
 
 // ---------- Cache (IndexedDB) ----------
@@ -194,19 +350,7 @@ async function refreshCache() {
   } catch (e) {
     app.cached = [];
   }
-  el.cachedCount.textContent = String(app.cached.length);
-  renderList();
-  renderFooter();
-}
-
-function renderFooter() {
-  if (app.cached.length === 0) {
-    el.cacheFooter.hidden = true;
-    return;
-  }
-  const total = app.cached.reduce((sum, r) => sum + (r.size || 0), 0);
-  el.cacheInfo.textContent = `${app.cached.length} file • ${formatBytes(total)} trên máy`;
-  el.cacheFooter.hidden = false;
+  render();
 }
 
 async function removeFromCache(file) {
@@ -230,228 +374,123 @@ async function removeAllCache() {
   await refreshCache();
 }
 
-// ---------- Danh sách ----------
+// ---------- Trình phát ----------
 
-function visibleFiles() {
-  const q = app.query.trim().toLowerCase();
-  const byName = (f) => !q || f.name.toLowerCase().includes(q);
+function renderPlayer() {
+  const p = app.player;
+  const track = p && p.track;
+  el.playerBar.hidden = !track;
+  if (!track) return;
 
-  if (app.tab === 'cached') {
-    return app.cached.filter(byName).map((r) => ({
-      id: r.id,
-      name: r.name,
-      size: r.size,
-      date: r.cachedAt,
-      source: r.source
-    }));
+  el.nowPlaying.classList.remove('error');
+  if (p.error) {
+    el.nowPlaying.textContent = p.error;
+    el.nowPlaying.classList.add('error');
+  } else if (p.loading) {
+    const pct = Math.round((p.progress || 0) * 100);
+    el.nowPlaying.textContent =
+      p.progress > 0 && p.progress < 1 ? `Đang tải xuống & lưu offline… ${pct}%` : `Đang chuẩn bị: ${track.name}`;
+  } else {
+    el.nowPlaying.textContent = `${p.playing ? 'Đang phát' : 'Tạm dừng'}: ${track.name}`;
   }
-  return app.driveFiles.map((f) => ({ ...f, date: f.modifiedTime, source: 'drive' }));
-}
+  el.nowPlaying.title = track.name;
 
-function renderList() {
-  const files = visibleFiles();
-  const map = cachedMap();
-  const frag = document.createDocumentFragment();
-  const currentId = app.player && app.player.track ? app.player.track.id : null;
+  const busy = !!p.loading;
+  el.playBtn.disabled = busy;
+  el.backSkip.disabled = busy;
+  el.fwdSkip.disabled = busy;
+  el.seekBar.disabled = busy;
+  // SVG không có thuộc tính .hidden như phần tử HTML nên phải dùng attribute
+  el.iconPlay.toggleAttribute('hidden', !!p.playing);
+  el.iconPause.toggleAttribute('hidden', !p.playing);
 
-  files.forEach((f) => {
-    const rec = map.get(f.id);
-    const li = document.createElement('li');
-    li.className = 'file-item' + (f.id === currentId ? ' playing' : '');
-    li.dataset.id = f.id;
+  const duration = p.duration || 0;
+  const current = p.currentTime || 0;
+  el.timeTotal.textContent = formatTime(duration);
+  if (!app.dragging) {
+    el.timeCurrent.textContent = formatTime(current);
+    el.seekBar.value = duration > 0 ? String(Math.round((current / duration) * 1000)) : '0';
+  }
 
-    const icon = document.createElement('div');
-    icon.className = 'file-icon';
-    icon.textContent = '♪';
-
-    const info = document.createElement('div');
-    info.className = 'file-info';
-    const name = document.createElement('div');
-    name.className = 'file-name';
-    name.textContent = f.name;
-    name.title = f.name;
-    const meta = document.createElement('div');
-    meta.className = 'file-meta';
-
-    const parts = [];
-    if (f.size) parts.push(formatBytes(f.size));
-    const d = formatDate(f.date);
-    if (d) parts.push(d);
-    const metaText = document.createElement('span');
-    metaText.textContent = parts.join(' • ');
-    meta.appendChild(metaText);
-
-    if (rec) {
-      const badge = document.createElement('span');
-      badge.className = 'badge-offline';
-      badge.title = 'Đã lưu trên máy — nghe được khi offline';
-      badge.textContent = '✓ Offline';
-      meta.appendChild(badge);
-    }
-    if (rec && rec.source === 'local') {
-      const local = document.createElement('span');
-      local.className = 'badge-local';
-      local.textContent = 'Từ máy tính';
-      meta.appendChild(local);
-    }
-
-    info.append(name, meta);
-    li.append(icon, info);
-
-    if (rec) {
-      const del = document.createElement('button');
-      del.className = 'icon-btn';
-      del.title = 'Xóa khỏi bộ nhớ máy để giải phóng dung lượng';
-      del.setAttribute('aria-label', 'Xóa khỏi bộ nhớ máy');
-      del.textContent = '🗑';
-      del.addEventListener('click', (e) => {
-        e.stopPropagation();
-        removeFromCache(f);
-      });
-      li.appendChild(del);
-    }
-
-    li.addEventListener('click', () => playTrack(f, files));
-    frag.appendChild(li);
+  el.fileList.querySelectorAll('.file-item').forEach((li) => {
+    li.classList.toggle('playing', li.dataset.id === track.id);
   });
-
-  el.fileList.replaceChildren(frag);
-  renderEmpty(files.length);
-  el.loadMoreBtn.hidden = !(app.tab === 'drive' && app.nextPageToken && !app.driveLoading);
 }
 
-function renderEmpty(count) {
-  const box = el.emptyState;
-  box.replaceChildren();
-  box.hidden = true;
-  if (count > 0) return;
-
-  const strong = document.createElement('strong');
-  const text = document.createElement('span');
-
-  if (app.tab === 'cached') {
-    strong.textContent = app.query ? 'Không tìm thấy file nào' : 'Chưa có file nào được lưu';
-    text.textContent = app.query ? 'Thử từ khóa khác.' : 'File sẽ tự động được lưu khi bạn phát lần đầu.';
-  } else if (!app.signedIn) {
-    strong.textContent = 'Chưa kết nối Google Drive';
-    text.textContent = 'Đăng nhập để xem các file MP3 trong Drive của bạn.';
-    box.append(strong, text);
-    const btn = document.createElement('button');
-    btn.className = 'btn btn-primary';
-    btn.textContent = 'Đăng nhập Google';
-    btn.addEventListener('click', signIn);
-    box.appendChild(btn);
-    box.hidden = false;
-    return;
-  } else if (app.driveLoading) {
-    strong.textContent = 'Đang tải danh sách…';
-    text.textContent = '';
-  } else if (app.driveError) {
-    strong.textContent = 'Không tải được danh sách';
-    text.textContent = app.driveError;
-    box.append(strong, text);
-    const btn = document.createElement('button');
-    btn.className = 'btn btn-secondary';
-    btn.textContent = 'Thử lại';
-    btn.addEventListener('click', () => loadDrive(true));
-    box.appendChild(btn);
-    box.hidden = false;
-    return;
-  } else {
-    strong.textContent = app.query ? 'Không tìm thấy file nào' : 'Drive chưa có file MP3';
-    text.textContent = app.query ? 'Thử từ khóa khác.' : 'Bạn có thể dùng nút Upload để thêm file.';
-  }
-  box.append(strong, text);
-  box.hidden = false;
+function toTrack(file) {
+  const rec = cachedMap().get(file.id);
+  return {
+    id: file.id,
+    name: file.name,
+    size: file.size || (rec && rec.size) || 0,
+    source: file.source || (rec && rec.source) || 'drive'
+  };
 }
 
-async function loadDrive(reset) {
-  if (!app.signedIn || !isOnline()) {
-    renderList();
-    return;
-  }
-  const seq = ++driveReqSeq;
-  if (reset) {
-    app.driveFiles = [];
-    app.nextPageToken = '';
-  }
-  app.driveLoading = true;
-  app.driveError = '';
-  renderList();
+function playTrack(file, list) {
+  const track = toTrack(file);
+  // Hàng đợi = danh sách đang hiển thị, hết bài sẽ tự chuyển bài kế
+  const queue = (list && list.length ? list : [file]).slice(0, 300).map(toTrack);
 
-  try {
-    const { files, nextPageToken } = await listMp3({
-      query: app.query,
-      pageToken: reset ? '' : app.nextPageToken
-    });
-    if (seq !== driveReqSeq) return;
-    app.driveFiles = reset ? files : app.driveFiles.concat(files);
-    app.nextPageToken = nextPageToken;
-  } catch (err) {
-    if (seq !== driveReqSeq) return;
-    app.driveError = err.message || String(err);
-  } finally {
-    if (seq === driveReqSeq) {
-      app.driveLoading = false;
-      renderList();
-    }
-  }
-}
-
-// ---------- Tabs / tìm kiếm ----------
-
-function setTab(tab) {
-  app.tab = tab;
-  store.set('tab', tab);
-  const tabs = { drive: el.tabDrive, cached: el.tabCached, settings: el.tabSettings };
-  Object.entries(tabs).forEach(([name, btn]) => {
-    btn.classList.toggle('active', tab === name);
-    btn.setAttribute('aria-selected', String(tab === name));
+  app.player = {
+    ...(app.player || {}),
+    track,
+    loading: true,
+    loaded: false,
+    playing: false,
+    progress: 0,
+    currentTime: 0,
+    duration: 0,
+    error: null
+  };
+  renderPlayer();
+  sendPlayer('load', { track, queue, autoplay: true, startAt: 0 }).then((res) => {
+    if (res && res.error) toast(res.error);
   });
-  el.listView.hidden = tab === 'settings';
-  el.settingsView.hidden = tab !== 'settings';
-  if (tab === 'settings') return;
-  if (tab === 'drive' && app.signedIn && isOnline() && app.driveFiles.length === 0) {
-    loadDrive(true);
-  } else {
-    renderList();
-  }
 }
 
-el.tabDrive.addEventListener('click', () => setTab('drive'));
-el.tabCached.addEventListener('click', () => setTab('cached'));
-el.tabSettings.addEventListener('click', () => setTab('settings'));
+el.playBtn.addEventListener('click', () => sendPlayer('toggle'));
+el.backSkip.addEventListener('click', () => sendPlayer('skip', { delta: -5 }));
+el.fwdSkip.addEventListener('click', () => sendPlayer('skip', { delta: 5 }));
 
-el.searchInput.addEventListener('input', () => {
-  app.query = el.searchInput.value;
-  clearTimeout(searchTimer);
-  if (app.tab === 'drive' && app.signedIn && isOnline()) {
-    searchTimer = setTimeout(() => loadDrive(true), 350);
-  } else {
-    renderList();
+// Thanh tiến trình: kéo thả để chọn vị trí, thả ra mới tua thật.
+el.seekBar.addEventListener('pointerdown', () => (app.dragging = true));
+el.seekBar.addEventListener('input', () => {
+  app.dragging = true;
+  const duration = app.player ? app.player.duration || 0 : 0;
+  el.timeCurrent.textContent = formatTime((Number(el.seekBar.value) / 1000) * duration);
+});
+el.seekBar.addEventListener('change', () => {
+  const duration = app.player ? app.player.duration || 0 : 0;
+  const time = (Number(el.seekBar.value) / 1000) * duration;
+  if (app.player) app.player.currentTime = time;
+  app.dragging = false;
+  sendPlayer('seek', { time });
+});
+el.seekBar.addEventListener('pointerup', () => setTimeout(() => (app.dragging = false), 0));
+
+document.addEventListener('keydown', (e) => {
+  const tag = (e.target && e.target.tagName) || '';
+  if (tag === 'INPUT' && e.target.type !== 'range') return;
+  if (e.code === 'Space') {
+    e.preventDefault();
+    if (!el.playBtn.disabled) sendPlayer('toggle');
+  } else if (e.code === 'ArrowLeft' && tag !== 'INPUT') {
+    e.preventDefault();
+    sendPlayer('skip', { delta: -5 });
+  } else if (e.code === 'ArrowRight' && tag !== 'INPUT') {
+    e.preventDefault();
+    sendPlayer('skip', { delta: 5 });
   }
 });
 
-el.loadMoreBtn.addEventListener('click', () => loadDrive(false));
-el.clearAllBtn.addEventListener('click', removeAllCache);
-
 // ---------- Tài khoản ----------
-
-function renderAccount(email) {
-  el.signInBtn.hidden = app.signedIn;
-  el.signOutBtn.hidden = !app.signedIn;
-  el.accountEmail.hidden = !(app.signedIn && email);
-  el.accountEmail.textContent = email || '';
-  el.driveUploadRow.hidden = !app.signedIn;
-}
 
 async function afterSignedIn() {
   app.signedIn = true;
+  app.guest = false;
   store.set('signedIn', true);
-  renderAccount('');
-  getUserInfo()
-    .then((u) => renderAccount(u.emailAddress || u.displayName || ''))
-    .catch(() => {});
+  render();
   await loadDrive(true);
 }
 
@@ -467,22 +506,65 @@ async function signIn() {
 async function doSignOut() {
   await signOut();
   app.signedIn = false;
+  app.guest = false;
+  app.settingsOpen = false;
   store.set('signedIn', false);
   app.driveFiles = [];
   app.nextPageToken = '';
-  renderAccount('');
-  renderList();
+  render();
   toast('Đã đăng xuất. File đã lưu offline vẫn còn trên máy.');
 }
 
-el.signInBtn.addEventListener('click', signIn);
+el.googleBtn.addEventListener('click', signIn);
+el.guestBtn.addEventListener('click', () => {
+  app.guest = true;
+  render();
+});
 el.signOutBtn.addEventListener('click', doSignOut);
+el.settingsBtn.addEventListener('click', () => {
+  app.settingsOpen = true;
+  render();
+});
+el.backBtn.addEventListener('click', () => {
+  app.settingsOpen = false;
+  render();
+});
+el.clearAllBtn.addEventListener('click', removeAllCache);
+
+// ---------- Tabs + tìm kiếm ----------
+
+function setTab(tab) {
+  app.tab = tab;
+  store.set('tab', tab);
+  if (tab === 'all' && driveAvailable() && app.driveFiles.length === 0 && !app.driveLoading) loadDrive(true);
+  else render();
+}
+
+el.tabAll.addEventListener('click', () => setTab('all'));
+el.tabCached.addEventListener('click', () => setTab('cached'));
+el.loadMoreBtn.addEventListener('click', () => loadDrive(false));
+
+el.searchInput.addEventListener('input', () => {
+  app.query = el.searchInput.value;
+  el.clearSearch.hidden = !app.query;
+  clearTimeout(searchTimer);
+  if (currentTab() === 'all' && driveAvailable()) {
+    searchTimer = setTimeout(() => loadDrive(true), 350);
+  } else {
+    render();
+  }
+});
+
+el.clearSearch.addEventListener('click', () => {
+  el.searchInput.value = '';
+  el.searchInput.dispatchEvent(new Event('input'));
+  el.searchInput.focus();
+});
 
 // ---------- Upload ----------
 
 el.uploadToDrive.checked = store.get('uploadToDrive', false);
 el.uploadToDrive.addEventListener('change', () => store.set('uploadToDrive', el.uploadToDrive.checked));
-
 el.uploadBtn.addEventListener('click', () => el.fileInput.click());
 
 el.fileInput.addEventListener('change', async () => {
@@ -526,196 +608,56 @@ el.fileInput.addEventListener('change', async () => {
   }
 
   await refreshCache();
-  if (source === 'drive') {
-    app.driveFiles = [];
-    if (app.tab === 'drive') loadDrive(true);
-  } else {
-    setTab('cached');
-  }
-  playTrack({ id, name, size, source }, app.cached.map((r) => ({ id: r.id, name: r.name, size: r.size, source: r.source })));
+  if (source === 'drive' && driveAvailable()) loadDrive(true);
+  const list = app.cached.map((r) => ({ id: r.id, name: r.name, size: r.size, source: r.source }));
+  playTrack({ id, name, size, source }, list);
 });
 
-// ---------- Điều khiển phát ----------
-
-el.playBtn.addEventListener('click', () => sendPlayer('toggle'));
-el.backBtn.addEventListener('click', () => sendPlayer('skip', { delta: -5 }));
-el.fwdBtn.addEventListener('click', () => sendPlayer('skip', { delta: 5 }));
-
-// ---------- Thanh sóng nhạc ----------
-
-const BAR_COUNT = 16;
-for (let i = 0; i < BAR_COUNT; i++) el.bars.appendChild(document.createElement('span'));
-
-function drawBars(levels) {
-  const spans = el.bars.children;
-  for (let i = 0; i < spans.length; i++) {
-    const v = levels && levels[i] != null ? levels[i] : 0;
-    spans[i].style.height = Math.max(3, Math.round(v * 26)) + 'px';
-  }
-}
-
-function resetBars() {
-  drawBars(null);
-}
-
-// ---------- Equalizer ----------
-
-const EQ_LABELS = ['60Hz', '230Hz', '910Hz', '3.6kHz', '14kHz'];
-let eq = store.get('eq', null);
-if (!eq || !Array.isArray(eq.gains) || eq.gains.length !== EQ_LABELS.length) {
-  eq = { enabled: false, gains: EQ_LABELS.map(() => 0) };
-}
-
-function saveEq() {
-  store.set('eq', eq);
-  sendPlayer('setEq', { eq });
-}
-
-function renderEq() {
-  el.eqToggle.checked = eq.enabled;
-  el.eqBands.classList.toggle('off', !eq.enabled);
-  el.eqBands.querySelectorAll('input').forEach((input, i) => {
-    input.value = String(eq.gains[i]);
-  });
-}
-
-EQ_LABELS.forEach((label, i) => {
-  const wrap = document.createElement('div');
-  wrap.className = 'eq-band';
-  const input = document.createElement('input');
-  input.type = 'range';
-  input.min = '-12';
-  input.max = '12';
-  input.step = '1';
-  input.setAttribute('aria-label', 'Equalizer ' + label);
-  input.addEventListener('input', () => {
-    eq.gains[i] = Number(input.value);
-    saveEq();
-  });
-  const name = document.createElement('span');
-  name.textContent = label;
-  wrap.append(input, name);
-  el.eqBands.appendChild(wrap);
-});
-
-el.eqToggle.addEventListener('change', () => {
-  eq.enabled = el.eqToggle.checked;
-  renderEq();
-  saveEq();
-});
-el.eqReset.addEventListener('click', () => {
-  eq.gains = EQ_LABELS.map(() => 0);
-  renderEq();
-  saveEq();
-});
-
-// ---------- Giao diện (theme) ----------
-
-function applyTheme(theme) {
-  document.documentElement.dataset.theme = theme;
-  el.themeDots.querySelectorAll('.theme-dot').forEach((d) => d.classList.toggle('active', d.dataset.theme === theme));
-  store.set('theme', theme);
-}
-
-el.themeDots.querySelectorAll('.theme-dot').forEach((d) => d.addEventListener('click', () => applyTheme(d.dataset.theme)));
-applyTheme(store.get('theme', 'purple'));
-renderEq();
-
-// Thanh tiến trình: kéo thả để chọn vị trí, thả ra mới tua thật.
-el.seekBar.addEventListener('pointerdown', () => (app.dragging = true));
-el.seekBar.addEventListener('input', () => {
-  app.dragging = true;
-  const duration = app.player ? app.player.duration || 0 : 0;
-  el.timeCurrent.textContent = formatTime((Number(el.seekBar.value) / 1000) * duration);
-});
-el.seekBar.addEventListener('change', () => {
-  const duration = app.player ? app.player.duration || 0 : 0;
-  const time = (Number(el.seekBar.value) / 1000) * duration;
-  if (app.player) app.player.currentTime = time;
-  app.dragging = false;
-  sendPlayer('seek', { time });
-});
-el.seekBar.addEventListener('pointerup', () => {
-  setTimeout(() => (app.dragging = false), 0);
-});
-
-document.addEventListener('keydown', (e) => {
-  const tag = (e.target && e.target.tagName) || '';
-  if (tag === 'INPUT' && e.target.type !== 'range') return;
-  if (e.code === 'Space') {
-    e.preventDefault();
-    if (!el.playBtn.disabled) sendPlayer('toggle');
-  } else if (e.code === 'ArrowLeft' && tag !== 'INPUT') {
-    e.preventDefault();
-    sendPlayer('skip', { delta: -5 });
-  } else if (e.code === 'ArrowRight' && tag !== 'INPUT') {
-    e.preventDefault();
-    sendPlayer('skip', { delta: 5 });
-  }
-});
-
-// ---------- Tin nhắn từ offscreen ----------
+// ---------- Tin nhắn từ offscreen + mạng ----------
 
 chrome.runtime.onMessage.addListener((msg) => {
   if (!msg || msg.target !== 'popup') return false;
-  if (msg.type === 'state') onPlayerState(msg.state);
-  else if (msg.type === 'viz') drawBars(msg.levels);
-  else if (msg.type === 'cacheChanged') refreshCache();
+  if (msg.type === 'state') {
+    app.player = msg.state;
+    renderPlayer();
+  } else if (msg.type === 'cacheChanged') {
+    refreshCache();
+  }
   return false;
 });
 
-// ---------- Online / offline ----------
-
-function updateOnlineUi() {
-  el.offlineBanner.hidden = isOnline();
-  el.tabDrive.disabled = false;
-}
-
 window.addEventListener('online', () => {
-  updateOnlineUi();
-  if (app.signedIn && app.tab === 'drive') loadDrive(true);
+  render();
+  if (app.signedIn) loadDrive(true);
 });
-window.addEventListener('offline', () => {
-  updateOnlineUi();
-  setTab('cached');
-});
+window.addEventListener('offline', render);
 
 // ---------- Khởi động ----------
 
 async function init() {
-  updateOnlineUi();
-  renderAccount('');
+  render();
   await refreshCache();
 
-  // Đồng bộ với trình phát đang chạy nền
   try {
     await ensureOffscreen();
-    await sendPlayer('setEq', { eq });
     const res = await sendPlayer('getState');
-    if (res && res.state) onPlayerState(res.state);
+    if (res && res.state) {
+      app.player = res.state;
+      renderPlayer();
+    }
   } catch (e) {
     /* bỏ qua */
   }
 
-  if (!isOnline()) {
-    setTab('cached');
-    return;
-  }
-
-  setTab(app.tab);
-
-  if (app.signedIn) {
+  if (app.signedIn && isOnline()) {
     try {
       await getToken({ interactive: false });
       await afterSignedIn();
     } catch (e) {
       app.signedIn = false;
       store.set('signedIn', false);
-      renderAccount('');
-      renderList();
+      render();
     }
-  } else {
-    renderList();
   }
 }
 
