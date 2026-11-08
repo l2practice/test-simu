@@ -31,12 +31,15 @@ drive-mp3-player/
 - **3 màn hình theo mockup:** Đăng nhập, Online (tab *Tất cả* / *Đã lưu Offline*, nhãn ✓ và ☁), Offline (banner cam, chỉ hiện file đã lưu). Nút ⚙ mở cài đặt (dung lượng, xóa tất cả, tùy chọn upload lên Drive).
 - **Dạng sóng (thanh tua):** khi mở bài, extension giải mã file ở nền (8 kHz, nhẹ) và vẽ dạng sóng của cả file. Chỗ có giọng nói là các thanh cao, chỗ im lặng là thanh phẳng, nên nhìn trước được khi nào audio nói. Dưới sóng có thước thời gian (0s, 10s, 20s… hoặc 1:00, 2:00… tùy độ dài bài), rê chuột lên sóng để xem chính xác giây đó. Phần đã phát sáng màu; bấm hoặc kéo trên sóng để tua. Kết quả được lưu cùng file cache nên lần sau hiện ngay. File lớn hơn 80 MB sẽ bỏ qua dạng sóng.
 - **Tốc độ phát:** nút `1x` trên thanh phát mở menu 0.25x → 2x (giống YouTube), giữ nguyên cao độ giọng, nhớ lựa chọn. Phím tắt `Shift + >` / `Shift + <`.
+- **Chọn nhiều file:** nút ☰ cạnh ô tìm kiếm bật chế độ chọn (hộp ✓ ở mỗi file, có "Chọn tất cả"). Bấm **▶ Phát** để nghe liên tục theo thứ tự trong danh sách, dùng được cho cả file Drive lẫn file đã lưu.
+- **Upload nhiều file:** nút ⬆ cho chọn nhiều MP3 cùng lúc; tất cả được lưu và phát lần lượt.
+- **Cửa sổ nổi + thu nhỏ:** nút ⧉ trên thanh tiêu đề mở extension thành cửa sổ riêng, không tự đóng khi bạn bấm sang tab/ứng dụng khác. Trong cửa sổ đó, nút ▬ thu nhỏ còn mỗi thanh phát, bấm lại để mở rộng.
 - **Upload:** chọn file MP3 từ máy → lưu vào bộ nhớ extension và phát. Tick "Đồng thời lưu bản sao lên Google Drive" nếu muốn upload thêm lên Drive (giữ popup mở đến khi xong).
 - **Lưu ý:** Chrome đóng offscreen document sau ~30 giây không phát âm thanh. Vị trí nghe được lưu lại, nên bấm Play lại sẽ tiếp tục đúng chỗ cũ.
 
-## Bước 1: Cài extension vào Chrome (để lấy Extension ID)
+## Bước 1: Cài extension vào Chrome hoặc Edge (để lấy Extension ID)
 
-1. Mở `chrome://extensions`.
+1. Mở `chrome://extensions` (Edge: `edge://extensions`).
 2. Bật **Developer mode** (góc trên bên phải).
 3. Bấm **Load unpacked** → chọn thư mục `drive-mp3-player`.
 4. Copy **ID** của extension (chuỗi 32 ký tự) hiện dưới tên extension. Extension báo lỗi OAuth là bình thường cho đến khi xong Bước 2.
@@ -56,10 +59,11 @@ drive-mp3-player/
    - **Test users → Add users**: thêm chính email Google bạn sẽ dùng để đăng nhập.
    - Để ở trạng thái **Testing** là đủ cho dùng cá nhân.
 4. **APIs & Services → Credentials → Create credentials → OAuth client ID**:
-   - Application type: **Chrome extension**.
+   - Application type: **Web application** (KHÔNG chọn "Chrome extension": loại đó chỉ chạy trên Chrome, không chạy trên Edge).
    - Name: tùy ý.
-   - **Item ID**: dán Extension ID ở Bước 1.
-   - Bấm Create, copy **Client ID** (dạng `xxxx.apps.googleusercontent.com`).
+   - **Authorized redirect URIs → Add URI**: `https://<Extension ID>.chromiumapp.org/`
+     (thay `<Extension ID>` bằng ID ở Bước 1; hoặc mở popup → ⚙ Cài đặt → "Kết nối Google Drive" → **Sao chép** để lấy đúng URI).
+   - Bấm Create, copy **Client ID** (dạng `xxxx.apps.googleusercontent.com`). Không cần Client secret.
 5. Mở `manifest.json`, thay `YOUR_CLIENT_ID.apps.googleusercontent.com` bằng Client ID vừa copy.
 6. Về `chrome://extensions` → bấm biểu tượng **Reload** của extension.
 
@@ -79,9 +83,11 @@ Phím tắt trong popup: `Space` phát/dừng, `←` lùi 5s, `→` tới 5s. Ph
 
 | Hiện tượng | Cách xử lý |
 |---|---|
-| `OAuth2 request failed` / `bad client id` | Client ID sai, hoặc Item ID trong OAuth client không khớp Extension ID hiện tại. Kiểm tra lại, sửa manifest, Reload. |
+| `redirect_uri_mismatch` | Redirect URI trong OAuth client không khớp. Mở ⚙ Cài đặt trong popup, bấm Sao chép, dán lại vào Authorized redirect URIs (nếu bạn đổi tên/di chuyển thư mục thì Extension ID đổi, phải cập nhật lại). |
+| `Chưa cấu hình Client ID` | Chưa thay `YOUR_CLIENT_ID...` trong `manifest.json`, hoặc chưa Reload extension. |
+| `This API is not supported on Microsoft Edge` | Bạn đang chạy bản cũ dùng `getAuthToken`. Bản này đã đổi sang `launchWebAuthFlow` nên chạy được trên Edge. |
 | `Access blocked: app has not completed verification` | Chưa thêm email vào **Test users** ở OAuth consent screen. |
 | Đăng nhập được nhưng danh sách trống | Drive chưa có file `.mp3` (hoặc mimeType `audio/mpeg`). Thử nút Upload. |
 | Sau ~7 ngày phải đăng nhập lại | Hành vi của app ở trạng thái Testing; bấm Đăng nhập lại là xong. |
-| Không chạy trên Edge/Brave | `chrome.identity.getAuthToken` chỉ hỗ trợ đầy đủ trên Google Chrome. |
+| Phát được một lúc rồi báo lỗi đăng nhập | Token Google chỉ sống ~1 giờ; extension tự xin lại âm thầm. Nếu trình duyệt đã đăng xuất Google thì bấm Đăng nhập lại. |
 | Bấm Play offline báo lỗi | File đó chưa từng được phát khi còn mạng nên chưa có trong cache. |

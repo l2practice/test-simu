@@ -32,47 +32,107 @@ async function ensureOffscreen() {
   }
 }
 
-function getAuthToken(interactive) {
+// ---------- Đăng nhập Google bằng launchWebAuthFlow ----------
+// chrome.identity.getAuthToken không chạy trên Microsoft Edge, còn launchWebAuthFlow thì chạy
+// trên cả Chrome lẫn Edge. Dùng OAuth client loại "Web application" với Redirect URI là
+// chrome.identity.getRedirectURL() (https://<extension-id>.chromiumapp.org/).
+// Dùng luồng implicit: token sống ~1 giờ, hết hạn thì tự xin lại âm thầm (prompt=none).
+
+const TOKEN_KEY = 'authToken';
+let tokenInFlight = null;
+
+function oauthConfig() {
+  const cfg = (chrome.runtime.getManifest().oauth2) || {};
+  if (!cfg.client_id || cfg.client_id.startsWith('YOUR_CLIENT_ID')) {
+    throw new Error('Chưa cấu hình Client ID trong manifest.json (xem README).');
+  }
+  return cfg;
+}
+
+async function readCachedToken() {
+  const data = await chrome.storage.local.get(TOKEN_KEY);
+  const t = data[TOKEN_KEY];
+  return t && t.token && t.expiresAt > Date.now() + 60 * 1000 ? t.token : null;
+}
+
+async function clearCachedToken() {
+  await chrome.storage.local.remove(TOKEN_KEY);
+}
+
+function launchAuth(interactive) {
+  const cfg = oauthConfig();
+  const params = new URLSearchParams({
+    client_id: cfg.client_id,
+    response_type: 'token',
+    redirect_uri: chrome.identity.getRedirectURL(),
+    scope: (cfg.scopes || []).join(' '),
+    include_granted_scopes: 'true',
+    prompt: interactive ? 'select_account' : 'none'
+  });
+  const url = 'https://accounts.google.com/o/oauth2/v2/auth?' + params;
+
   return new Promise((resolve, reject) => {
-    chrome.identity.getAuthToken({ interactive: !!interactive }, (result) => {
-      if (chrome.runtime.lastError) {
-        reject(new Error(chrome.runtime.lastError.message));
+    chrome.identity.launchWebAuthFlow({ url, interactive: !!interactive }, (responseUrl) => {
+      if (chrome.runtime.lastError || !responseUrl) {
+        reject(new Error((chrome.runtime.lastError && chrome.runtime.lastError.message) || 'Đăng nhập bị hủy'));
         return;
       }
-      // Chrome mới có thể trả về object { token, grantedScopes }
-      const token = typeof result === 'string' ? result : result && result.token;
+      const hash = new URL(responseUrl).hash.replace(/^#/, '');
+      const res = new URLSearchParams(hash);
+      if (res.get('error')) {
+        reject(new Error('Google trả về lỗi: ' + res.get('error')));
+        return;
+      }
+      const token = res.get('access_token');
       if (!token) {
-        reject(new Error('Không lấy được token'));
+        reject(new Error('Không nhận được access token'));
         return;
       }
-      resolve(token);
+      const expiresIn = Number(res.get('expires_in')) || 3600;
+      chrome.storage.local
+        .set({ [TOKEN_KEY]: { token, expiresAt: Date.now() + expiresIn * 1000 } })
+        .then(() => resolve(token));
     });
   });
 }
 
-function removeCachedToken(token) {
-  return new Promise((resolve) => {
-    chrome.identity.removeCachedAuthToken({ token }, () => resolve());
-  });
-}
-
 async function getToken({ interactive, invalidate }) {
-  if (invalidate) await removeCachedToken(invalidate);
-  return getAuthToken(interactive);
+  if (invalidate) await clearCachedToken();
+  const cached = await readCachedToken();
+  if (cached) return cached;
+
+  // Gộp các lần xin token đồng thời (popup + offscreen) thành một
+  if (!tokenInFlight) {
+    tokenInFlight = launchAuth(interactive).finally(() => {
+      tokenInFlight = null;
+    });
+  }
+  return tokenInFlight;
 }
 
 async function signOut() {
-  try {
-    const token = await getAuthToken(false);
-    await removeCachedToken(token);
+  const token = await readCachedToken();
+  await clearCachedToken();
+  if (token) {
     // Thu hồi token phía Google để lần sau hỏi quyền lại
     await fetch('https://oauth2.googleapis.com/revoke?token=' + encodeURIComponent(token), {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
     }).catch(() => {});
-  } catch (e) {
-    // Chưa đăng nhập: bỏ qua
   }
+}
+
+// ---------- Cửa sổ nổi (ghim) ----------
+
+async function openFloatingWindow() {
+  const base = chrome.runtime.getURL('popup.html');
+  const wins = await chrome.windows.getAll({ populate: true, windowTypes: ['popup'] });
+  const existing = wins.find((w) => (w.tabs || []).some((t) => (t.url || '').startsWith(base)));
+  if (existing) {
+    await chrome.windows.update(existing.id, { focused: true });
+    return;
+  }
+  await chrome.windows.create({ url: base + '?window=1', type: 'popup', width: 420, height: 690 });
 }
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
@@ -85,6 +145,9 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         return { ok: true };
       case 'getToken':
         return { token: await getToken(msg) };
+      case 'openFloating':
+        await openFloatingWindow();
+        return { ok: true };
       case 'signOut':
         await signOut();
         return { ok: true };
