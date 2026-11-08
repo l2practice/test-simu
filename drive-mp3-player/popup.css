@@ -620,7 +620,7 @@ button:disabled {
 /* ===== Dạng sóng = thanh tua ===== */
 .wave-wrap {
   position: relative;
-  height: 46px;
+  height: 64px;
   margin-top: 6px;
 }
 
@@ -654,7 +654,7 @@ button:disabled {
 .wave-wrap input[type='range']::-webkit-slider-thumb {
   -webkit-appearance: none;
   width: 3px;
-  height: 46px;
+  height: 64px;
   border-radius: 2px;
   background: #fff;
   box-shadow: 0 0 6px rgba(167, 139, 250, 0.9);
@@ -673,4 +673,18 @@ button:disabled {
 
 .time-row .time:last-child {
   text-align: right;
+}
+
+.wave-tip {
+  position: absolute;
+  top: -22px;
+  transform: translateX(-50%);
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: #05030f;
+  border: 1px solid var(--card-border);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+  z-index: 6;
 }

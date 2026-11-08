@@ -41,6 +41,8 @@ const el = {
   iconPlay: $('iconPlay'),
   iconPause: $('iconPause'),
   waveCanvas: $('waveCanvas'),
+  waveWrap: $('waveWrap'),
+  waveTip: $('waveTip'),
   speedWrap: $('speedWrap'),
   speedBtn: $('speedBtn'),
   speedMenu: $('speedMenu'),
@@ -409,18 +411,71 @@ function drawWave(progress) {
   const played = cssVar('--accent2') || '#a78bfa';
   const unplayed = 'rgba(255,255,255,0.28)';
   const minH = 3;
+  const RULER_H = 16; // dải thước thời gian ở đáy
+  const waveH = h - RULER_H;
 
   for (let i = 0; i < WAVE_BARS; i++) {
     const v = data ? data[i] / 255 : 0;
-    const bh = Math.max(minH, v * (h - 4));
+    const bh = Math.max(minH, v * (waveH - 4));
     const x = i * slot + (slot - barW) / 2;
     g.fillStyle = (i + 0.5) / WAVE_BARS <= progress ? played : unplayed;
     g.beginPath();
-    if (g.roundRect) g.roundRect(x, (h - bh) / 2, barW, bh, barW / 2);
-    else g.rect(x, (h - bh) / 2, barW, bh);
+    if (g.roundRect) g.roundRect(x, (waveH - bh) / 2, barW, bh, barW / 2);
+    else g.rect(x, (waveH - bh) / 2, barW, bh);
     g.fill();
   }
+
+  drawRuler(g, w, h, waveH, p ? p.duration || 0 : 0);
 }
+
+const TICK_STEPS = [1, 2, 5, 10, 15, 30, 60, 120, 300, 600, 900, 1800, 3600];
+
+function tickLabel(t) {
+  return t < 60 ? `${t}s` : formatTime(t);
+}
+
+/** Thước thời gian: vạch + nhãn theo giây/phút, tự chọn khoảng cách vừa mắt. */
+function drawRuler(g, w, h, waveH, duration) {
+  if (!(duration > 0)) return;
+  const minGap = 46; // px tối thiểu giữa hai nhãn
+  const step = TICK_STEPS.find((s) => (s / duration) * w >= minGap) || TICK_STEPS[TICK_STEPS.length - 1];
+
+  g.font = '10px system-ui, sans-serif';
+  g.textBaseline = 'alphabetic';
+  g.fillStyle = 'rgba(169,163,201,0.9)';
+  g.strokeStyle = 'rgba(169,163,201,0.55)';
+  g.lineWidth = 1;
+
+  let lastRight = -Infinity;
+  for (let t = 0; t <= duration; t += step) {
+    const x = Math.round((t / duration) * w) + 0.5;
+    const label = tickLabel(t);
+    const tw = g.measureText(label).width;
+    // nhãn căn giữa vạch, nhưng không tràn ra ngoài hai mép
+    let lx = x - tw / 2;
+    lx = Math.max(0, Math.min(w - tw, lx));
+    g.beginPath();
+    g.moveTo(x, waveH + 1);
+    g.lineTo(x, waveH + 5);
+    g.stroke();
+    if (lx > lastRight + 6 && x + tw / 2 <= w + 1) {
+      g.fillText(label, lx, h - 1);
+      lastRight = lx + tw;
+    }
+  }
+}
+
+// Rê chuột trên sóng để xem chính xác thời điểm đó là giây thứ mấy
+el.waveWrap.addEventListener('mousemove', (e) => {
+  const duration = app.player ? app.player.duration || 0 : 0;
+  if (!(duration > 0)) return;
+  const rect = el.waveWrap.getBoundingClientRect();
+  const ratio = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
+  el.waveTip.textContent = formatTime(ratio * duration);
+  el.waveTip.style.left = Math.min(rect.width - 22, Math.max(22, ratio * rect.width)) + 'px';
+  el.waveTip.hidden = false;
+});
+el.waveWrap.addEventListener('mouseleave', () => (el.waveTip.hidden = true));
 
 function currentProgress() {
   if (app.dragging) return Number(el.seekBar.value) / 1000;
