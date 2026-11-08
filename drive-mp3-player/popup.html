@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Drive MP3 Player</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <span class="logo" aria-hidden="true">♪</span>
+        <span class="brand-name">Drive MP3</span>
+      </div>
+      <div class="account">
+        <span id="accountEmail" class="account-email" hidden></span>
+        <button id="signInBtn" class="btn btn-primary btn-small" hidden>Đăng nhập Google</button>
+        <button id="signOutBtn" class="btn btn-ghost btn-small" hidden>Đăng xuất</button>
+      </div>
+    </header>
+
+    <div id="offlineBanner" class="banner" hidden>
+      Đang offline — chỉ có thể phát các file đã lưu.
+    </div>
+
+    <!-- Trình phát -->
+    <section class="player" aria-label="Trình phát">
+      <div class="now-playing">
+        <div id="trackTitle" class="track-title">Chưa chọn bài hát</div>
+        <div id="trackStatus" class="track-status">Chọn một file bên dưới để nghe</div>
+      </div>
+
+      <div class="timeline">
+        <span id="timeCurrent" class="time">0:00</span>
+        <input id="seekBar" type="range" min="0" max="1000" step="1" value="0" disabled aria-label="Thanh tiến trình" />
+        <span id="timeTotal" class="time">0:00</span>
+      </div>
+
+      <div class="controls">
+        <button id="backBtn" class="ctrl" title="Tua lùi 5 giây (←)" disabled>
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+            <path fill="currentColor" d="M12 5V2L7 6l5 4V7a6 6 0 1 1-6 6H4a8 8 0 1 0 8-8z" />
+          </svg>
+          <span class="ctrl-label">5s</span>
+        </button>
+        <button id="playBtn" class="ctrl ctrl-play" title="Phát / Tạm dừng (Space)" disabled>
+          <svg id="iconPlay" viewBox="0 0 24 24" width="30" height="30" aria-hidden="true">
+            <path fill="currentColor" d="M8 5v14l11-7z" />
+          </svg>
+          <svg id="iconPause" viewBox="0 0 24 24" width="30" height="30" aria-hidden="true" hidden>
+            <path fill="currentColor" d="M6 5h4v14H6zM14 5h4v14h-4z" />
+          </svg>
+        </button>
+        <button id="fwdBtn" class="ctrl" title="Tua tới 5 giây (→)" disabled>
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+            <path fill="currentColor" d="M12 5V2l5 4-5 4V7a6 6 0 1 0 6 6h2a8 8 0 1 1-8-8z" />
+          </svg>
+          <span class="ctrl-label">5s</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Tabs -->
+    <nav class="tabs" role="tablist">
+      <button id="tabDrive" class="tab active" role="tab" aria-selected="true">Google Drive</button>
+      <button id="tabCached" class="tab" role="tab" aria-selected="false">
+        Đã lưu offline <span id="cachedCount" class="count">0</span>
+      </button>
+    </nav>
+
+    <!-- Tìm kiếm + upload -->
+    <div class="toolbar">
+      <input id="searchInput" class="search" type="search" placeholder="Tìm theo tên file…" autocomplete="off" />
+      <button id="uploadBtn" class="btn btn-secondary" title="Chọn file MP3 từ máy tính">⬆ Upload</button>
+      <input id="fileInput" type="file" accept=".mp3,audio/mpeg" hidden />
+    </div>
+    <label id="driveUploadRow" class="check-row" hidden>
+      <input id="uploadToDrive" type="checkbox" />
+      <span>Đồng thời lưu bản sao lên Google Drive</span>
+    </label>
+
+    <!-- Danh sách -->
+    <main id="listArea" class="list-area">
+      <ul id="fileList" class="file-list"></ul>
+      <div id="emptyState" class="empty" hidden></div>
+      <button id="loadMoreBtn" class="btn btn-secondary load-more" hidden>Tải thêm</button>
+    </main>
+
+    <footer id="cacheFooter" class="cache-footer" hidden>
+      <span id="cacheInfo"></span>
+      <button id="clearAllBtn" class="btn btn-danger btn-small">Xóa tất cả</button>
+    </footer>
+
+    <div id="toast" class="toast" role="status" hidden></div>
+
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>
