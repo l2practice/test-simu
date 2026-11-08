@@ -111,9 +111,12 @@
     <!-- Thanh phát cố định ở dưới -->
     <footer id="playerBar" class="player-bar card" hidden>
       <div id="nowPlaying" class="now-playing"></div>
-      <div class="timeline">
+      <div class="wave-wrap">
+        <canvas id="waveCanvas" aria-hidden="true"></canvas>
+        <input id="seekBar" type="range" min="0" max="1000" step="1" value="0" disabled aria-label="Thanh tiến trình (dạng sóng)" />
+      </div>
+      <div class="time-row">
         <span id="timeCurrent" class="time">0:00</span>
-        <input id="seekBar" type="range" min="0" max="1000" step="1" value="0" disabled aria-label="Thanh tiến trình" />
         <span id="timeTotal" class="time">0:00</span>
       </div>
       <div id="speedWrap" class="speed-wrap">

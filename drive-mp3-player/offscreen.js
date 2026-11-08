@@ -92,6 +92,79 @@ function update(force = false) {
   updateMediaSession();
 }
 
+// ---------- Dạng sóng (tính trước cho cả file) ----------
+
+const WAVE_BARS = 120;
+const MAX_WAVE_BYTES = 80 * 1024 * 1024; // file quá lớn thì bỏ qua để tránh tốn RAM khi giải mã
+let peaksFor = null; // { id, data } của bài đang mở
+
+let recordQueue = Promise.resolve();
+/** Cập nhật một phần bản ghi cache, xếp hàng để các lần ghi không đè lên nhau. */
+function patchRecord(id, patch) {
+  recordQueue = recordQueue
+    .then(async () => {
+      const rec = await getFile(id);
+      if (rec) await putFile({ ...rec, ...patch });
+    })
+    .catch(() => {});
+  return recordQueue;
+}
+
+function notifyCacheChanged() {
+  chrome.runtime.sendMessage({ target: 'popup', type: 'cacheChanged' }).catch(() => {});
+}
+
+function setPeaks(id, data) {
+  peaksFor = { id, data };
+  chrome.runtime.sendMessage({ target: 'popup', type: 'peaks', trackId: id, peaks: data }).catch(() => {});
+}
+
+/** Giải mã MP3 ở 8 kHz (nhẹ) rồi lấy mức âm lượng RMS của WAVE_BARS đoạn đều nhau. */
+async function computePeaks(blob) {
+  if (blob.size > MAX_WAVE_BYTES) return null;
+  const octx = new OfflineAudioContext(1, 8000, 8000);
+  const buffer = await octx.decodeAudioData(await blob.arrayBuffer());
+  const len = buffer.length;
+  if (!len) return null;
+
+  const channels = [];
+  for (let c = 0; c < buffer.numberOfChannels; c++) channels.push(buffer.getChannelData(c));
+
+  const rms = new Array(WAVE_BARS).fill(0);
+  for (let i = 0; i < WAVE_BARS; i++) {
+    const from = Math.floor((i * len) / WAVE_BARS);
+    const to = Math.max(from + 1, Math.floor(((i + 1) * len) / WAVE_BARS));
+    let sum = 0;
+    for (const data of channels) {
+      for (let j = from; j < to; j++) sum += data[j] * data[j];
+    }
+    rms[i] = Math.sqrt(sum / ((to - from) * channels.length));
+  }
+
+  // Chuẩn hóa theo phân vị 95% để vài tiếng động lớn không làm phần còn lại bị lép
+  const sorted = rms.slice().sort((a, b) => a - b);
+  const ref = sorted[Math.floor(sorted.length * 0.95)] || sorted[sorted.length - 1] || 1;
+  return rms.map((v) => {
+    const n = v / ref;
+    if (n < 0.04) return 0; // coi như im lặng
+    return Math.round(Math.min(1, Math.sqrt(n)) * 255);
+  });
+}
+
+async function ensurePeaks(track, blob, record, seq) {
+  let data = record && record.peaks;
+  if (!data) {
+    try {
+      data = await computePeaks(blob);
+    } catch (e) {
+      data = null;
+    }
+    if (!data) return;
+    patchRecord(track.id, { peaks: data }).then(notifyCacheChanged);
+  }
+  if (seq === loadSeq) setPeaks(track.id, data);
+}
+
 // ---------- Nạp bài hát ----------
 
 function waitForMetadata() {
@@ -118,6 +191,7 @@ async function loadTrack(track, { autoplay = true, startAt = 0 } = {}) {
   if (abortCtl) abortCtl.abort();
   abortCtl = null;
 
+  peaksFor = null;
   audio.pause();
   audio.removeAttribute('src');
   audio.load();
@@ -175,7 +249,7 @@ async function loadTrack(track, { autoplay = true, startAt = 0 } = {}) {
         cachedAt: Date.now(),
         source: 'drive'
       });
-      chrome.runtime.sendMessage({ target: 'popup', type: 'cacheChanged' }).catch(() => {});
+      notifyCacheChanged();
     }
     if (seq !== loadSeq) return;
 
@@ -196,17 +270,11 @@ async function loadTrack(track, { autoplay = true, startAt = 0 } = {}) {
     syncFromAudio();
 
     // Ghi thời lượng vào bản ghi cache để popup hiển thị trong danh sách
-    if (isFinite(audio.duration)) {
-      getFile(track.id)
-        .then((rec) => {
-          if (rec && !rec.duration) {
-            putFile({ ...rec, duration: audio.duration }).then(() =>
-              chrome.runtime.sendMessage({ target: 'popup', type: 'cacheChanged' }).catch(() => {})
-            );
-          }
-        })
-        .catch(() => {});
+    if (isFinite(audio.duration) && !(record && record.duration)) {
+      patchRecord(track.id, { duration: audio.duration }).then(notifyCacheChanged);
     }
+    // Tính dạng sóng ở nền, không chặn việc phát nhạc
+    ensurePeaks(track, blob, record, seq);
 
     if (autoplay) await audio.play();
     update(true);
@@ -287,7 +355,7 @@ async function handle(msg) {
   switch (msg.type) {
     case 'getState':
       syncFromAudio();
-      return { state };
+      return { state, peaks: peaksFor };
     case 'load':
       if (Array.isArray(msg.queue)) state.queue = msg.queue.slice(0, 300);
       await loadTrack(msg.track, { autoplay: msg.autoplay !== false, startAt: msg.startAt || 0 });

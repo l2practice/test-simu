@@ -40,6 +40,7 @@ const el = {
   playBtn: $('playBtn'),
   iconPlay: $('iconPlay'),
   iconPause: $('iconPause'),
+  waveCanvas: $('waveCanvas'),
   speedWrap: $('speedWrap'),
   speedBtn: $('speedBtn'),
   speedMenu: $('speedMenu'),
@@ -76,6 +77,7 @@ const app = {
   driveError: '',
   cached: [],
   player: null,
+  peaks: null, // { id, data } dạng sóng của bài đang mở
   dragging: false
 };
 
@@ -377,6 +379,55 @@ async function removeAllCache() {
   await refreshCache();
 }
 
+// ---------- Dạng sóng ----------
+
+const WAVE_BARS = 120;
+
+function cssVar(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+/** Vẽ dạng sóng của cả file. Phần đã phát sáng màu, phần chưa phát mờ hơn; chỗ im lặng là thanh phẳng. */
+function drawWave(progress) {
+  const canvas = el.waveCanvas;
+  const dpr = window.devicePixelRatio || 1;
+  const w = canvas.clientWidth;
+  const h = canvas.clientHeight;
+  if (!w || !h) return;
+  if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(h * dpr);
+  }
+  const g = canvas.getContext('2d');
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  g.clearRect(0, 0, w, h);
+
+  const p = app.player;
+  const data = app.peaks && p && p.track && app.peaks.id === p.track.id ? app.peaks.data : null;
+  const slot = w / WAVE_BARS;
+  const barW = Math.max(1.5, slot * 0.62);
+  const played = cssVar('--accent2') || '#a78bfa';
+  const unplayed = 'rgba(255,255,255,0.28)';
+  const minH = 3;
+
+  for (let i = 0; i < WAVE_BARS; i++) {
+    const v = data ? data[i] / 255 : 0;
+    const bh = Math.max(minH, v * (h - 4));
+    const x = i * slot + (slot - barW) / 2;
+    g.fillStyle = (i + 0.5) / WAVE_BARS <= progress ? played : unplayed;
+    g.beginPath();
+    if (g.roundRect) g.roundRect(x, (h - bh) / 2, barW, bh, barW / 2);
+    else g.rect(x, (h - bh) / 2, barW, bh);
+    g.fill();
+  }
+}
+
+function currentProgress() {
+  if (app.dragging) return Number(el.seekBar.value) / 1000;
+  const p = app.player;
+  return p && p.duration > 0 ? Math.min(1, (p.currentTime || 0) / p.duration) : 0;
+}
+
 // ---------- Trình phát ----------
 
 function renderPlayer() {
@@ -415,6 +466,7 @@ function renderPlayer() {
     el.timeCurrent.textContent = formatTime(current);
     el.seekBar.value = duration > 0 ? String(Math.round((current / duration) * 1000)) : '0';
   }
+  drawWave(currentProgress());
 
   el.fileList.querySelectorAll('.file-item').forEach((li) => {
     li.classList.toggle('playing', li.dataset.id === track.id);
@@ -512,6 +564,7 @@ function playTrack(file, list) {
     duration: 0,
     error: null
   };
+  if (app.peaks && app.peaks.id !== track.id) app.peaks = null;
   renderPlayer();
   sendPlayer('load', { track, queue, autoplay: true, startAt: 0 }).then((res) => {
     if (res && res.error) toast(res.error);
@@ -528,6 +581,7 @@ el.seekBar.addEventListener('input', () => {
   app.dragging = true;
   const duration = app.player ? app.player.duration || 0 : 0;
   el.timeCurrent.textContent = formatTime((Number(el.seekBar.value) / 1000) * duration);
+  drawWave(currentProgress());
 });
 el.seekBar.addEventListener('change', () => {
   const duration = app.player ? app.player.duration || 0 : 0;
@@ -694,7 +748,11 @@ chrome.runtime.onMessage.addListener((msg) => {
   if (!msg || msg.target !== 'popup') return false;
   if (msg.type === 'state') {
     app.player = msg.state;
+    if (app.peaks && msg.state.track && app.peaks.id !== msg.state.track.id) app.peaks = null;
     renderPlayer();
+  } else if (msg.type === 'peaks') {
+    app.peaks = { id: msg.trackId, data: msg.peaks };
+    drawWave(currentProgress());
   } else if (msg.type === 'cacheChanged') {
     refreshCache();
   }
@@ -718,6 +776,7 @@ async function init() {
     const res = await sendPlayer('getState');
     if (res && res.state) {
       app.player = res.state;
+      app.peaks = res.peaks || null;
       renderPlayer();
     }
   } catch (e) {

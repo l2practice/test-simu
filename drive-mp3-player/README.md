@@ -27,6 +27,7 @@ drive-mp3-player/
 - **Xóa cache:** nút 🗑 ở từng file hoặc "Xóa tất cả" ở cuối danh sách. File trên Drive không bị ảnh hưởng.
 - **Hàng đợi:** hàng đợi chính là danh sách đang mở (Tất cả hoặc Đã lưu Offline, sau khi lọc tìm kiếm). Hết bài tự chuyển sang bài kế tiếp.
 - **3 màn hình theo mockup:** Đăng nhập, Online (tab *Tất cả* / *Đã lưu Offline*, nhãn ✓ và ☁), Offline (banner cam, chỉ hiện file đã lưu). Nút ⚙ mở cài đặt (dung lượng, xóa tất cả, tùy chọn upload lên Drive).
+- **Dạng sóng (thanh tua):** khi mở bài, extension giải mã file ở nền (8 kHz, nhẹ) và vẽ dạng sóng của cả file. Chỗ có giọng nói là các thanh cao, chỗ im lặng là thanh phẳng, nên nhìn trước được khi nào audio nói. Phần đã phát sáng màu; bấm hoặc kéo trên sóng để tua. Kết quả được lưu cùng file cache nên lần sau hiện ngay. File lớn hơn 80 MB sẽ bỏ qua dạng sóng.
 - **Tốc độ phát:** nút `1x` trên thanh phát mở menu 0.25x → 2x (giống YouTube), giữ nguyên cao độ giọng, nhớ lựa chọn. Phím tắt `Shift + >` / `Shift + <`.
 - **Upload:** chọn file MP3 từ máy → lưu vào bộ nhớ extension và phát. Tick "Đồng thời lưu bản sao lên Google Drive" nếu muốn upload thêm lên Drive (giữ popup mở đến khi xong).
 - **Lưu ý:** Chrome đóng offscreen document sau ~30 giây không phát âm thanh. Vị trí nghe được lưu lại, nên bấm Play lại sẽ tiếp tục đúng chỗ cũ.
