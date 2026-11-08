@@ -1,7 +1,7 @@
 // Offscreen document: giữ thẻ <audio> nên nhạc vẫn phát khi popup đóng.
 // Chỉ chrome.runtime khả dụng ở đây, nên lưu trạng thái bằng localStorage.
 
-import { getFile, putFile } from './lib/db.js';
+import { getFile, putFile, getSettings } from './lib/db.js';
 import { downloadFile } from './lib/drive.js';
 import { runCleanup } from './lib/cleanup.js';
 
@@ -20,7 +20,8 @@ let state = {
   queue: [], // danh sách bài đang mở (để tự chuyển bài)
   index: -1,
   mode: readMode(), // 'normal' | 'repeat-one' | 'shuffle'
-  speed: readSpeed() // tốc độ phát 0.25 – 2
+  speed: readSpeed(), // tốc độ phát 0.25 – 2
+  saving: false // true nếu file đang tải sẽ được lưu vào máy
 };
 
 const SPEEDS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
@@ -206,6 +207,7 @@ async function loadTrack(track, { autoplay = true, startAt = 0 } = {}) {
     track,
     index: state.queue.findIndex((t) => t.id === track.id),
     playing: false,
+    saving: false,
     loading: true,
     loaded: false,
     progress: 0,
@@ -224,6 +226,10 @@ async function loadTrack(track, { autoplay = true, startAt = 0 } = {}) {
       if (track.source === 'local') throw new Error('Không tìm thấy file đã lưu trên máy');
       if (!navigator.onLine) throw new Error('Đang offline và file này chưa được lưu để nghe offline');
 
+      const { autoCache } = await getSettings();
+      state.saving = !!autoCache;
+      broadcast();
+
       abortCtl = new AbortController();
       let lastSent = 0;
       blob = await downloadFile(track.id, {
@@ -241,18 +247,20 @@ async function loadTrack(track, { autoplay = true, startAt = 0 } = {}) {
       });
       if (seq !== loadSeq) return;
 
-      // Tự động lưu cache ngay lần phát đầu tiên
-      await putFile({
-        id: track.id,
-        name: track.name,
-        size: blob.size,
-        blob,
-        cachedAt: Date.now(),
-        source: 'drive'
-      });
-      // Giữ tổng dung lượng dưới giới hạn (không xóa bài vừa tải)
-      await runCleanup({ protectIds: [track.id] }).catch(() => {});
-      notifyCacheChanged();
+      // Chỉ lưu xuống ổ đĩa khi bật "Tự lưu file"; nếu tắt thì file chỉ nằm tạm trong RAM
+      if (autoCache) {
+        await putFile({
+          id: track.id,
+          name: track.name,
+          size: blob.size,
+          blob,
+          cachedAt: Date.now(),
+          source: 'drive'
+        });
+        // Giữ tổng dung lượng dưới giới hạn (không xóa bài vừa tải)
+        await runCleanup({ protectIds: [track.id] }).catch(() => {});
+        notifyCacheChanged();
+      }
     }
     if (seq !== loadSeq) return;
 

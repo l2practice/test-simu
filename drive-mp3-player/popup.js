@@ -44,6 +44,7 @@ const el = {
   waveCanvas: $('waveCanvas'),
   waveWrap: $('waveWrap'),
   waveTip: $('waveTip'),
+  autoCacheToggle: $('autoCacheToggle'),
   maxAgeSelect: $('maxAgeSelect'),
   maxSizeSelect: $('maxSizeSelect'),
   cleanNowBtn: $('cleanNowBtn'),
@@ -83,6 +84,7 @@ const app = {
   driveError: '',
   cached: [],
   player: null,
+  autoCache: false,
   peaks: null, // { id, data } dạng sóng của bài đang mở
   dragging: false
 };
@@ -308,7 +310,8 @@ function renderEmpty(count) {
 
   if (currentTab() === 'cached') {
     if (app.query) emptyBox('Không tìm thấy file nào', 'Thử từ khóa khác.');
-    else emptyBox('Chưa có file nào được lưu', 'File sẽ tự động được lưu khi bạn phát lần đầu (cần mạng).');
+    else if (app.autoCache) emptyBox('Chưa có file nào được lưu', 'File sẽ tự động được lưu khi bạn phát lần đầu (cần mạng).');
+    else emptyBox('Chưa có file nào được lưu', 'Đang tắt tự lưu nên file chỉ phát tạm. Bật "Lưu file để nghe offline" trong ⚙ Cài đặt nếu muốn nghe khi không có mạng.');
   } else if (app.driveLoading) {
     emptyBox('Đang tải danh sách…', '');
   } else if (app.driveError) {
@@ -515,6 +518,9 @@ async function loadCleanupSettings() {
     const s = await getSettings();
     el.maxAgeSelect.value = String(s.maxAgeDays);
     el.maxSizeSelect.value = String(Math.round(s.maxBytes / MB));
+    el.autoCacheToggle.checked = !!s.autoCache;
+    app.autoCache = !!s.autoCache;
+    renderList();
   } catch (e) {
     /* bỏ qua */
   }
@@ -523,13 +529,17 @@ async function loadCleanupSettings() {
 async function onCleanupSettingChange() {
   await saveSettings({
     maxAgeDays: Number(el.maxAgeSelect.value),
-    maxBytes: Number(el.maxSizeSelect.value) * MB
+    maxBytes: Number(el.maxSizeSelect.value) * MB,
+    autoCache: el.autoCacheToggle.checked
   });
+  app.autoCache = el.autoCacheToggle.checked;
+  renderList();
   await cleanup();
 }
 
 el.maxAgeSelect.addEventListener('change', onCleanupSettingChange);
 el.maxSizeSelect.addEventListener('change', onCleanupSettingChange);
+el.autoCacheToggle.addEventListener('change', onCleanupSettingChange);
 el.cleanNowBtn.addEventListener('click', () => cleanup(true));
 
 // ---------- Trình phát ----------
@@ -547,7 +557,7 @@ function renderPlayer() {
   } else if (p.loading) {
     const pct = Math.round((p.progress || 0) * 100);
     el.nowPlaying.textContent =
-      p.progress > 0 && p.progress < 1 ? `Đang tải xuống & lưu offline… ${pct}%` : `Đang chuẩn bị: ${track.name}`;
+      p.progress > 0 && p.progress < 1 ? (p.saving ? `Đang tải xuống & lưu offline… ${pct}%` : `Đang tải xuống… ${pct}%`) : `Đang chuẩn bị: ${track.name}`;
   } else {
     el.nowPlaying.textContent = `${p.playing ? 'Đang phát' : 'Tạm dừng'}: ${track.name}`;
   }

@@ -24,7 +24,7 @@ drive-mp3-player/
 ## Cách hoạt động (ngắn gọn)
 
 - **Phát nền:** `<audio>` nằm trong *offscreen document* (lý do `AUDIO_PLAYBACK`), không nằm trong popup, nên đóng popup nhạc vẫn chạy. Mở lại popup sẽ hỏi offscreen trạng thái hiện tại (bài, vị trí, đang phát/dừng) để hiển thị đúng.
-- **Cache:** lần đầu bấm phát, file được tải toàn bộ từ Drive, lưu vào IndexedDB rồi mới phát. Lần sau phát thẳng từ máy. Tab "Đã lưu offline" hoạt động cả khi không có mạng và không cần đăng nhập.
+- **Cache (tùy chọn, mặc định TẮT):** công tắc "Lưu file để nghe offline" trong ⚙ Cài đặt. Khi tắt, file Drive chỉ được tải tạm vào RAM để phát, không ghi gì xuống ổ đĩa. Khi bật, lần đầu bấm phát file được tải toàn bộ, lưu vào IndexedDB rồi phát, lần sau phát thẳng từ máy. Tab "Đã lưu offline" hoạt động cả khi không có mạng và không cần đăng nhập.
 - **Tự dọn dẹp:** file không nghe quá **90 ngày** (tính từ lần phát cuối) sẽ tự bị xóa, và tổng dung lượng cache được giữ dưới **500 MB** (xóa file nghe lâu nhất trước). Cả hai chỉnh được ở ⚙ Cài đặt. File tải từ máy tính và bài nghe gần nhất không bao giờ bị tự xóa. Việc dọn chạy khi mở popup, sau mỗi lần tải file mới và mỗi ngày một lần ở nền.
 - **Xóa cache:** nút 🗑 ở từng file hoặc "Xóa tất cả" ở cuối danh sách. File trên Drive không bị ảnh hưởng.
 - **Hàng đợi:** hàng đợi chính là danh sách đang mở (Tất cả hoặc Đã lưu Offline, sau khi lọc tìm kiếm). Hết bài tự chuyển sang bài kế tiếp.
