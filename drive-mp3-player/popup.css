@@ -290,8 +290,8 @@ input[type='range']:disabled {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  margin-top: 4px;
+  gap: 22px;
+  margin-top: 6px;
 }
 
 .ctrl {
@@ -583,32 +583,6 @@ input[type='range']:disabled {
 
 .card-head h3 {
   margin: 0;
-}
-
-.mode-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-}
-
-.mode-btn {
-  padding: 9px 4px;
-  border: 1px solid var(--card-border);
-  border-radius: 10px;
-  background: transparent;
-  font-weight: 600;
-}
-
-.mode-btn.active {
-  background: var(--hover);
-  border-color: var(--accent2);
-  color: var(--accent2);
-}
-
-.hint {
-  margin: 8px 0 0;
-  font-size: 11px;
-  color: var(--text-soft);
 }
 
 .eq-bands {

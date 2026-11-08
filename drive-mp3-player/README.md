@@ -25,7 +25,7 @@ drive-mp3-player/
 - **Phát nền:** `<audio>` nằm trong *offscreen document* (lý do `AUDIO_PLAYBACK`), không nằm trong popup, nên đóng popup nhạc vẫn chạy. Mở lại popup sẽ hỏi offscreen trạng thái hiện tại (bài, vị trí, đang phát/dừng) để hiển thị đúng.
 - **Cache:** lần đầu bấm phát, file được tải toàn bộ từ Drive, lưu vào IndexedDB rồi mới phát. Lần sau phát thẳng từ máy. Tab "Đã lưu offline" hoạt động cả khi không có mạng và không cần đăng nhập.
 - **Xóa cache:** nút 🗑 ở từng file hoặc "Xóa tất cả" ở cuối danh sách. File trên Drive không bị ảnh hưởng.
-- **Hàng đợi và chế độ phát:** hàng đợi chính là danh sách đang mở (Drive hoặc Đã lưu, sau khi lọc tìm kiếm). Hết bài tự chuyển bài kế; có nút Prev/Next, Shuffle, Lặp một bài.
+- **Hàng đợi:** hàng đợi chính là danh sách đang mở (Drive hoặc Đã lưu, sau khi lọc tìm kiếm). Hết bài tự chuyển sang bài kế tiếp.
 - **Equalizer 5 băng** (60Hz–14kHz, ±12dB, có công tắc bật/tắt), **thanh sóng nhạc** theo thời gian thực và **5 màu giao diện** ở tab Cài đặt. Cài đặt được nhớ lại.
 - **Upload:** chọn file MP3 từ máy → lưu vào bộ nhớ extension và phát. Tick "Đồng thời lưu bản sao lên Google Drive" nếu muốn upload thêm lên Drive (giữ popup mở đến khi xong).
 - **Lưu ý:** Chrome đóng offscreen document sau ~30 giây không phát âm thanh. Vị trí nghe được lưu lại, nên bấm Play lại sẽ tiếp tục đúng chỗ cũ.

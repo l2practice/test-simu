@@ -33,11 +33,6 @@ const el = {
   cacheInfo: $('cacheInfo'),
   clearAllBtn: $('clearAllBtn'),
   toast: $('toast'),
-  prevBtn: $('prevBtn'),
-  nextBtn: $('nextBtn'),
-  shuffleBtn: $('shuffleBtn'),
-  repeatBtn: $('repeatBtn'),
-  repeatOne: $('repeatOne'),
   bars: $('bars'),
   tabSettings: $('tabSettings'),
   listView: $('listView'),
@@ -144,13 +139,6 @@ function renderPlayer() {
   el.backBtn.disabled = !track || p.loading;
   el.fwdBtn.disabled = !track || p.loading;
   el.seekBar.disabled = !track || p.loading;
-  el.prevBtn.disabled = !track || p.loading;
-  el.nextBtn.disabled = !track || p.loading;
-  const mode = (p && p.mode) || 'normal';
-  el.shuffleBtn.setAttribute('aria-pressed', String(mode === 'shuffle'));
-  el.repeatBtn.setAttribute('aria-pressed', String(mode === 'repeat-one'));
-  el.repeatOne.hidden = mode !== 'repeat-one';
-  document.querySelectorAll('.mode-btn').forEach((b) => b.classList.toggle('active', b.dataset.mode === mode));
   if (!(p && p.playing)) resetBars();
   el.iconPlay.hidden = !!(p && p.playing);
   el.iconPause.hidden = !(p && p.playing);
@@ -552,22 +540,6 @@ el.fileInput.addEventListener('change', async () => {
 el.playBtn.addEventListener('click', () => sendPlayer('toggle'));
 el.backBtn.addEventListener('click', () => sendPlayer('skip', { delta: -5 }));
 el.fwdBtn.addEventListener('click', () => sendPlayer('skip', { delta: 5 }));
-el.prevBtn.addEventListener('click', () => sendPlayer('prev'));
-el.nextBtn.addEventListener('click', () => sendPlayer('next'));
-
-function currentMode() {
-  return (app.player && app.player.mode) || 'normal';
-}
-
-function setMode(mode) {
-  if (app.player) app.player.mode = mode;
-  renderPlayer();
-  sendPlayer('setMode', { mode });
-}
-
-el.shuffleBtn.addEventListener('click', () => setMode(currentMode() === 'shuffle' ? 'normal' : 'shuffle'));
-el.repeatBtn.addEventListener('click', () => setMode(currentMode() === 'repeat-one' ? 'normal' : 'repeat-one'));
-document.querySelectorAll('.mode-btn').forEach((b) => b.addEventListener('click', () => setMode(b.dataset.mode)));
 
 // ---------- Thanh sóng nhạc ----------
 
