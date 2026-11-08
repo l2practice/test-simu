@@ -3,6 +3,7 @@
   "name": "Drive MP3 Player",
   "version": "1.0.0",
   "description": "Listen to MP3 files from Google Drive: background playback, ±5s skip, offline cache, upload from your computer.",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA4NH9m7Ha0TOKbJKEk2fkquys1hHoSqEMuIqISV2dXxNWZDVJslKxsG4+6L31EAOqxcjyyc1iuHcGxSs3/J+ZWtaA6IIdTlrPWv2v5c7Oy0j1AOFvp7YjR3OVhLPPjjZTHRlDy7aPcCrYYLn5+LChOgifwER9xELJMpKOI6s2N4ij/mjvxfXpwuSksFcYmdopZJVr5FJUhHGr3O9NP6I+KEKtYSEa0tVAmYvS5ddCaSGZUEA8YHdY8Nb3nf+0ArDayNRGf2WwtaBTZB/Gk6O88tkWqB7QyHdjC87YB1lqC+rHbwR+4Smi9hIH7HYxI4VGNb7DAUUFPLjMJ3+vGD8GywIDAQAB",
   "minimum_chrome_version": "109",
   "action": {
     "default_title": "Drive MP3 Player",

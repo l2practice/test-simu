@@ -1099,3 +1099,9 @@ html.compact #signOutBtn {
   color: var(--soft);
   font-size: 16px;
 }
+
+.save-status {
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--ok);
+}

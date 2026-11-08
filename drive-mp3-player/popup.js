@@ -66,6 +66,7 @@ const el = {
   reorderHint: $('reorderHint'),
   listSummary: $('listSummary'),
   closeTrackBtn: $('closeTrackBtn'),
+  saveStatus: $('saveStatus'),
   timeRemain: $('timeRemain'),
   authInfo: $('authInfo'),
   waveCanvas: $('waveCanvas'),
@@ -319,7 +320,16 @@ function renderList() {
     });
   }
   const reorderable = currentTab() === 'cached' && !app.query && !app.selectMode && files.length > 1;
-  el.reorderHint.hidden = !reorderable;
+  if (reorderable) {
+    el.reorderHint.textContent = 'Drag ⋮⋮ to set the play order, then press a file to start.';
+    el.reorderHint.hidden = false;
+  } else if (onDrive && files.length > 0 && !app.selectMode) {
+    el.reorderHint.textContent =
+      'Press ☑ to choose the files you want. Chosen files are saved to "Saved offline" and removed automatically after the days set in Settings (90 by default).';
+    el.reorderHint.hidden = false;
+  } else {
+    el.reorderHint.hidden = true;
+  }
   updateSummary();
 
   files.forEach((f) => {
@@ -415,7 +425,7 @@ function renderList() {
 
     li.addEventListener('click', () => {
       if (app.selectMode) togglePick(f.id);
-      else playTrack(f, files);
+      else playTrack(f, onDrive ? [f] : files); // on Drive: only the file you pressed, never the whole folder
     });
     frag.appendChild(li);
   });
@@ -439,7 +449,8 @@ function renderSelectBar(files) {
   const n = files.filter((f) => app.selected.has(f.id)).length;
   el.selCount.textContent = String(n);
   el.selPlayBtn.disabled = n === 0;
-  el.selAllBtn.textContent = n === files.length && n > 0 ? 'Deselect all' : 'Select all';
+  el.selAllBtn.textContent = n === files.length && n > 0 ? 'None' : 'All';
+  el.selPlayBtn.textContent = currentTab() === 'all' ? '▶ Play & save' : '▶ Play';
 }
 
 function setSelectMode(on) {
@@ -463,10 +474,13 @@ el.selAllBtn.addEventListener('click', () => {
   renderList();
 });
 el.selPlayBtn.addEventListener('click', () => {
-  const picked = selectedFiles(); // giữ đúng thứ tự trong danh sách
+  const picked = selectedFiles(); // keeps the order shown in the list
   if (!picked.length) return;
+  const fromDrive = currentTab() === 'all';
   setSelectMode(false);
-  playTrack(picked[0], picked);
+  // Files picked on Drive are downloaded and kept in "Saved offline" while they play
+  playTrack(picked[0], picked, { save: fromDrive });
+  if (fromDrive) toast(`Saving ${picked.length} file${picked.length > 1 ? 's' : ''} to Saved offline while they play…`, 4000);
 });
 
 /** "N files • Total • Remaining" for the saved list (the play queue), using known durations. */
@@ -942,6 +956,12 @@ function renderPlayer() {
     el.nowPlaying.textContent = `${p.playing ? 'Now playing' : 'Paused'}: ${track.name}`;
   }
   el.nowPlaying.title = track.name;
+  if (p.prefetch) {
+    el.saveStatus.textContent = `⬇ Saving for offline: ${p.prefetch.done}/${p.prefetch.total}`;
+    el.saveStatus.hidden = false;
+  } else {
+    el.saveStatus.hidden = true;
+  }
   renderSpeed();
   updateSummary();
 
@@ -1044,7 +1064,7 @@ function toTrack(file) {
   };
 }
 
-function playTrack(file, list) {
+function playTrack(file, list, opts = {}) {
   const track = toTrack(file);
   // Hàng đợi = danh sách đang hiển thị, hết bài sẽ tự chuyển bài kế
   const queue = (list && list.length ? list : [file]).slice(0, 300).map(toTrack);
@@ -1062,7 +1082,7 @@ function playTrack(file, list) {
   };
   if (app.peaks && app.peaks.id !== track.id) app.peaks = null;
   renderPlayer();
-  sendPlayer('load', { track, queue, autoplay: true, startAt: 0 }).then((res) => {
+  sendPlayer('load', { track, queue, autoplay: true, startAt: 0, save: !!opts.save }).then((res) => {
     if (res && res.error) toast(res.error);
   });
 }

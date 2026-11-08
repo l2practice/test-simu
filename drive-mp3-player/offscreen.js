@@ -21,7 +21,8 @@ let state = {
   index: -1,
   mode: readMode(), // 'normal' | 'repeat-one' | 'shuffle'
   speed: readSpeed(), // tốc độ phát 0.25 – 2
-  saving: false // true nếu file đang tải sẽ được lưu vào máy
+  saving: false, // true nếu file đang tải sẽ được lưu vào máy
+  prefetch: null // { done, total } while the rest of a picked list is being saved in the background
 };
 
 const SPEEDS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
@@ -52,6 +53,9 @@ function readMode() {
 
 let objectUrl = null;
 let loadSeq = 0;
+let forceSave = false; // true when the user picked files to play: save them for offline listening
+let prefetchId = 0;
+let prefetchCtl = null;
 let abortCtl = null;
 let lastPersist = 0;
 
@@ -167,6 +171,60 @@ async function ensurePeaks(track, blob, record, seq) {
   if (seq === loadSeq) setPeaks(track.id, data);
 }
 
+// ---------- Save the rest of a picked list in the background ----------
+
+function abortPrefetch() {
+  prefetchId++;
+  if (prefetchCtl) prefetchCtl.abort();
+  prefetchCtl = null;
+  if (state.prefetch) {
+    state.prefetch = null;
+    broadcast();
+  }
+}
+
+async function prefetchQueue() {
+  abortPrefetch();
+  const mine = prefetchId;
+  const currentId = state.track && state.track.id;
+  const items = state.queue.filter((t) => t.source !== 'local' && t.id !== currentId);
+  if (!items.length) return;
+
+  prefetchCtl = new AbortController();
+  const signal = prefetchCtl.signal;
+  const total = items.length;
+  let done = 0;
+  state.prefetch = { done, total };
+  broadcast();
+
+  for (const t of items) {
+    if (mine !== prefetchId) return;
+    try {
+      const rec = await getFile(t.id);
+      if (!rec) {
+        if (!navigator.onLine) break;
+        const blob = await downloadFile(t.id, { size: t.size, signal });
+        if (mine !== prefetchId) return;
+        await putFile({ id: t.id, name: t.name, size: blob.size, blob, cachedAt: Date.now(), source: 'drive' });
+        notifyCacheChanged();
+      }
+    } catch (e) {
+      if (mine !== prefetchId || (e && e.name === 'AbortError')) return;
+    }
+    done++;
+    if (mine === prefetchId) {
+      state.prefetch = { done, total };
+      broadcast();
+    }
+  }
+  if (mine !== prefetchId) return;
+  state.prefetch = null;
+  broadcast();
+  // Keep the cache within its limits, but never remove files from the list being played
+  await runCleanup({ protectIds: state.queue.map((t) => t.id) }).catch(() => {});
+  notifyCacheChanged();
+}
+
 // ---------- Nạp bài hát ----------
 
 function waitForMetadata() {
@@ -227,7 +285,8 @@ async function loadTrack(track, { autoplay = true, startAt = 0 } = {}) {
       if (!navigator.onLine) throw new Error('You are offline and this file is not saved for offline listening');
 
       const { autoCache } = await getSettings();
-      state.saving = !!autoCache;
+      const willSave = forceSave || !!autoCache;
+      state.saving = willSave;
       broadcast();
 
       abortCtl = new AbortController();
@@ -248,7 +307,7 @@ async function loadTrack(track, { autoplay = true, startAt = 0 } = {}) {
       if (seq !== loadSeq) return;
 
       // Chỉ lưu xuống ổ đĩa khi bật "Tự lưu file"; nếu tắt thì file chỉ nằm tạm trong RAM
-      if (autoCache) {
+      if (willSave) {
         await putFile({
           id: track.id,
           name: track.name,
@@ -284,6 +343,8 @@ async function loadTrack(track, { autoplay = true, startAt = 0 } = {}) {
     if (isFinite(audio.duration) && !(record && record.duration)) {
       patchRecord(track.id, { duration: audio.duration }).then(notifyCacheChanged);
     }
+    // Picked files: save the rest of the list in the background while this one plays
+    if (forceSave) prefetchQueue();
     // Ghi nhận lần nghe gần nhất để tính hạn 90 ngày
     if (autoplay) patchRecord(track.id, { lastPlayedAt: Date.now() });
     // Tính dạng sóng ở nền, không chặn việc phát nhạc
@@ -352,6 +413,8 @@ async function prevTrack() {
 /** Stop everything and forget the current track (used by the player's close button). */
 function stopAll() {
   loadSeq++;
+  forceSave = false;
+  abortPrefetch();
   if (abortCtl) abortCtl.abort();
   abortCtl = null;
   audio.pause();
@@ -369,6 +432,7 @@ function stopAll() {
     loading: false,
     loaded: false,
     saving: false,
+    prefetch: null,
     progress: 0,
     currentTime: 0,
     duration: 0,
@@ -406,6 +470,8 @@ async function handle(msg) {
       return { state, peaks: peaksFor };
     case 'load':
       if (Array.isArray(msg.queue)) state.queue = msg.queue.slice(0, 300);
+      forceSave = !!msg.save;
+      abortPrefetch();
       await loadTrack(msg.track, { autoplay: msg.autoplay !== false, startAt: msg.startAt || 0 });
       return { ok: true };
     case 'play':

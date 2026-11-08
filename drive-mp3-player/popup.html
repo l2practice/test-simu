@@ -82,8 +82,8 @@
           <input id="searchInput" type="text" placeholder="Search MP3 files…" autocomplete="off" />
           <button id="clearSearch" class="clear-btn" title="Clear" aria-label="Clear search" hidden>✕</button>
         </div>
-        <button id="selectBtn" class="icon-btn upload-btn" title="Select multiple files to play in a row" aria-label="Select multiple files">
-          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M3 5h2v2H3V5zm4 0h14v2H7V5zM3 11h2v2H3v-2zm4 0h14v2H7v-2zM3 17h2v2H3v-2zm4 0h14v2H7v-2z"/></svg>
+        <button id="selectBtn" class="icon-btn upload-btn" title="Choose files to play (files from Drive are saved to Saved offline)" aria-label="Choose files">
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm-9 14-5-5 1.4-1.4L10 14.2l7.6-7.6L19 8l-9 9z"/></svg>
         </button>
         <button id="uploadBtn" class="icon-btn upload-btn" title="Upload one or more MP3 files from your computer" aria-label="Upload MP3 files">
           <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M5 20h14v-2H5v2zM12 4 6.5 9.5l1.4 1.4L11 7.8V16h2V7.8l3.1 3.1 1.4-1.4L12 4z" /></svg>
@@ -93,9 +93,9 @@
 
       <div id="selectBar" class="select-bar" hidden>
         <span><b id="selCount">0</b> selected</span>
-        <button id="selAllBtn" class="sel-link">Select all</button>
+        <button id="selAllBtn" class="sel-link">All</button>
         <button id="selPlayBtn" class="sel-play">▶ Play</button>
-        <button id="selCancelBtn" class="sel-link">Cancel</button>
+        <button id="selCancelBtn" class="sel-link" title="Cancel" aria-label="Cancel selection">✕</button>
       </div>
 
       <nav id="tabs" class="tabs" role="tablist">
@@ -162,9 +162,9 @@
         <h3>Save files for offline listening</h3>
         <label class="check-row">
           <input id="autoCacheToggle" type="checkbox" />
-          <span>Save files to this device on first play</span>
+          <span>Also save a file to this device when I press it on Drive</span>
         </label>
-        <p class="muted small">Off (default): files play temporarily from memory and leave nothing on disk, but replaying needs a new download and offline listening is unavailable. On: files are saved for offline listening and removed automatically by the cleanup rules below.</p>
+        <p class="muted small">Files you choose with the ☑ button are always saved. Off (default): a single file you press plays temporarily from memory and leave nothing on disk, but replaying needs a new download and offline listening is unavailable. On: files are saved for offline listening and removed automatically by the cleanup rules below.</p>
       </div>
 
       <div class="card">
@@ -208,6 +208,7 @@
     <footer id="playerBar" class="player-bar card" hidden>
       <button id="closeTrackBtn" class="close-x" title="Close player" aria-label="Close player">✕</button>
       <div id="nowPlaying" class="now-playing"></div>
+      <div id="saveStatus" class="save-status" hidden></div>
       <div id="waveWrap" class="wave-wrap">
         <canvas id="waveCanvas" aria-hidden="true"></canvas>
         <div id="waveTip" class="wave-tip" hidden></div>
