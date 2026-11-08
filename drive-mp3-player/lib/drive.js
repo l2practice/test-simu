@@ -11,8 +11,16 @@ export async function getToken({ interactive = false, invalidate = null } = {}) 
     interactive,
     invalidate
   });
-  if (!res || res.error) throw new Error((res && res.error) || 'Could not reach the extension service worker');
+  if (!res || res.error) {
+    const e = new Error((res && res.error) || 'Could not reach the extension service worker');
+    e.needsLogin = !!(res && res.needsLogin);
+    throw e;
+  }
   return res.token;
+}
+
+export async function getAuthInfo() {
+  return chrome.runtime.sendMessage({ target: 'background', type: 'authInfo' });
 }
 
 export async function signOut() {

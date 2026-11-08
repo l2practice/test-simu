@@ -2,6 +2,7 @@
 // Service worker có thể bị Chrome tắt bất cứ lúc nào nên KHÔNG giữ trạng thái phát nhạc ở đây.
 
 import { runCleanup } from './lib/cleanup.js';
+import { CLIENT_ID, CLIENT_SECRET, SCOPES } from './config.js';
 
 const OFFSCREEN_URL = 'offscreen.html';
 let creatingOffscreen = null;
@@ -32,89 +33,194 @@ async function ensureOffscreen() {
   }
 }
 
-// ---------- Đăng nhập Google bằng launchWebAuthFlow ----------
-// chrome.identity.getAuthToken không chạy trên Microsoft Edge, còn launchWebAuthFlow thì chạy
-// trên cả Chrome lẫn Edge. Dùng OAuth client loại "Web application" với Redirect URI là
+// ---------- Google sign-in (works on Chrome and Edge) ----------
+// Uses chrome.identity.launchWebAuthFlow with a "Web application" OAuth client whose redirect URI is
 // chrome.identity.getRedirectURL() (https://<extension-id>.chromiumapp.org/).
-// Dùng luồng implicit: token sống ~1 giờ, hết hạn thì tự xin lại âm thầm (prompt=none).
+//
+// * With CLIENT_SECRET set (config.js): authorization-code flow + PKCE. We store a refresh token
+//   and renew the 1-hour access token in the background, so the user stays signed in.
+// * Without it: implicit flow. Tokens last ~1 hour and are renewed silently (prompt=none) while the
+//   browser still has a Google session.
 
-const TOKEN_KEY = 'authToken';
+const AUTH_KEY = 'auth';
+const TOKEN_URL = 'https://oauth2.googleapis.com/token';
 let tokenInFlight = null;
 
-function oauthConfig() {
-  const cfg = (chrome.runtime.getManifest().oauth2) || {};
-  if (!cfg.client_id || cfg.client_id.startsWith('YOUR_CLIENT_ID')) {
-    throw new Error('Client ID is not configured in manifest.json (see README).');
+function authError(message) {
+  const e = new Error(message);
+  e.needsLogin = true; // the user must sign in again
+  return e;
+}
+
+function requireConfig() {
+  if (!CLIENT_ID || CLIENT_ID.startsWith('YOUR_CLIENT_ID')) {
+    throw new Error('Client ID is not configured in config.js (see README).');
   }
-  return cfg;
 }
 
-async function readCachedToken() {
-  const data = await chrome.storage.local.get(TOKEN_KEY);
-  const t = data[TOKEN_KEY];
-  return t && t.token && t.expiresAt > Date.now() + 60 * 1000 ? t.token : null;
+async function readAuth() {
+  const data = await chrome.storage.local.get(AUTH_KEY);
+  return data[AUTH_KEY] || {};
 }
 
-async function clearCachedToken() {
-  await chrome.storage.local.remove(TOKEN_KEY);
+async function writeAuth(auth) {
+  await chrome.storage.local.set({ [AUTH_KEY]: auth });
 }
 
-function launchAuth(interactive) {
-  const cfg = oauthConfig();
-  const params = new URLSearchParams({
-    client_id: cfg.client_id,
-    response_type: 'token',
-    redirect_uri: chrome.identity.getRedirectURL(),
-    scope: (cfg.scopes || []).join(' '),
-    include_granted_scopes: 'true',
-    prompt: interactive ? 'select_account' : 'none'
-  });
-  const url = 'https://accounts.google.com/o/oauth2/v2/auth?' + params;
+async function clearAuth() {
+  await chrome.storage.local.remove(AUTH_KEY);
+}
 
+function base64Url(bytes) {
+  return btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+async function makePkce() {
+  const verifier = base64Url(crypto.getRandomValues(new Uint8Array(32)));
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier));
+  return { verifier, challenge: base64Url(new Uint8Array(digest)) };
+}
+
+function launchFlow(url, interactive) {
   return new Promise((resolve, reject) => {
     chrome.identity.launchWebAuthFlow({ url, interactive: !!interactive }, (responseUrl) => {
       if (chrome.runtime.lastError || !responseUrl) {
-        reject(new Error((chrome.runtime.lastError && chrome.runtime.lastError.message) || 'Sign-in was cancelled'));
+        reject(authError((chrome.runtime.lastError && chrome.runtime.lastError.message) || 'Sign-in was cancelled'));
         return;
       }
-      const hash = new URL(responseUrl).hash.replace(/^#/, '');
-      const res = new URLSearchParams(hash);
-      if (res.get('error')) {
-        reject(new Error('Google returned an error: ' + res.get('error')));
-        return;
-      }
-      const token = res.get('access_token');
-      if (!token) {
-        reject(new Error('No access token received'));
-        return;
-      }
-      const expiresIn = Number(res.get('expires_in')) || 3600;
-      chrome.storage.local
-        .set({ [TOKEN_KEY]: { token, expiresAt: Date.now() + expiresIn * 1000 } })
-        .then(() => resolve(token));
+      resolve(responseUrl);
     });
   });
 }
 
-async function getToken({ interactive, invalidate }) {
-  if (invalidate) await clearCachedToken();
-  const cached = await readCachedToken();
-  if (cached) return cached;
+async function tokenRequest(params) {
+  const res = await fetch(TOKEN_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams(params)
+  });
+  let json = {};
+  try {
+    json = await res.json();
+  } catch (e) {
+    /* ignore */
+  }
+  if (!res.ok) {
+    if (json.error === 'invalid_grant') throw authError('Session expired. Please sign in again.');
+    throw new Error(json.error_description || json.error || 'Token request failed (' + res.status + ')');
+  }
+  return json;
+}
 
-  // Gộp các lần xin token đồng thời (popup + offscreen) thành một
+async function saveTokens(json, previous) {
+  const auth = {
+    accessToken: json.access_token,
+    expiresAt: Date.now() + (Number(json.expires_in) || 3600) * 1000,
+    refreshToken: json.refresh_token || (previous && previous.refreshToken) || null
+  };
+  await writeAuth(auth);
+  return auth;
+}
+
+async function authorize(interactive) {
+  requireConfig();
+  const base = {
+    client_id: CLIENT_ID,
+    redirect_uri: chrome.identity.getRedirectURL(),
+    scope: SCOPES.join(' '),
+    include_granted_scopes: 'true'
+  };
+
+  if (CLIENT_SECRET) {
+    // Authorization-code flow with PKCE, gives a refresh token
+    const { verifier, challenge } = await makePkce();
+    const params = new URLSearchParams({
+      ...base,
+      response_type: 'code',
+      access_type: 'offline',
+      code_challenge: challenge,
+      code_challenge_method: 'S256',
+      prompt: interactive ? 'consent select_account' : 'none'
+    });
+    const responseUrl = await launchFlow('https://accounts.google.com/o/oauth2/v2/auth?' + params, interactive);
+    const query = new URL(responseUrl).searchParams;
+    if (query.get('error')) throw authError('Google returned an error: ' + query.get('error'));
+    const code = query.get('code');
+    if (!code) throw authError('No authorization code received');
+    const json = await tokenRequest({
+      client_id: CLIENT_ID,
+      client_secret: CLIENT_SECRET,
+      code,
+      code_verifier: verifier,
+      redirect_uri: base.redirect_uri,
+      grant_type: 'authorization_code'
+    });
+    return (await saveTokens(json, null)).accessToken;
+  }
+
+  // Implicit flow (no refresh token)
+  const params = new URLSearchParams({
+    ...base,
+    response_type: 'token',
+    prompt: interactive ? 'select_account' : 'none'
+  });
+  const responseUrl = await launchFlow('https://accounts.google.com/o/oauth2/v2/auth?' + params, interactive);
+  const hash = new URLSearchParams(new URL(responseUrl).hash.replace(/^#/, ''));
+  if (hash.get('error')) throw authError('Google returned an error: ' + hash.get('error'));
+  const token = hash.get('access_token');
+  if (!token) throw authError('No access token received');
+  await saveTokens({ access_token: token, expires_in: hash.get('expires_in') }, null);
+  return token;
+}
+
+async function getToken({ interactive, invalidate }) {
+  let auth = await readAuth();
+  if (invalidate) {
+    auth = { ...auth, accessToken: null, expiresAt: 0 }; // keep the refresh token
+    await writeAuth(auth);
+  }
+  if (auth.accessToken && auth.expiresAt > Date.now() + 60 * 1000) return auth.accessToken;
+
+  // Merge simultaneous requests (popup + offscreen) into one
   if (!tokenInFlight) {
-    tokenInFlight = launchAuth(interactive).finally(() => {
+    tokenInFlight = (async () => {
+      if (auth.refreshToken && CLIENT_SECRET) {
+        try {
+          const json = await tokenRequest({
+            client_id: CLIENT_ID,
+            client_secret: CLIENT_SECRET,
+            refresh_token: auth.refreshToken,
+            grant_type: 'refresh_token'
+          });
+          return (await saveTokens(json, auth)).accessToken;
+        } catch (e) {
+          if (e.needsLogin) await clearAuth(); // refresh token revoked or expired
+          if (!interactive || !e.needsLogin) throw e; // network errors keep the user signed in
+        }
+      }
+      return authorize(interactive);
+    })().finally(() => {
       tokenInFlight = null;
     });
   }
   return tokenInFlight;
 }
 
+async function authInfo() {
+  const auth = await readAuth();
+  return {
+    persistent: !!CLIENT_SECRET,
+    hasRefreshToken: !!auth.refreshToken,
+    signedIn: !!(auth.refreshToken || (auth.accessToken && auth.expiresAt > Date.now()))
+  };
+}
+
 async function signOut() {
-  const token = await readCachedToken();
-  await clearCachedToken();
+  const auth = await readAuth();
+  await clearAuth();
+  const token = auth.refreshToken || auth.accessToken;
   if (token) {
-    // Thu hồi token phía Google để lần sau hỏi quyền lại
+    // Revoke on Google's side so the next sign-in asks for permission again
     await fetch('https://oauth2.googleapis.com/revoke?token=' + encodeURIComponent(token), {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
@@ -148,13 +254,17 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       case 'openFloating':
         await openFloatingWindow();
         return { ok: true };
+      case 'authInfo':
+        return await authInfo();
       case 'signOut':
         await signOut();
         return { ok: true };
       default:
         return { error: 'Unknown message: ' + msg.type };
     }
-  })().then(sendResponse, (err) => sendResponse({ error: err.message || String(err) }));
+  })().then(sendResponse, (err) =>
+    sendResponse({ error: err.message || String(err), needsLogin: !!err.needsLogin })
+  );
 
   return true; // phản hồi bất đồng bộ
 });

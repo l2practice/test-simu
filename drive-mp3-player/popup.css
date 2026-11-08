@@ -873,3 +873,64 @@ html.compact #signOutBtn {
   font-size: 11px;
   color: var(--soft);
 }
+
+/* ===== Close button on the player bar ===== */
+.close-x {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--soft);
+  font-size: 13px;
+  line-height: 1;
+}
+
+.close-x:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+
+.now-playing {
+  padding-right: 26px;
+}
+
+/* ===== Time row: elapsed / remaining / total ===== */
+.time-row .time.remain {
+  flex: 1;
+  text-align: center;
+  color: var(--accent2);
+}
+
+.list-summary {
+  margin: 0 4px 4px;
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.auth-info {
+  margin: 8px 0 0;
+}
+
+/* ===== Scrollbars that match the theme ===== */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--card-border) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--card-border);
+  border-radius: 4px;
+}

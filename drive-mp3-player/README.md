@@ -10,6 +10,7 @@ drive-mp3-player/
 ├── background.js        # Service worker: tạo offscreen document, cấp token Google
 ├── offscreen.html       # Trang ẩn chứa thẻ <audio> (giúp nhạc chạy nền)
 ├── offscreen.js         # Logic phát nhạc, tải + cache file, Media Session
+├── config.js            # CLIENT_ID / CLIENT_SECRET của Google OAuth (bạn tự điền)
 ├── popup.html           # Giao diện popup (trình phát, danh sách, cài đặt)
 ├── popup.css
 ├── popup.js             # Logic giao diện: đăng nhập, danh sách, tìm kiếm, upload, điều khiển
@@ -32,6 +33,8 @@ drive-mp3-player/
 - **Dạng sóng (thanh tua):** khi mở bài, extension giải mã file ở nền (8 kHz, nhẹ) và vẽ dạng sóng của cả file. Chỗ có giọng nói là các thanh cao, chỗ im lặng là thanh phẳng, nên nhìn trước được khi nào audio nói. Dưới sóng có thước thời gian (0s, 10s, 20s… hoặc 1:00, 2:00… tùy độ dài bài), rê chuột lên sóng để xem chính xác giây đó. Phần đã phát sáng màu; bấm hoặc kéo trên sóng để tua. Kết quả được lưu cùng file cache nên lần sau hiện ngay. File lớn hơn 80 MB sẽ bỏ qua dạng sóng.
 - **Tốc độ phát:** nút `1x` trên thanh phát mở menu 0.25x → 2x (giống YouTube), giữ nguyên cao độ giọng, nhớ lựa chọn. Phím tắt `Shift + >` / `Shift + <`.
 - **Chọn nhiều file:** nút ☰ cạnh ô tìm kiếm bật chế độ chọn (hộp ✓ ở mỗi file, có "Chọn tất cả"). Bấm **▶ Phát** để nghe liên tục theo thứ tự trong danh sách, dùng được cho cả file Drive lẫn file đã lưu.
+- **Đăng nhập lâu dài:** với `CLIENT_SECRET` trong `config.js`, extension lưu refresh token và tự gia hạn access token (1 giờ) ở nền, bạn không phải đăng nhập lại. Lỗi mạng tạm thời không làm bạn bị đăng xuất. Trạng thái hiện ở ⚙ Settings → Connect Google Drive.
+- **Thời gian từng file:** file mới thêm được đo thời lượng ngay; file cũ chưa có sẽ được đo ở nền khi mở popup. Dòng tóm tắt phía trên danh sách hiển thị *số file • Total • Remaining* của hàng đợi. Ở thanh phát có thêm thời gian còn lại của bài đang nghe. Nút ✕ góc phải thanh phát để đóng trình phát.
 - **Upload nhiều file:** nút ⬆ cho chọn nhiều MP3 cùng lúc. File được thêm vào cuối tab *Saved offline* và **không tự phát**; bạn kéo biểu tượng ⋮⋮ để sắp xếp thứ tự, rồi bấm vào một file để bắt đầu, các file sau tự phát nối tiếp theo thứ tự đó.
 - **Giao diện tiếng Anh:** toàn bộ chữ trong extension đã chuyển sang tiếng Anh. Mỗi file chỉ chiếm một hàng: tên, thời lượng • dung lượng, nhãn `local` (file tải từ máy tính) và biểu tượng máy tính xanh (đã lưu trên máy, nghe được offline).
 - **Cửa sổ nổi + thu nhỏ:** nút ⧉ trên thanh tiêu đề mở extension thành cửa sổ riêng, không tự đóng khi bạn bấm sang tab/ứng dụng khác. Trong cửa sổ đó, nút ▬ thu nhỏ còn mỗi thanh phát, bấm lại để mở rộng.
@@ -58,14 +61,17 @@ drive-mp3-player/
      - `https://www.googleapis.com/auth/drive.readonly` (xem danh sách + tải file)
      - `https://www.googleapis.com/auth/drive.file` (chỉ để upload file lên Drive)
    - **Test users → Add users**: thêm chính email Google bạn sẽ dùng để đăng nhập.
-   - Để ở trạng thái **Testing** là đủ cho dùng cá nhân.
+   - **Quan trọng để không phải đăng nhập lại mỗi 7 ngày:** ở trạng thái *Testing*, Google tự hủy refresh token sau 7 ngày. Hãy vào OAuth consent screen → **Publish app** (chuyển sang *In production*). Với dùng cá nhân bạn không cần gửi Google xác minh; chỉ sẽ thấy màn cảnh báo "Google hasn't verified this app" khi đăng nhập lần đầu (Advanced → Go to ...).
 4. **APIs & Services → Credentials → Create credentials → OAuth client ID**:
    - Application type: **Web application** (KHÔNG chọn "Chrome extension": loại đó chỉ chạy trên Chrome, không chạy trên Edge).
    - Name: tùy ý.
    - **Authorized redirect URIs → Add URI**: `https://<Extension ID>.chromiumapp.org/`
      (thay `<Extension ID>` bằng ID ở Bước 1; hoặc mở popup → ⚙ Cài đặt → "Kết nối Google Drive" → **Sao chép** để lấy đúng URI).
-   - Bấm Create, copy **Client ID** (dạng `xxxx.apps.googleusercontent.com`). Không cần Client secret.
-5. Mở `manifest.json`, thay `YOUR_CLIENT_ID.apps.googleusercontent.com` bằng Client ID vừa copy.
+   - Bấm Create, copy **Client ID** (dạng `xxxx.apps.googleusercontent.com`) và **Client secret** (nên copy cả hai; secret giúp bạn không phải đăng nhập lại, xem bên dưới).
+5. Mở file **`config.js`** (không còn dùng `manifest.json`), điền `CLIENT_ID` và `CLIENT_SECRET`.
+   - Có `CLIENT_SECRET`: extension dùng **refresh token**, đăng nhập một lần là giữ lâu dài, tự gia hạn token 1 giờ ở nền.
+   - Để trống `CLIENT_SECRET`: mỗi token chỉ sống ~1 giờ và gia hạn âm thầm nhờ phiên Google của trình duyệt; nếu phiên đó mất thì phải đăng nhập lại.
+   - File này chỉ nằm trên máy bạn, đừng chia sẻ hay đưa lên GitHub khi đã điền secret.
 6. Về `chrome://extensions` → bấm biểu tượng **Reload** của extension.
 
 ## Bước 3: Dùng thử
@@ -85,7 +91,9 @@ Phím tắt trong popup: `Space` phát/dừng, `←` lùi 5s, `→` tới 5s. Ph
 | Hiện tượng | Cách xử lý |
 |---|---|
 | `redirect_uri_mismatch` | Redirect URI trong OAuth client không khớp. Mở ⚙ Cài đặt trong popup, bấm Sao chép, dán lại vào Authorized redirect URIs (nếu bạn đổi tên/di chuyển thư mục thì Extension ID đổi, phải cập nhật lại). |
-| `Chưa cấu hình Client ID` | Chưa thay `YOUR_CLIENT_ID...` trong `manifest.json`, hoặc chưa Reload extension. |
+| `Client ID is not configured` | Chưa điền `CLIENT_ID` trong `config.js`, hoặc chưa Reload extension. |
+| `client_secret is missing` / `invalid_client` | `CLIENT_SECRET` trong `config.js` sai hoặc không thuộc cùng OAuth client với `CLIENT_ID`. |
+| Bị yêu cầu đăng nhập lại sau ~7 ngày | App đang ở trạng thái *Testing*; chuyển sang *In production* (xem Bước 2). |
 | `This API is not supported on Microsoft Edge` | Bạn đang chạy bản cũ dùng `getAuthToken`. Bản này đã đổi sang `launchWebAuthFlow` nên chạy được trên Edge. |
 | `Access blocked: app has not completed verification` | Chưa thêm email vào **Test users** ở OAuth consent screen. |
 | Đăng nhập được nhưng danh sách trống | Drive chưa có file `.mp3` (hoặc mimeType `audio/mpeg`). Thử nút Upload. |

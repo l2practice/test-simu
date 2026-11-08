@@ -349,6 +349,41 @@ async function prevTrack() {
   await loadTrack(q[i], { autoplay: true });
 }
 
+/** Stop everything and forget the current track (used by the player's close button). */
+function stopAll() {
+  loadSeq++;
+  if (abortCtl) abortCtl.abort();
+  abortCtl = null;
+  audio.pause();
+  audio.removeAttribute('src');
+  audio.load();
+  if (objectUrl) {
+    URL.revokeObjectURL(objectUrl);
+    objectUrl = null;
+  }
+  peaksFor = null;
+  state = {
+    ...state,
+    track: null,
+    playing: false,
+    loading: false,
+    loaded: false,
+    saving: false,
+    progress: 0,
+    currentTime: 0,
+    duration: 0,
+    error: null,
+    queue: [],
+    index: -1
+  };
+  try {
+    localStorage.removeItem(LAST_KEY);
+  } catch (e) {
+    /* ignore */
+  }
+  broadcast();
+}
+
 function pause() {
   audio.pause();
 }
@@ -382,6 +417,9 @@ async function handle(msg) {
     case 'toggle':
       if (state.playing) pause();
       else await play();
+      return { ok: true };
+    case 'stop':
+      stopAll();
       return { ok: true };
     case 'next':
       await nextTrack(false);
@@ -488,6 +526,19 @@ if ('mediaSession' in navigator) {
     last = null;
   }
   if (!last || !last.track) return;
+
+  // A local file that no longer exists cannot be recovered: forget it instead of showing an error
+  if (last.track.source === 'local') {
+    try {
+      const rec = await getFile(last.track.id);
+      if (!rec) {
+        localStorage.removeItem(LAST_KEY);
+        return;
+      }
+    } catch (e) {
+      /* ignore */
+    }
+  }
 
   state.track = last.track;
   state.currentTime = last.currentTime || 0;

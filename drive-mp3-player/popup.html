@@ -38,7 +38,7 @@
     <!-- 1. Sign-in screen -->
     <section id="loginView" class="view login" hidden>
       <div class="hero" aria-hidden="true">
-        <svg viewBox="130 130 480 480" width="160" height="160">
+        <svg viewBox="130 130 480 480" width="136" height="136">
           <!-- headband (teal) -->
           <path d="M172 440V362a198 198 0 0 1 396 0v78" fill="none" stroke="#3E5C65" stroke-width="34" stroke-linecap="round" />
           <path d="M172 440V362a198 198 0 0 1 396 0v78" fill="none" stroke="#62C0AF" stroke-width="22" stroke-linecap="round" />
@@ -104,6 +104,7 @@
       </nav>
 
       <div id="listArea" class="list-area">
+        <p id="listSummary" class="list-summary" hidden></p>
         <p id="reorderHint" class="reorder-hint" hidden>Drag ⋮⋮ to set the play order, then press a file to start.</p>
         <ul id="fileList" class="file-list"></ul>
         <div id="emptyState" class="empty" hidden></div>
@@ -127,6 +128,7 @@
         <p class="muted small">Redirect URI of this extension (paste it into <i>Authorized redirect URIs</i> of a Web application OAuth client):</p>
         <code id="redirectUri" class="uri"></code>
         <button id="copyUriBtn" class="ghost-btn">Copy</button>
+        <p id="authInfo" class="muted small auth-info"></p>
       </div>
 
       <div class="card">
@@ -177,6 +179,7 @@
 
     <!-- Fixed player bar -->
     <footer id="playerBar" class="player-bar card" hidden>
+      <button id="closeTrackBtn" class="close-x" title="Close player" aria-label="Close player">✕</button>
       <div id="nowPlaying" class="now-playing"></div>
       <div id="waveWrap" class="wave-wrap">
         <canvas id="waveCanvas" aria-hidden="true"></canvas>
@@ -184,8 +187,9 @@
         <input id="seekBar" type="range" min="0" max="1000" step="1" value="0" disabled aria-label="Seek bar (waveform)" />
       </div>
       <div class="time-row">
-        <span id="timeCurrent" class="time">0:00</span>
-        <span id="timeTotal" class="time">0:00</span>
+        <span id="timeCurrent" class="time" title="Elapsed">0:00</span>
+        <span id="timeRemain" class="time remain" title="Remaining">-0:00</span>
+        <span id="timeTotal" class="time" title="Total">0:00</span>
       </div>
       <div id="speedWrap" class="speed-wrap">
         <button id="speedBtn" class="speed-btn" title="Playback speed (Shift + &lt; / &gt;)" aria-haspopup="true" aria-expanded="false">1x</button>

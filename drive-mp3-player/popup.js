@@ -1,7 +1,7 @@
 import { formatTime, formatBytes } from './lib/util.js';
-import { listFiles, putFile, deleteFile, clearAll, getSettings, saveSettings, setOrder, lastUsed, MB } from './lib/db.js';
+import { listFiles, getFile, putFile, deleteFile, clearAll, getSettings, saveSettings, setOrder, lastUsed, MB } from './lib/db.js';
 import { runCleanup } from './lib/cleanup.js';
-import { getToken, signOut, listMp3, uploadFile } from './lib/drive.js';
+import { getToken, signOut, listMp3, uploadFile, getAuthInfo } from './lib/drive.js';
 
 const $ = (id) => document.getElementById(id);
 const el = {
@@ -53,6 +53,10 @@ const el = {
   redirectUri: $('redirectUri'),
   copyUriBtn: $('copyUriBtn'),
   reorderHint: $('reorderHint'),
+  listSummary: $('listSummary'),
+  closeTrackBtn: $('closeTrackBtn'),
+  timeRemain: $('timeRemain'),
+  authInfo: $('authInfo'),
   waveCanvas: $('waveCanvas'),
   waveWrap: $('waveWrap'),
   waveTip: $('waveTip'),
@@ -268,6 +272,7 @@ function renderList() {
   const frag = document.createDocumentFragment();
   const reorderable = currentTab() === 'cached' && !app.query && !app.selectMode && files.length > 1;
   el.reorderHint.hidden = !reorderable;
+  updateSummary();
 
   files.forEach((f) => {
     const rec = map.get(f.id);
@@ -416,6 +421,30 @@ el.selPlayBtn.addEventListener('click', () => {
   playTrack(picked[0], picked);
 });
 
+/** "N files • Total • Remaining" for the saved list (the play queue), using known durations. */
+function updateSummary() {
+  const files = visibleFiles();
+  if (currentTab() !== 'cached' || files.length === 0) {
+    el.listSummary.hidden = true;
+    return;
+  }
+  const durs = files.map((f) => f.duration || 0);
+  const total = durs.reduce((a, b) => a + b, 0);
+  const p = app.player;
+  const idx = p && p.track ? files.findIndex((f) => f.id === p.track.id) : -1;
+  let remaining = total;
+  if (idx >= 0) {
+    const after = durs.slice(idx + 1).reduce((a, b) => a + b, 0);
+    const own = (p.duration || durs[idx] || 0) - (p.currentTime || 0);
+    remaining = after + Math.max(0, own);
+  }
+  const unknown = files.filter((f) => !f.duration).length;
+  el.listSummary.textContent =
+    `${files.length} ${files.length === 1 ? 'file' : 'files'} • Total ${formatTime(total)} • Remaining ${formatTime(remaining)}` +
+    (unknown ? ` (${unknown} still measuring…)` : '');
+  el.listSummary.hidden = false;
+}
+
 function clearDropMarks() {
   el.fileList.querySelectorAll('.drop-before, .drop-after').forEach((n) => n.classList.remove('drop-before', 'drop-after'));
 }
@@ -509,12 +538,32 @@ async function refreshCache() {
   render();
 }
 
+/** Close the player: stop audio and forget the current track. */
+async function stopPlayer() {
+  app.player = null;
+  app.peaks = null;
+  renderPlayer();
+  renderList();
+  try {
+    await sendPlayer('stop');
+  } catch (e) {
+    /* ignore */
+  }
+}
+
+function currentTrackIsLocal() {
+  const t = app.player && app.player.track;
+  return !!t && t.source === 'local';
+}
+
 async function removeFromCache(file) {
   const rec = cachedMap().get(file.id);
   if (rec && rec.source === 'local') {
     if (!confirm(`"${rec.name}" was uploaded from your computer and only exists in the extension's storage. Deleting it is permanent. Continue?`)) return;
   }
   await deleteFile(file.id);
+  const cur = app.player && app.player.track;
+  if (cur && cur.id === file.id && cur.source === 'local') await stopPlayer(); // nothing left to play
   toast('Removed from this device');
   await refreshCache();
 }
@@ -525,7 +574,9 @@ async function removeAllCache() {
     ? 'Delete ALL saved files? Files uploaded from your computer (not on Drive) will be lost permanently.'
     : 'Delete all saved files to free up space? (Files on Drive are not affected)';
   if (!confirm(msg)) return;
+  const stopLocal = currentTrackIsLocal();
   await clearAll();
+  if (stopLocal) await stopPlayer();
   toast('Cache cleared');
   await refreshCache();
 }
@@ -705,6 +756,7 @@ function renderPlayer() {
   }
   el.nowPlaying.title = track.name;
   renderSpeed();
+  updateSummary();
 
   const busy = !!p.loading;
   el.playBtn.disabled = busy;
@@ -720,6 +772,7 @@ function renderPlayer() {
   el.timeTotal.textContent = formatTime(duration);
   if (!app.dragging) {
     el.timeCurrent.textContent = formatTime(current);
+    el.timeRemain.textContent = '-' + formatTime(Math.max(0, duration - current));
     el.seekBar.value = duration > 0 ? String(Math.round((current / duration) * 1000)) : '0';
   }
   drawWave(currentProgress());
@@ -827,6 +880,7 @@ function playTrack(file, list) {
   });
 }
 
+el.closeTrackBtn.addEventListener('click', stopPlayer);
 el.playBtn.addEventListener('click', () => sendPlayer('toggle'));
 el.backSkip.addEventListener('click', () => sendPlayer('skip', { delta: -5 }));
 el.fwdSkip.addEventListener('click', () => sendPlayer('skip', { delta: 5 }));
@@ -836,7 +890,9 @@ el.seekBar.addEventListener('pointerdown', () => (app.dragging = true));
 el.seekBar.addEventListener('input', () => {
   app.dragging = true;
   const duration = app.player ? app.player.duration || 0 : 0;
-  el.timeCurrent.textContent = formatTime((Number(el.seekBar.value) / 1000) * duration);
+  const at = (Number(el.seekBar.value) / 1000) * duration;
+  el.timeCurrent.textContent = formatTime(at);
+  el.timeRemain.textContent = '-' + formatTime(Math.max(0, duration - at));
   drawWave(currentProgress());
 });
 el.seekBar.addEventListener('change', () => {
@@ -952,6 +1008,48 @@ el.uploadToDrive.checked = store.get('uploadToDrive', false);
 el.uploadToDrive.addEventListener('change', () => store.set('uploadToDrive', el.uploadToDrive.checked));
 el.uploadBtn.addEventListener('click', () => el.fileInput.click());
 
+/** Read an MP3's duration from its metadata (no playback). Returns 0 if it cannot be read. */
+function readDuration(blob) {
+  return new Promise((resolve) => {
+    const audio = new Audio();
+    audio.preload = 'metadata';
+    const url = URL.createObjectURL(blob);
+    let finished = false;
+    const done = (value) => {
+      if (finished) return;
+      finished = true;
+      URL.revokeObjectURL(url);
+      resolve(value);
+    };
+    audio.onloadedmetadata = () => done(isFinite(audio.duration) ? audio.duration : 0);
+    audio.onerror = () => done(0);
+    setTimeout(() => done(0), 8000);
+    audio.src = url;
+  });
+}
+
+let backfilling = false;
+/** Saved files that do not have a duration yet (older uploads) get measured in the background. */
+async function backfillDurations() {
+  if (backfilling) return;
+  backfilling = true;
+  try {
+    for (const rec of app.cached.filter((r) => !r.duration && r.blob)) {
+      const duration = await readDuration(rec.blob);
+      if (!duration) continue;
+      const fresh = await getFile(rec.id);
+      if (fresh) await putFile({ ...fresh, duration });
+      const mine = app.cached.find((r) => r.id === rec.id);
+      if (mine) mine.duration = duration;
+      render();
+    }
+  } catch (e) {
+    /* ignore */
+  } finally {
+    backfilling = false;
+  }
+}
+
 async function addOneFile(file, toDrive, order) {
   let id = 'local-' + crypto.randomUUID();
   let name = file.name;
@@ -969,7 +1067,8 @@ async function addOneFile(file, toDrive, order) {
       toast('Drive upload failed for "' + file.name + '", saved on this device only: ' + (err.message || err), 5000);
     }
   }
-  await putFile({ id, name, size, blob: file, cachedAt: Date.now(), source, order });
+  const duration = await readDuration(file);
+  await putFile({ id, name, size, blob: file, cachedAt: Date.now(), source, order, duration: duration || undefined });
   return { id, name, size, source };
 }
 
@@ -1033,7 +1132,7 @@ chrome.runtime.onMessage.addListener((msg) => {
     app.peaks = { id: msg.trackId, data: msg.peaks };
     drawWave(currentProgress());
   } else if (msg.type === 'cacheChanged') {
-    refreshCache();
+    refreshCache().then(backfillDurations);
   }
   return false;
 });
@@ -1100,12 +1199,24 @@ el.copyUriBtn.addEventListener('click', async () => {
   }
 });
 
-// ---------- Khởi động ----------
+async function showAuthInfo() {
+  try {
+    const info = await getAuthInfo();
+    el.authInfo.textContent = info.persistent
+      ? 'Stay-signed-in is ON (refresh token). You should not need to sign in again unless you revoke access.'
+      : 'Stay-signed-in is OFF: sign-in lasts about 1 hour per token. Add CLIENT_SECRET in config.js to stay signed in (see README).';
+  } catch (e) {
+    /* ignore */
+  }
+}
+
+// ---------- Startup ----------
 
 async function init() {
   applyCompact(false);
   render();
   await refreshCache();
+  backfillDurations();
   await loadCleanupSettings();
   cleanup();
 
@@ -1126,11 +1237,20 @@ async function init() {
       await getToken({ interactive: false });
       await afterSignedIn();
     } catch (e) {
-      app.signedIn = false;
-      store.set('signedIn', false);
-      render();
+      if (e.needsLogin) {
+        // The session really ended (revoked, expired refresh token, no Google session)
+        app.signedIn = false;
+        store.set('signedIn', false);
+        render();
+        toast('Your Google session ended. Please sign in again.', 5000);
+      } else {
+        // Temporary problem (network etc.): stay signed in
+        app.driveError = e.message || String(e);
+        render();
+      }
     }
   }
+  showAuthInfo();
 }
 
 init();
