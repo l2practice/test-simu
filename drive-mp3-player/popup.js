@@ -83,6 +83,10 @@ const el = {
   maxAgeSelect: $('maxAgeSelect'),
   maxSizeSelect: $('maxSizeSelect'),
   cleanNowBtn: $('cleanNowBtn'),
+  boostWrap: $('boostWrap'),
+  boostBtn: $('boostBtn'),
+  boostLabel: $('boostLabel'),
+  boostMenu: $('boostMenu'),
   speedWrap: $('speedWrap'),
   speedBtn: $('speedBtn'),
   speedMenu: $('speedMenu'),
@@ -973,6 +977,7 @@ function renderPlayer() {
     el.saveStatus.hidden = true;
   }
   renderSpeed();
+  renderBoost();
   updateSummary();
 
   const busy = !!p.loading;
@@ -998,6 +1003,84 @@ function renderPlayer() {
     li.classList.toggle('playing', li.dataset.id === track.id);
   });
 }
+
+// ---------- Volume boost ----------
+
+const BOOST_OPTIONS = [
+  { value: 'auto', label: 'Auto', note: 'recommended' },
+  { value: '1', label: 'Off (100%)', note: '' },
+  { value: '1.5', label: '150%', note: '' },
+  { value: '2', label: '200%', note: '' },
+  { value: '3', label: '300%', note: '' },
+  { value: '4', label: '400%', note: '' }
+];
+
+function currentBoost() {
+  return (app.player && app.player.boost) || 'auto';
+}
+
+function renderBoost() {
+  const cur = currentBoost();
+  const gain = app.player && app.player.boostGain;
+  let text;
+  if (cur === 'auto') text = gain && gain > 1.04 ? `×${gain.toFixed(1)}` : 'Auto';
+  else if (cur === '1') text = 'Off';
+  else text = `${Math.round(Number(cur) * 100)}%`;
+  el.boostLabel.textContent = text;
+  el.boostBtn.title =
+    cur === 'auto'
+      ? `Volume boost: Auto${gain && gain > 1.04 ? ' (×' + gain.toFixed(1) + ' for this file)' : ''}`
+      : 'Volume boost: make quiet files louder than 100%';
+  el.boostMenu.querySelectorAll('.speed-opt').forEach((b) => {
+    const active = b.dataset.boost === cur;
+    b.classList.toggle('active', active);
+    b.setAttribute('aria-checked', String(active));
+  });
+}
+
+function closeBoostMenu() {
+  el.boostMenu.hidden = true;
+  el.boostBtn.setAttribute('aria-expanded', 'false');
+}
+
+async function setBoost(value) {
+  if (app.player) app.player.boost = value;
+  renderBoost();
+  closeBoostMenu();
+  const res = await sendPlayer('setBoost', { boost: value });
+  if (res && res.error) toast(res.error, 5000);
+}
+
+BOOST_OPTIONS.forEach((o) => {
+  const b = document.createElement('button');
+  b.className = 'speed-opt';
+  b.dataset.boost = o.value;
+  b.setAttribute('role', 'menuitemradio');
+  const check = document.createElement('span');
+  check.className = 'speed-check';
+  check.textContent = '✓';
+  const label = document.createElement('span');
+  label.textContent = o.label;
+  b.append(check, label);
+  if (o.note) {
+    const note = document.createElement('small');
+    note.textContent = o.note;
+    b.appendChild(note);
+  }
+  b.addEventListener('click', () => setBoost(o.value));
+  el.boostMenu.appendChild(b);
+});
+
+el.boostBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  closeSpeedMenu();
+  const open = el.boostMenu.hidden;
+  el.boostMenu.hidden = !open;
+  el.boostBtn.setAttribute('aria-expanded', String(open));
+});
+document.addEventListener('click', (e) => {
+  if (!el.boostWrap.contains(e.target)) closeBoostMenu();
+});
 
 // ---------- Tốc độ phát (giống YouTube) ----------
 
@@ -1050,6 +1133,7 @@ SPEEDS.forEach((v) => {
 
 el.speedBtn.addEventListener('click', (e) => {
   e.stopPropagation();
+  closeBoostMenu();
   const open = el.speedMenu.hidden;
   el.speedMenu.hidden = !open;
   el.speedBtn.setAttribute('aria-expanded', String(open));

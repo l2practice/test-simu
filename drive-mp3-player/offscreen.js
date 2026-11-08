@@ -8,6 +8,10 @@ import { runCleanup } from './lib/cleanup.js';
 const audio = document.getElementById('player');
 const LAST_KEY = 'lastState';
 
+// Allowed values. Declared before `state` because readSpeed()/readBoost() run while building it.
+const SPEEDS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
+const BOOSTS = ['auto', '1', '1.5', '2', '3', '4'];
+
 let state = {
   track: null, // { id, name, size, source: 'drive' | 'local' }
   playing: false,
@@ -21,11 +25,11 @@ let state = {
   index: -1,
   mode: readMode(), // 'normal' | 'repeat-one' | 'shuffle'
   speed: readSpeed(), // tốc độ phát 0.25 – 2
+  boost: readBoost(), // volume boost: 'auto' | '1' | '1.5' | '2' | '3' | '4'
+  boostGain: 1, // gain actually applied right now
   saving: false, // true nếu file đang tải sẽ được lưu vào máy
   prefetch: null // { done, total } while the rest of a picked list is being saved in the background
 };
-
-const SPEEDS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
 
 function readSpeed() {
   try {
@@ -34,6 +38,85 @@ function readSpeed() {
   } catch (e) {
     return 1;
   }
+}
+
+// ---------- Volume boost (Web Audio gain above 100%) ----------
+// <audio>.volume cannot exceed 1, so louder playback needs a GainNode. A compressor acts as a
+// limiter after the gain so a big boost does not clip. The graph is only built when needed, and
+// only after the AudioContext is confirmed to be running: once an <audio> element is routed into
+// a context, a suspended context would make it silent.
+
+const TARGET_RMS = 0.14; // about -17 dBFS for the speech parts
+const MAX_AUTO_GAIN = 8;
+const FALLBACK_AUTO_GAIN = 2; // used when a file could not be analysed (e.g. very large)
+
+let actx = null;
+let gainNode = null;
+let graphReady = false;
+let graphTried = false;
+let autoGain = null; // { id, gain } measured for the current track
+
+function readBoost() {
+  try {
+    const v = localStorage.getItem('boost');
+    return BOOSTS.includes(v) ? v : 'auto';
+  } catch (e) {
+    return 'auto';
+  }
+}
+
+async function ensureGraph() {
+  if (graphReady) return true;
+  if (graphTried) return false;
+  graphTried = true;
+  try {
+    actx = new AudioContext();
+    if (actx.state !== 'running') {
+      await Promise.race([actx.resume(), new Promise((r) => setTimeout(r, 800))]);
+    }
+    if (actx.state !== 'running') {
+      actx.close().catch(() => {});
+      actx = null;
+      return false; // blocked by autoplay policy: keep the normal, un-boosted path
+    }
+    const source = actx.createMediaElementSource(audio);
+    gainNode = actx.createGain();
+    const limiter = actx.createDynamicsCompressor();
+    limiter.threshold.value = -3;
+    limiter.knee.value = 0;
+    limiter.ratio.value = 20;
+    limiter.attack.value = 0.003;
+    limiter.release.value = 0.1;
+    source.connect(gainNode);
+    gainNode.connect(limiter);
+    limiter.connect(actx.destination);
+    actx.onstatechange = () => {
+      if (actx.state !== 'running') actx.resume().catch(() => {});
+    };
+    graphReady = true;
+    return true;
+  } catch (e) {
+    graphReady = false;
+    return false;
+  }
+}
+
+function targetGain() {
+  if (state.boost === 'auto') {
+    return autoGain && state.track && autoGain.id === state.track.id ? autoGain.gain : 1;
+  }
+  return Number(state.boost) || 1;
+}
+
+function applyGain() {
+  const g = targetGain();
+  if (graphReady && gainNode) gainNode.gain.setTargetAtTime(g, actx.currentTime, 0.05);
+  state.boostGain = graphReady ? g : 1;
+}
+
+async function prepareBoost() {
+  if (state.boost !== '1') await ensureGraph();
+  applyGain();
 }
 
 function applySpeed() {
@@ -126,7 +209,7 @@ function setPeaks(id, data) {
 }
 
 /** Giải mã MP3 ở 8 kHz (nhẹ) rồi lấy mức âm lượng RMS của WAVE_BARS đoạn đều nhau. */
-async function computePeaks(blob) {
+async function analyzeAudio(blob) {
   if (blob.size > MAX_WAVE_BYTES) return null;
   const octx = new OfflineAudioContext(1, 8000, 8000);
   const buffer = await octx.decodeAudioData(await blob.arrayBuffer());
@@ -137,12 +220,18 @@ async function computePeaks(blob) {
   for (let c = 0; c < buffer.numberOfChannels; c++) channels.push(buffer.getChannelData(c));
 
   const rms = new Array(WAVE_BARS).fill(0);
+  let maxAbs = 0;
   for (let i = 0; i < WAVE_BARS; i++) {
     const from = Math.floor((i * len) / WAVE_BARS);
     const to = Math.max(from + 1, Math.floor(((i + 1) * len) / WAVE_BARS));
     let sum = 0;
     for (const data of channels) {
-      for (let j = from; j < to; j++) sum += data[j] * data[j];
+      for (let j = from; j < to; j++) {
+        const v = data[j];
+        sum += v * v;
+        const a = v < 0 ? -v : v;
+        if (a > maxAbs) maxAbs = a;
+      }
     }
     rms[i] = Math.sqrt(sum / ((to - from) * channels.length));
   }
@@ -150,25 +239,46 @@ async function computePeaks(blob) {
   // Chuẩn hóa theo phân vị 95% để vài tiếng động lớn không làm phần còn lại bị lép
   const sorted = rms.slice().sort((a, b) => a - b);
   const ref = sorted[Math.floor(sorted.length * 0.95)] || sorted[sorted.length - 1] || 1;
-  return rms.map((v) => {
+  const peaks = rms.map((v) => {
     const n = v / ref;
     if (n < 0.04) return 0; // coi như im lặng
     return Math.round(Math.min(1, Math.sqrt(n)) * 255);
   });
+
+  // Loudness of the parts that actually contain sound (ignores pauses), then the gain that brings
+  // them to TARGET_RMS without pushing the loudest sample far past full scale.
+  const active = rms.filter((v) => v > 0 && v >= ref * 0.2);
+  const rmsActive = active.length ? Math.sqrt(active.reduce((acc, v) => acc + v * v, 0) / active.length) : 0;
+  let gain = 1;
+  if (rmsActive > 0.0005) {
+    gain = Math.min(TARGET_RMS / rmsActive, 4 / Math.max(maxAbs, 0.01), MAX_AUTO_GAIN);
+  }
+  gain = Math.max(1, Math.round(gain * 100) / 100);
+  return { peaks, loudness: { rms: rmsActive, peak: maxAbs, gain } };
 }
 
 async function ensurePeaks(track, blob, record, seq) {
-  let data = record && record.peaks;
-  if (!data) {
+  let peaks = record && record.peaks;
+  let loudness = record && record.loudness;
+  if (!peaks || !loudness) {
+    let result = null;
     try {
-      data = await computePeaks(blob);
+      result = await analyzeAudio(blob);
     } catch (e) {
-      data = null;
+      result = null;
     }
-    if (!data) return;
-    patchRecord(track.id, { peaks: data }).then(notifyCacheChanged);
+    if (result) {
+      peaks = result.peaks;
+      loudness = result.loudness;
+      patchRecord(track.id, { peaks, loudness }).then(notifyCacheChanged);
+    }
   }
-  if (seq === loadSeq) setPeaks(track.id, data);
+  if (seq !== loadSeq) return;
+  if (peaks) setPeaks(track.id, peaks);
+  // Not analysable (too large etc.): fall back to a moderate fixed boost for Auto
+  autoGain = { id: track.id, gain: loudness ? loudness.gain : FALLBACK_AUTO_GAIN };
+  applyGain();
+  broadcast();
 }
 
 // ---------- Save the rest of a picked list in the background ----------
@@ -350,6 +460,7 @@ async function loadTrack(track, { autoplay = true, startAt = 0 } = {}) {
     // Tính dạng sóng ở nền, không chặn việc phát nhạc
     ensurePeaks(track, blob, record, seq);
 
+    await prepareBoost();
     if (autoplay) await audio.play();
     update(true);
   } catch (err) {
@@ -513,6 +624,22 @@ async function handle(msg) {
         /* bỏ qua */
       }
       broadcast();
+      return { ok: true };
+    }
+    case 'setBoost': {
+      const v = String(msg.boost);
+      if (!BOOSTS.includes(v)) return { error: 'Invalid volume boost' };
+      state.boost = v;
+      try {
+        localStorage.setItem('boost', v);
+      } catch (e) {
+        /* ignore */
+      }
+      await prepareBoost();
+      broadcast();
+      if (v !== '1' && !graphReady) {
+        return { error: 'Volume boost is not available: the browser blocked audio processing.' };
+      }
       return { ok: true };
     }
     case 'seek':

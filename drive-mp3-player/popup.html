@@ -240,6 +240,15 @@
         <span id="timeRemain" class="time remain" title="Remaining">-0:00</span>
         <span id="timeTotal" class="time" title="Total">0:00</span>
       </div>
+      <div id="boostWrap" class="boost-wrap">
+        <button id="boostBtn" class="speed-btn" title="Volume boost: make quiet files louder than 100%" aria-haspopup="true" aria-expanded="false">
+          <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1c2.9.9 5 3.5 5 6.7s-2.1 5.8-5 6.7v2.1c4-.9 7-4.5 7-8.8s-3-7.9-7-8.8z"/></svg>
+          <span id="boostLabel">Auto</span>
+        </button>
+        <div id="boostMenu" class="speed-menu boost-menu" role="menu" hidden>
+          <div class="speed-title">Volume boost</div>
+        </div>
+      </div>
       <div id="speedWrap" class="speed-wrap">
         <button id="speedBtn" class="speed-btn" title="Playback speed (Shift + &lt; / &gt;)" aria-haspopup="true" aria-expanded="false">1x</button>
         <div id="speedMenu" class="speed-menu" role="menu" hidden>
