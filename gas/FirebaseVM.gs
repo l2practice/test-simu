@@ -219,8 +219,8 @@ function vmfbIeltsGradeAttempt(p) {
   var input = Array.isArray(p.answers) ? p.answers.slice(0, questions.length) : [];
   while (input.length < questions.length) input.push('');
   function norm(v) { return String(v == null ? '' : v).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim(); }
-  // YES = TRUE, NO = FALSE, NG = NOT GIVEN, so a True/False and a Yes/No wording of the same group both mark correctly
-  function tfn(v) { var x = norm(v); return x === 'yes' ? 'true' : (x === 'no' ? 'false' : (x === 'ng' ? 'not given' : x)); }
+  // YES = Y = T = TRUE, NO = N = F = FALSE, NG = NOT GIVEN, so a True/False and a Yes/No wording of the same group both mark correctly
+  function tfn(v) { var x = norm(v); return (x === 'yes' || x === 'y' || x === 't') ? 'true' : ((x === 'no' || x === 'n' || x === 'f') ? 'false' : (x === 'ng' ? 'not given' : x)); }   // keys are often typed as T / F / NG
   var correct = 0, graded = 0, responses = input.map(function(answer, i){
     var q = questions[i], accepted = Array.isArray(q.__accepted) ? q.__accepted : [];
     var opts = Array.isArray(q.options) ? q.options : [];
