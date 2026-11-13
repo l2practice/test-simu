@@ -158,6 +158,34 @@ function vmfbIeltsVerifiedUser(idToken) {
   return { success:true, uid:uid, user:user };
 }
 
+// British and American spellings count as the same answer. Every word of a (lower-case, punctuation-free) answer is brought to one
+// spelling; both the key and the student's answer go through it, so only the comparison changes and nothing stored is rewritten.
+var VMFB_SPELL = {
+  grey:'gray', programme:'program', programmes:'programs', tyre:'tire', tyres:'tires', aluminium:'aluminum', cheque:'check', cheques:'checks',
+  plough:'plow', ploughs:'plows', mum:'mom', mums:'moms', maths:'math', ageing:'aging', judgement:'judgment', kerb:'curb', pyjamas:'pajamas',
+  sceptical:'skeptical', sceptic:'skeptic', draught:'draft', draughts:'drafts', cosy:'cozy', moustache:'mustache', jewellery:'jewelry',
+  manoeuvre:'maneuver', manoeuvres:'maneuvers', aeroplane:'airplane', aeroplanes:'airplanes', doughnut:'donut', doughnuts:'donuts',
+  speciality:'specialty', specialities:'specialties', sulphur:'sulfur', yoghurt:'yogurt', yoghurts:'yogurts', whisky:'whiskey', artefact:'artifact', artefacts:'artifacts',
+  enquiry:'inquiry', enquiries:'inquiries', practise:'practice', practised:'practiced', practising:'practicing', storey:'story', storeys:'stories',
+  fulfil:'fulfill', enrol:'enroll', enrolment:'enrollment', fulfilment:'fulfillment', instalment:'installment', instalments:'installments', skilful:'skillful', wilful:'willful',
+  woollen:'woolen', mould:'mold', moulds:'molds', smoulder:'smolder', gaol:'jail', catalogue:'catalog', catalogues:'catalogs',
+  dialogue:'dialog', dialogues:'dialogs', analogue:'analog', monologue:'monolog', axe:'ax', anaemia:'anemia', anaesthetic:'anesthetic', archaeology:'archeology',
+  archaeologist:'archeologist', archaeologists:'archeologists', archaeological:'archeological', encyclopaedia:'encyclopedia', paediatric:'pediatric', foetus:'fetus',
+  oestrogen:'estrogen', diarrhoea:'diarrhea', leukaemia:'leukemia', haemoglobin:'hemoglobin', mediaeval:'medieval', defence:'defense', defences:'defenses',
+  offence:'offense', offences:'offenses', licence:'license', licences:'licenses', pretence:'pretense', towards:'toward', afterwards:'afterward', learnt:'learned',
+  spelt:'spelled', dreamt:'dreamed', burnt:'burned'
+};
+function vmfbSpell(text) {
+  return String(text || '').split(' ').map(function (w) {
+    if (VMFB_SPELL[w]) return VMFB_SPELL[w];
+    w = w.replace(/^(col|fav|flav|hon|hum|lab|neighb|behavi|harb|rum|od|vap|sav|endeav|arm|glam|vig|tum|parl|rig|cand|clam|splend|val)our/, '$1or');   // colour, favourite, neighbourhood
+    w = w.replace(/^(cent|theat|fib|calib|somb|spect|lust|meag|sab|lit)re(s?)$/, '$1er$2').replace(/^((?:kilo|centi|milli|nano)?met)re(s?)$/, '$1er$2').replace(/^centr(ed|ing)$/, 'center$1');   // centre, metre, theatre
+    w = w.replace(/^(travel|cancel|model|label|level|fuel|signal|counsel|jewel|marvel|quarrel|channel|tunnel|panel|dial|equal|total|initial|pencil)l(ed|ing|er|ers|or|ors|ous)$/, '$1$2');   // travelled, modelling
+    w = w.replace(/is(e|es|ed|ing|ation|ations|er|ers)$/, 'iz$1').replace(/ys(e|es|ed|ing)$/, 'yz$1');   // organise, organisation, analyse
+    return w;
+  }).join(' ');
+}
+
 function vmfbIeltsGradeAttempt(p) {
   p = p || {};
   if (p.mode === 'reportDoc') return vmfbIeltsReportDoc(p);   // class report → Google Doc (reached through this route so Code.gs needs no extra line)
@@ -226,6 +254,7 @@ function vmfbIeltsGradeAttempt(p) {
     var opts = Array.isArray(q.options) ? q.options : [];
     var hit = accepted.length ? accepted.some(function(a){
       if (norm(a) === norm(answer)) return true;
+      if (vmfbSpell(norm(a)) === vmfbSpell(norm(answer))) return true;   // colour = color, centre = center
       if (q.type === 'true-false-not-given' || q.type === 'yes-no-not-given') { if (tfn(a) === tfn(answer)) return true; }
       var m = /^[A-Za-z]$/.exec(String(a).trim());
       return !!(m && opts.length && opts[m[0].toUpperCase().charCodeAt(0) - 65] != null && norm(opts[m[0].toUpperCase().charCodeAt(0) - 65]) === norm(answer));
