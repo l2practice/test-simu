@@ -831,7 +831,7 @@ async function vocabToday(p) {
 function tfynFix(q) {
   if (q.type !== 'true-false-not-given' && q.type !== 'yes-no-not-given') return false;
   const a = (Array.isArray(q.answers) ? q.answers : []).map(v => String(v).trim().toLowerCase());
-  const yn = a.some(v => v === 'yes' || v === 'no'), tf = a.some(v => v === 'true' || v === 'false');
+  const yn = a.some(v => /^(yes|no|y|n)$/.test(v)), tf = a.some(v => /^(true|false|t|f)$/.test(v));
   const want = yn && !tf ? 'yes-no-not-given' : (tf && !yn ? 'true-false-not-given' : q.type);
   let changed = false;
   if (want !== q.type) { q.type = want; changed = true; }
