@@ -564,7 +564,15 @@ function say(msg){VM.toast(msg,'err',4500);}
 function busy(msg){unbusy();var d=document.createElement('div');d.id='ilBusy';d.className='il-busy';d.innerHTML='<div class="il-busy-card"><div class="il-spinner"></div><b>'+esc(msg||'Working…')+'</b></div>';document.body.appendChild(d);}
 function unbusy(){var d=document.getElementById('ilBusy');if(d)d.remove();}
 function isPrev(){return teacher||!!state.previewBack;}
-function call(a,p){return VM.api(a,p||{}).then(function(r){if(!r||!r.success)throw new Error(r&&r.error||'Could not load data.');return r.data;});}
+function call(a,p){return VM.api(a,p||{}).then(function(r){if(!r||!r.success)throw new Error(r&&r.error||'Could not load data.');if(a==='ielts.attempt.list'&&Array.isArray(r.data))r.data.forEach(fixAttTitle);return r.data;});}
+function fixAttTitle(a){   // older attempts of several parts were saved as "Full Test · reading": name them after the book and test again
+ if(!a||!/^Full Test · /.test(a.title||''))return;
+ var its=String(a.contentId||'').split(',').map(function(id){return state.items.filter(function(i){return i.id===id;})[0];});
+ if(!its.length||its.some(function(i){return !i;}))return;
+ its.sort(function(x,y){return (parseInt(x.part,10)||0)-(parseInt(y.part,10)||0);});
+ var f=its[0],lis=f.skill==='listening',same=its.every(function(i){return i.book===f.book&&String(i.test)===String(f.test);});
+ a.title=same?(lis?'Full Lis: ':'Full Read: ')+f.book+'-'+f.test+(its.length===partCount(f.skill)?'':' · '+its.map(function(i){return 'P'+i.part;}).join('+')):((lis?'Mix Lis: ':'Mix Read: ')+its.map(function(i){return i.book+'-'+i.test+'-'+i.part;}).join(' · ')).slice(0,120);
+}
 function qa(sel){return Array.from(document.querySelectorAll(sel));}
 function titleItem(x){return x.title||'Untitled practice';}
 function partWord(skill){return skill==='listening'?'Part':'Passage';}
