@@ -200,6 +200,14 @@ function vmfbOptionalWords(list) {
   return out;
 }
 
+// Name of a sitting of several parts: "Full Read: Cam20-1", "Full Read: Cam20-1 · P1+P2", or "Mix Read: Cam20-1-1 · Cam19-2-3"
+function vmfbFullTitle(docs) {
+  var d0 = docs[0], lis = d0.skill === 'listening';
+  var same = docs.every(function (d) { return d.book === d0.book && String(d.test) === String(d0.test); });
+  if (same) return (lis ? 'Full Lis: ' : 'Full Read: ') + d0.book + '-' + d0.test + (docs.length === (lis ? 4 : 3) ? '' : ' · ' + docs.map(function (d) { return 'P' + d.part; }).join('+'));
+  return ((lis ? 'Mix Lis: ' : 'Mix Read: ') + docs.map(function (d) { return d.book + '-' + d.test + '-' + d.part; }).join(' · ')).slice(0, 120);
+}
+
 function vmfbIeltsGradeAttempt(p) {
   p = p || {};
   if (p.mode === 'reportDoc') return vmfbIeltsReportDoc(p);   // class report → Google Doc (reached through this route so Code.gs needs no extra line)
@@ -241,7 +249,7 @@ function vmfbIeltsGradeAttempt(p) {
     if (startMs && Date.now() < startMs - 60000) return { success:false, error:'This in-class test has not started yet.' };
     if (endMs && Date.now() > endMs + 120000) return { success:false, error:'This in-class session has closed.' };
   }
-  var title = taskType ? ('Task type · ' + taskType.replace(/-/g, ' ')) : (docs.length === 1 ? docs[0].title : 'Full Test · ' + docs[0].skill);
+  var title = taskType ? ('Task type · ' + taskType.replace(/-/g, ' ')) : (docs.length === 1 ? docs[0].title : vmfbFullTitle(docs));
   var skill = docs[0].skill;
   if (docs.some(function(d){ return d.skill !== skill; })) return { success:false, error:'A full test can only combine parts of the same skill.' };
   var sections = [], taskTypes = {};
