@@ -1355,6 +1355,10 @@ async function ieltsImportUrl(p) {
 // ════════════════════════════════════════════
 // APPS SCRIPT (admin): accounts + passwords
 // ════════════════════════════════════════════
+async function ieltsAttemptRegrade(p) {   // teacher: mark saved attempts again with the current rules (runs in Apps Script, which may write attempts)
+  await teacher();
+  return gas('ielts.gradeAttempt', { idToken: await current.getIdToken(), mode: 'regrade', after: str(p.after) });
+}
 async function gas(action, payload) {
   // Apps Script now and then answers a POST with a 404 or with an empty action (seen in private windows); nothing was run in that case, so try again once or twice
   let lastErr = null;
@@ -1406,7 +1410,7 @@ const ACTIONS = {
   'ielts.attempt.save': ieltsAttemptSave, 'ielts.attempt.list': ieltsAttemptList,
   'ielts.report.create': ieltsReportCreate, 'ielts.report.list': ieltsReportList, 'ielts.report.update': ieltsReportUpdate,
   'ielts.audio.upload': ieltsAudioUpload, 'ielts.audio.attach': ieltsAudioAttach, 'ielts.audio.url': ieltsAudioUrl,
-  'ielts.attempt.delete': ieltsAttemptDelete, 'ielts.report.doc': ieltsReportDoc, 'ielts.rank.publish': ieltsRankPublish, 'ielts.rank.get': ieltsRankGet, 'ielts.importUrl': ieltsImportUrl, 'ielts.importScript': ieltsImportScript, 'ielts.script.get': ieltsScriptGet, 'ielts.activity.sync': ieltsActivitySync, 'ielts.activity.list': ieltsActivityList, 'ielts.script.save': ieltsScriptSave, 'ielts.script.mine': ieltsScriptMine, 'ielts.script.discard': ieltsScriptDiscard, 'ielts.script.pending': ieltsScriptPending, 'ielts.script.review': ieltsScriptReview, 'ielts.images.backup': ieltsImagesBackup,
+  'ielts.attempt.delete': ieltsAttemptDelete, 'ielts.report.doc': ieltsReportDoc, 'ielts.attempt.regrade': ieltsAttemptRegrade, 'ielts.rank.publish': ieltsRankPublish, 'ielts.rank.get': ieltsRankGet, 'ielts.importUrl': ieltsImportUrl, 'ielts.importScript': ieltsImportScript, 'ielts.script.get': ieltsScriptGet, 'ielts.activity.sync': ieltsActivitySync, 'ielts.activity.list': ieltsActivityList, 'ielts.script.save': ieltsScriptSave, 'ielts.script.mine': ieltsScriptMine, 'ielts.script.discard': ieltsScriptDiscard, 'ielts.script.pending': ieltsScriptPending, 'ielts.script.review': ieltsScriptReview, 'ielts.images.backup': ieltsImagesBackup,
   'vocab.today': vocabToday,
   'ping': async () => ok('pong')
 };

@@ -208,9 +208,58 @@ function vmfbFullTitle(docs) {
   return ((lis ? 'Mix Lis: ' : 'Mix Read: ') + docs.map(function (d) { return d.book + '-' + d.test + '-' + d.part; }).join(' · ')).slice(0, 120);
 }
 
+// One answer against its key: null when the key is empty. Used when a student submits and when old attempts are marked again.
+function vmfbNorm(v) { return String(v == null ? '' : v).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim(); }
+// YES = Y = T = TRUE, NO = N = F = FALSE, NG = NOT GIVEN, so a True/False and a Yes/No wording of the same group both mark correctly
+function vmfbTfn(v) { var x = vmfbNorm(v); return (x === 'yes' || x === 'y' || x === 't') ? 'true' : ((x === 'no' || x === 'n' || x === 'f') ? 'false' : (x === 'ng' ? 'not given' : x)); }
+function vmfbIeltsHit(q, accepted, answer) {
+  if (!accepted || !accepted.length) return null;
+  var norm = vmfbNorm, opts = Array.isArray(q.options) ? q.options : [];
+  return vmfbOptionalWords(accepted).some(function(a){
+    if (norm(a) === norm(answer)) return true;
+    if (vmfbSpell(norm(a)) === vmfbSpell(norm(answer))) return true;   // colour = color, centre = center
+    if (q.type === 'true-false-not-given' || q.type === 'yes-no-not-given') { if (vmfbTfn(a) === vmfbTfn(answer)) return true; }
+    var m = /^[A-Za-z]$/.exec(String(a).trim());
+    return !!(m && opts.length && opts[m[0].toUpperCase().charCodeAt(0) - 65] != null && norm(opts[m[0].toUpperCase().charCodeAt(0) - 65]) === norm(answer));
+  });
+}
+
+// Teacher: mark the saved attempts of their students again with today's rules (T/F, brackets, British/American spelling).
+// Uses the key stored in each response at the time, so a later edit of a test never changes an old score. Only changed attempts are written.
+function vmfbIeltsRegrade(p) {
+  var verified = vmfbIeltsVerifiedUser(p.idToken);
+  if (!verified.success) return verified;
+  if (verified.user.role !== 'teacher') return { success:false, error:'Only teachers can mark attempts again.' };
+  var started = Date.now(), rows = fsQuery('ieltsAttempts', [['teacherUid', 'EQUAL', verified.uid]]), after = String(p.after || '');
+  rows.sort(function (a, b) { return String(a._id).localeCompare(String(b._id)); });
+  var checked = 0, changed = 0, writes = [], last = '';
+  for (var k = 0; k < rows.length; k++) {
+    var a = rows[k];
+    if (after && String(a._id) <= after) continue;
+    if (Date.now() - started > 240000) return finish(false);   // stay well inside the 6-minute Apps Script limit; the page calls again
+    last = a._id; checked++;
+    var qs = [];
+    (((a.snapshot || {}).sections) || []).forEach(function (sec) { (sec.questions || []).forEach(function (q) { qs.push(q); }); });
+    var resp = Array.isArray(a.responses) ? a.responses : [], correct = 0, graded = 0, diff = false;
+    var out = resp.map(function (r, i) {
+      var hit = vmfbIeltsHit(qs[i] || {}, r.accepted || [], r.answer);
+      if (hit !== null) { graded++; if (hit) correct++; }
+      if (hit !== r.correct) diff = true;
+      return Object.assign({}, r, { correct:hit });
+    });
+    if (!diff) continue;
+    changed++;
+    writes.push(wMerge('ieltsAttempts/' + a._id, { responses:out, correct:correct, gradedCount:graded, score:graded ? Math.round(correct * 100 / graded) : null, regradedAt:new Date().toISOString() }));
+    if (writes.length >= 50) { fsCommit(writes); writes = []; }
+  }
+  return finish(true);
+  function finish(done) { if (writes.length) fsCommit(writes); return { success:true, data:{ done:done, after:last, checked:checked, changed:changed } }; }
+}
+
 function vmfbIeltsGradeAttempt(p) {
   p = p || {};
-  if (p.mode === 'reportDoc') return vmfbIeltsReportDoc(p);   // class report → Google Doc (reached through this route so Code.gs needs no extra line)
+  if (p.mode === 'reportDoc') return vmfbIeltsReportDoc(p);
+  if (p.mode === 'regrade') return vmfbIeltsRegrade(p);   // same trick: no new line in Code.gs   // class report → Google Doc (reached through this route so Code.gs needs no extra line)
   var verified = vmfbIeltsVerifiedUser(p.idToken);
   if (!verified.success) return verified;
   var uid = verified.uid, user = verified.user;
@@ -268,19 +317,9 @@ function vmfbIeltsGradeAttempt(p) {
   if (!questions.length || questions.length > 300) return { success:false, error:'Invalid number of questions (maximum 300).' };
   var input = Array.isArray(p.answers) ? p.answers.slice(0, questions.length) : [];
   while (input.length < questions.length) input.push('');
-  function norm(v) { return String(v == null ? '' : v).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim(); }
-  // YES = Y = T = TRUE, NO = N = F = FALSE, NG = NOT GIVEN, so a True/False and a Yes/No wording of the same group both mark correctly
-  function tfn(v) { var x = norm(v); return (x === 'yes' || x === 'y' || x === 't') ? 'true' : ((x === 'no' || x === 'n' || x === 'f') ? 'false' : (x === 'ng' ? 'not given' : x)); }   // keys are often typed as T / F / NG
   var correct = 0, graded = 0, responses = input.map(function(answer, i){
     var q = questions[i], accepted = Array.isArray(q.__accepted) ? q.__accepted : [];
-    var opts = Array.isArray(q.options) ? q.options : [];
-    var hit = accepted.length ? vmfbOptionalWords(accepted).some(function(a){
-      if (norm(a) === norm(answer)) return true;
-      if (vmfbSpell(norm(a)) === vmfbSpell(norm(answer))) return true;   // colour = color, centre = center
-      if (q.type === 'true-false-not-given' || q.type === 'yes-no-not-given') { if (tfn(a) === tfn(answer)) return true; }
-      var m = /^[A-Za-z]$/.exec(String(a).trim());
-      return !!(m && opts.length && opts[m[0].toUpperCase().charCodeAt(0) - 65] != null && norm(opts[m[0].toUpperCase().charCodeAt(0) - 65]) === norm(answer));
-    }) : null;
+    var hit = vmfbIeltsHit(q, accepted, answer);
     if (accepted.length) { graded++; if (hit) correct++; }
     return {questionIndex:i, answer:String(answer == null ? '' : answer).slice(0,1000), correct:hit, accepted:accepted.slice(0,10).map(function(v){ return String(v).slice(0,300); })};
   });
