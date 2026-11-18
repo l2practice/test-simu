@@ -186,6 +186,20 @@ function vmfbSpell(text) {
   }).join(' ');
 }
 
+// "(land) surface" accepts "land surface" and "surface": every word group in brackets may be left out.
+function vmfbOptionalWords(list) {
+  var out = [];
+  list.forEach(function (a) {
+    var parts = String(a).split(/(\([^()]*\))/), opt = [];
+    parts.forEach(function (x, i) { if (/^\(.*\)$/.test(x)) opt.push(i); });
+    if (!opt.length || opt.length > 4) { out.push(String(a)); return; }   // more than 4 brackets is not a real key; compare it as typed
+    for (var m = 0; m < (1 << opt.length); m++) {
+      out.push(parts.map(function (x, i) { var k = opt.indexOf(i); return k < 0 ? x : ((m >> k) & 1 ? x.slice(1, -1) : ' '); }).join('').replace(/\s+/g, ' ').trim());
+    }
+  });
+  return out;
+}
+
 function vmfbIeltsGradeAttempt(p) {
   p = p || {};
   if (p.mode === 'reportDoc') return vmfbIeltsReportDoc(p);   // class report → Google Doc (reached through this route so Code.gs needs no extra line)
@@ -252,7 +266,7 @@ function vmfbIeltsGradeAttempt(p) {
   var correct = 0, graded = 0, responses = input.map(function(answer, i){
     var q = questions[i], accepted = Array.isArray(q.__accepted) ? q.__accepted : [];
     var opts = Array.isArray(q.options) ? q.options : [];
-    var hit = accepted.length ? accepted.some(function(a){
+    var hit = accepted.length ? vmfbOptionalWords(accepted).some(function(a){
       if (norm(a) === norm(answer)) return true;
       if (vmfbSpell(norm(a)) === vmfbSpell(norm(answer))) return true;   // colour = color, centre = center
       if (q.type === 'true-false-not-given' || q.type === 'yes-no-not-given') { if (tfn(a) === tfn(answer)) return true; }
