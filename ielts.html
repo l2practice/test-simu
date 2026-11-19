@@ -278,6 +278,7 @@ body.exam-hc .il-wordbank{background:#fff;border-color:#000}body.exam-hc .wb-ite
 .ex-gutter::after{content:"";position:absolute;top:50%;left:50%;width:4px;height:44px;margin:-22px 0 0 -2px;border-radius:4px;background:#9AA8A1}
 .ex-gutter:hover,.ex-gutter:focus-visible,.ex-gutter.on{background:var(--il-a,#0F6B4F)}.ex-gutter:hover::after,.ex-gutter:focus-visible::after,.ex-gutter.on::after{background:#fff}
 body.ex-dragging{cursor:col-resize;user-select:none}
+.ex-key{display:inline-block;width:max-content;max-width:100%;align-self:flex-start;margin:2px 6px;padding:1px 8px;border-radius:8px;background:#FFF4CC;border:1px solid #E9C46A;color:#6B4E00;font-size:.85rem;font-weight:700;white-space:nowrap}.ex-key.none{background:#F3F3F3;border-color:#ccc;color:#777;font-weight:600}
 @media(max-width:900px){.exam-split.has-gutter{grid-template-columns:1fr}.ex-gutter{display:none}}
 /* Phones: compact chrome so the passage / audio and the questions get the room */
 @media(max-width:700px){
@@ -1744,9 +1745,10 @@ function renderPractice(){
  if(rv){
   root().innerHTML='<div class="ielts-wrap wide"><div class="il-toolbar il-sticky"><button class="vm-btn vm-btn-ghost" id="exit">← '+(state.assignment?'In-class':'Back')+'</button><span class="il-badge il-badge-'+esc(x.skill)+'">'+esc(x.skill)+'</span><strong class="il-title">'+esc(titleItem(x))+'</strong><span class="il-spacer"></span><button class="vm-btn vm-btn-ghost" id="report">Report issue</button></div><div id="reviewBanner"></div>'+(listen?'<div class="il-panel il-audio" id="audioBar"></div>':'')+'<div class="il-tabs" id="partTabs"></div><div id="splitArea" class="il-split'+(listen?' two':'')+'"></div><div class="il-row il-nav" id="navRow"></div><div id="insights"></div><div class="il-panel" id="aiBox"><h3>AI feedback</h3><div id="aiFeedback" class="il-ai-output"></div><div class="il-row" style="margin-top:10px"><button class="vm-btn vm-btn-primary" id="mkDoc">Create feedback doc</button><button class="vm-btn vm-btn-ghost" id="aiAgain">Analyse again</button><button class="vm-btn vm-btn-ghost" id="openAiSettings">AI settings</button></div><div id="docBox"></div></div><section class="il-answer-key" id="answerKey"></section><div id="extra"></div></div>';
  }else{
-  root().innerHTML='<div class="exam"><div class="exam-top"><button class="exam-btn" id="exit">'+(state.previewBack?'← Back to editor':'← Exit')+'</button><div class="exam-title">'+esc(titleItem(x))+'</div><div class="exam-clock" id="clock">0:00</div><div class="exam-tools" role="group" aria-label="Reading comfort"><button class="exam-btn" id="zOut" aria-label="Zoom out" title="Smaller text">A−</button><span class="exam-zval" id="zVal" aria-live="polite">100%</span><button class="exam-btn" id="zIn" aria-label="Zoom in" title="Larger text">A+</button><button class="exam-btn" id="thm" title="Change display mode: light, dark, high contrast">☀ Light</button><button class="exam-btn" id="fsb" title="Full screen: hides the browser bars for more room (Esc to leave)">⛶ Full screen</button></div><span class="il-spacer"></span><span class="exam-prog" id="prog"></span>'+(isPrev()?'<span class="exam-tag">Preview</span>':'')+'<button class="exam-btn" id="report">Report issue</button></div>'+(listen?'<div class="exam-audio" id="audioBar"></div>':'')+'<div class="exam-part" id="partBar"></div><div id="splitArea" class="exam-split'+(listen?' single':'')+'"></div><div class="exam-bottom" id="examNav"></div></div><div id="extra"></div>';
+  root().innerHTML='<div class="exam"><div class="exam-top"><button class="exam-btn" id="exit">'+(state.previewBack?'← Back to editor':'← Exit')+'</button><div class="exam-title">'+esc(titleItem(x))+'</div><div class="exam-clock" id="clock">0:00</div><div class="exam-tools" role="group" aria-label="Reading comfort"><button class="exam-btn" id="zOut" aria-label="Zoom out" title="Smaller text">A−</button><span class="exam-zval" id="zVal" aria-live="polite">100%</span><button class="exam-btn" id="zIn" aria-label="Zoom in" title="Larger text">A+</button><button class="exam-btn" id="thm" title="Change display mode: light, dark, high contrast">☀ Light</button><button class="exam-btn" id="fsb" title="Full screen: hides the browser bars for more room (Esc to leave)">⛶ Full screen</button></div><span class="il-spacer"></span><span class="exam-prog" id="prog"></span>'+(isPrev()?'<span class="exam-tag">Preview</span>':'')+''+(teacher&&!state.previewBack?'<button class="exam-btn" id="keysBtn" aria-pressed="'+(state.showKeys?'true':'false')+'" title="Teachers only: show the answer key next to every question">'+(state.showKeys?'Hide keys':'Keys')+'</button>':'')+'<button class="exam-btn" id="report">Report issue</button></div>'+(listen?'<div class="exam-audio" id="audioBar"></div>':'')+'<div class="exam-part" id="partBar"></div><div id="splitArea" class="exam-split'+(listen?' single':'')+'"></div><div class="exam-bottom" id="examNav"></div></div><div id="extra"></div>';
  }
  document.getElementById('exit').onclick=function(){var pb=state.previewBack;function out(){stopTimer();exitFS();if(pb){pb();return;}state.active=null;state.run=null;state.review=null;state.assignment=null;render();var ys=state.retScroll||0;state.retScroll=0;window.scrollTo(0,ys);setTimeout(function(){window.scrollTo(0,ys);},60);}if(!rv&&!isPrev()&&answeredCount())VM.confirm('Leave the test and discard your answers?',{danger:true,ok:'Leave'}).then(function(y){if(y)out();});else out();};
+ var kb=document.getElementById('keysBtn');if(kb)kb.onclick=function(){state.showKeys=!state.showKeys;kb.textContent=state.showKeys?'Hide keys':'Keys';kb.setAttribute('aria-pressed',String(state.showKeys));showKeys();};
  document.getElementById('report').onclick=function(){VM.prompt('Which question number has a problem? (optional)',{title:'Report an issue',ok:'Next'}).then(function(n){if(n===null)return;VM.prompt('Describe the problem for your teacher:',{title:'Report an issue',multiline:true,ok:'Send'}).then(function(message){if(!message||!message.trim())return;call('ielts.report.create',{contentId:String(x.id||x._id).split(',')[0],contentTitle:titleItem(x),questionNumber:n,message:message,privateContent:false}).then(function(){VM.toast('Report sent to your teacher.','ok');}).catch(function(e){say(e.message);});});});};
  var split=document.getElementById('splitArea');
  function joinSub(i){var vs=qa('#splitArea input[data-q="'+i+'"][data-sub]').sort(function(a,b){return +a.getAttribute('data-sub')-+b.getAttribute('data-sub');}).map(function(x){return x.value.trim();});return vs.some(Boolean)?vs.join(' and ').replace(/^ and | and $/g,''):'';}
@@ -2016,7 +2018,22 @@ function drawSplit(){
  area.innerHTML=(listen?(exam?right:right+script):left+(gutter?'<div class="ex-gutter" role="separator" aria-orientation="vertical" aria-label="Drag to resize the passage and the questions" tabindex="0"></div>':'')+right);
  area.classList.toggle('has-gutter',gutter);
  if(gutter)splitGutter(area);
+ if(teacher&&state.showKeys&&!rv)showKeys();
  qa('#splitArea [data-hk]').forEach(function(el){var h=r.hl[el.getAttribute('data-hk')];if(h)el.innerHTML=h;});
+}
+
+/* Teachers only: the answer key next to each question of the part on screen (the key comes with the test for a teacher who can edit it) */
+function showKeys(){
+ qa('#splitArea .ex-key').forEach(function(k){k.remove();});
+ if(!state.showKeys||!state.active||!state.run)return;
+ flatQs(state.active).filter(function(f){return f.part===state.run.part;}).forEach(function(f){
+  var i=f.n-1,els=qa('#splitArea [data-q="'+i+'"]');
+  if(!els.length)els=qa('#splitArea [data-mc]').filter(function(e){return e.getAttribute('data-mc').split(',').indexOf(String(i))>=0;});
+  if(!els.length)return;
+  var a=(f.q.answers||[]).filter(Boolean),k=document.createElement('span');
+  k.className='ex-key'+(a.length?'':' none');k.textContent=f.num+': '+(a.length?a.join(' / '):'no key');
+  var at=els[els.length-1];at=at.closest('label')||at.closest('.gap-wrap')||at;at.insertAdjacentElement('afterend',k);
+ });
 }
 
 /* Drag bar between the passage and the questions; the width is remembered on this device. Double-click (or Home) resets it. */
