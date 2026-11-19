@@ -1356,7 +1356,8 @@ async function ieltsImportUrl(p) {
 // APPS SCRIPT (admin): accounts + passwords
 // ════════════════════════════════════════════
 async function ieltsAttemptRegrade(p) {   // teacher: mark saved attempts again with the current rules (runs in Apps Script, which may write attempts)
-  await teacher();
+  await teacher(); const current = auth.currentUser;
+  if (!current) return fail('SESSION_EXPIRED');
   return gas('ielts.gradeAttempt', { idToken: await current.getIdToken(), mode: 'regrade', after: str(p.after) });
 }
 async function gas(action, payload) {
