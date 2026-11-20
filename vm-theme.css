@@ -744,7 +744,7 @@ th.tt-asc::after{content:'↑';opacity:1;color:var(--il-a,#0F6B4F)}
 th.tt-desc::after{content:'↓';opacity:1;color:var(--il-a,#0F6B4F)}
 
 /* ═════ Palette (Nov 2026): Reading #013230 · Listening #FF6A1F · cream #F3EBDD ═════
-   The skill colour (--il-a) marks identity; the opposite colour (--cta) is for buttons and the chosen option.
+   Buttons and the chosen option (--cta) take the skill colour: Reading green, Listening orange.
    Text on orange is cream (#FFF8EC). This block is last so it wins over the older layers above. */
 :root{
  --vm-primary:#013230;--vm-primary-hv:#0D5550;--vm-primary-dk:#011F1E;--vm-primary-lt:#E2ECE8;
@@ -756,9 +756,9 @@ th.tt-desc::after{content:'↓';opacity:1;color:var(--il-a,#0F6B4F)}
  --il-b:#FF6A1F;--il-b2:#FF9457;--il-bdk:#B8470C;--il-blt:#FFE6D6;
  --cta:#013230;--cta-dk:#011F1E;--on-cta:#FFF8EC;
 }
-body.skill-reading{--il-a:#013230;--il-a2:#0D5550;--il-adk:#011F1E;--il-alt:#E2ECE8;--il-asoft:#EEF3F0;--il-b:#FF6A1F;--il-b2:#FF9457;--il-bdk:#B8470C;--il-blt:#FFE6D6;--cta:#FF6A1F;--cta-dk:#E85A12;--on-cta:#FFF8EC;
+body.skill-reading{--il-a:#013230;--il-a2:#0D5550;--il-adk:#011F1E;--il-alt:#E2ECE8;--il-asoft:#EEF3F0;--il-b:#FF6A1F;--il-b2:#FF9457;--il-bdk:#B8470C;--il-blt:#FFE6D6;--cta:#013230;--cta-dk:#011F1E;--on-cta:#FFF8EC;
  --vm-primary:#013230;--vm-primary-hv:#0D5550;--vm-primary-dk:#011F1E;--vm-primary-lt:#E2ECE8;--vm-border:#E3D6C1;--vm-border-2:#EDE3D3;--vm-surface-2:#FAF5EC}
-body.skill-listening{--il-a:#FF6A1F;--il-a2:#FF9457;--il-adk:#B8470C;--il-alt:#FFE1CF;--il-asoft:#FFF2E9;--il-b:#013230;--il-b2:#0D5550;--il-bdk:#011F1E;--il-blt:#E2ECE8;--cta:#013230;--cta-dk:#011F1E;--on-cta:#FFF8EC;
+body.skill-listening{--il-a:#FF6A1F;--il-a2:#FF9457;--il-adk:#B8470C;--il-alt:#FFE1CF;--il-asoft:#FFF2E9;--il-b:#013230;--il-b2:#0D5550;--il-bdk:#011F1E;--il-blt:#E2ECE8;--cta:#FF6A1F;--cta-dk:#E85A12;--on-cta:#FFF8EC;
  --vm-primary:#FF6A1F;--vm-primary-hv:#E85A12;--vm-primary-dk:#B8470C;--vm-primary-lt:#FFE1CF;--vm-border:#EBD6C2;--vm-border-2:#F2E4D6;--vm-surface-2:#FFF6EE}
 html body{background:#F3EBDD;background-image:none}
 body::before,body::after{display:none}
