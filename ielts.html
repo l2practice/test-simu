@@ -575,6 +575,12 @@ body:not(.skill-reading):not(.skill-listening){--il-a:#013230;--il-a2:#0D5550;--
 .il-seg button.on,.st-tabs .st-tab.on{color:var(--cta)!important}
 .il-badge-reading{background:#E2ECE8!important;color:#013230!important}.il-badge-listening{background:#FFE6D6!important;color:#B8470C!important}
 /* test cards: the button takes the card's skill colour, with the round arrow on every card */
+/* task types page: Reading and Listening side by side, each in its own framed block */
+.ty-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,500px),1fr));gap:18px;align-items:start;margin-top:6px}
+.ty-col{background:rgba(255,252,246,.6);border:1px solid var(--dz-line);border-top:5px solid var(--il-a);border-radius:22px;padding:6px 16px 16px}
+.ty-col .ty-sect{margin:10px 0 12px}.ty-col .ty-card h3{font-size:1.05rem}.ty-col .il-lib-head .il-badge{white-space:nowrap;flex:none}.ty-col .il-grid-lib{grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.ty-col-reading{--il-a:#013230;--il-a2:#0D5550;--il-adk:#011F1E;--il-alt:#E2ECE8;--il-asoft:#EEF3F0}
+.ty-col-listening{--il-a:#FF6A1F;--il-a2:#FF9457;--il-adk:#B8470C;--il-alt:#FFE1CF;--il-asoft:#FFF2E9}
 .tk-reading,.il-lib-reading{--cta:#013230;--cta-dk:#011F1E}.tk-listening,.il-lib-listening{--cta:#FF6A1F;--cta-dk:#E85A12}
 body:not(.exam-mode) .il-card .vm-btn-primary,body:not(.exam-mode) .tk .vm-btn-primary,body:not(.exam-mode) .il-toolbar a.vm-btn-primary{background:var(--cta)!important;color:var(--on-cta,#FFF8EC)!important;border:none!important;padding:5px 5px 5px 16px!important;display:inline-flex;align-items:center;gap:10px;width:auto!important;flex:none!important;align-self:flex-start;box-shadow:0 8px 18px -12px rgba(1,50,48,.55)!important}
 body:not(.exam-mode) .il-card .vm-btn-primary::after,body:not(.exam-mode) .tk .vm-btn-primary::after,body:not(.exam-mode) .il-toolbar a.vm-btn-primary::after{content:"↗";display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;background:rgba(255,248,236,.22);color:#FFF8EC;font-size:.9rem;transition:transform .2s}
@@ -1262,11 +1268,11 @@ function drawTypesPage(into,fixed){
   var types=TYPES_BY_SKILL[skill].slice();
   approved.forEach(function(i){if(i.skill===skill)(i.taskTypes||[]).forEach(function(t){if(types.indexOf(t)<0)types.push(t);});});
   if(skill==='reading')types=types.filter(function(t){return t!=='plan-map-diagram-labelling';});   // in Reading, diagram labelling and diagram completion are one card
-  body+='<div class="ty-sect"><h2>'+(skill==='reading'?'Reading':'Listening')+'</h2><span class="il-badge il-badge-'+skill+'">'+types.length+' task types</span></div><div class="il-grid il-grid-lib">'+types.map(function(t){
+  body+='<section class="ty-col ty-col-'+skill+'"><div class="ty-sect"><h2>'+(skill==='reading'?'Reading':'Listening')+'</h2><span class="il-badge il-badge-'+skill+'">'+types.length+' task types</span></div><div class="il-grid il-grid-lib">'+types.map(function(t){
    var tset=(skill==='reading'&&t==='diagram-completion')?['diagram-completion','plan-map-diagram-labelling']:[t],its=approved.filter(function(i){return i.skill===skill&&(i.taskTypes||[]).some(function(x){return tset.indexOf(x)>=0;});}),idx=cards.push({skill:skill,type:t,types:tset,items:its})-1;
-   return '<article class="il-card il-lib il-lib-'+skill+' ty-card'+(its.length?'':' ty-off')+'"><div class="il-lib-head"><h3>'+esc(skill==='listening'&&t==='matching-features'?'Matching':(skill==='reading'&&t==='diagram-completion'?'Diagram Completion / Labelling':typeName(t)))+'</h3><span class="il-badge il-badge-'+skill+'">'+its.length+' part'+(its.length===1?'':'s')+'</span></div><div class="ty-desc">'+esc(skill==='listening'&&t==='matching-features'?'Match each item with a letter from a box or list of options.':(TYPE_INFO[t]||''))+'</div>'+(its.length?'<button class="vm-btn vm-btn-primary vm-btn-sm" data-ty="'+idx+'">Choose parts</button>':'<button class="vm-btn vm-btn-ghost vm-btn-sm" disabled>No tests yet</button>')+'</article>';}).join('')+'</div>';
+   return '<article class="il-card il-lib il-lib-'+skill+' ty-card'+(its.length?'':' ty-off')+'"><div class="il-lib-head"><h3>'+esc(skill==='listening'&&t==='matching-features'?'Matching':(skill==='reading'&&t==='diagram-completion'?'Diagram Completion / Labelling':typeName(t)))+'</h3><span class="il-badge il-badge-'+skill+'">'+its.length+' part'+(its.length===1?'':'s')+'</span></div><div class="ty-desc">'+esc(skill==='listening'&&t==='matching-features'?'Match each item with a letter from a box or list of options.':(TYPE_INFO[t]||''))+'</div>'+(its.length?'<button class="vm-btn vm-btn-primary vm-btn-sm" data-ty="'+idx+'">Choose parts</button>':'<button class="vm-btn vm-btn-ghost vm-btn-sm" disabled>No tests yet</button>')+'</article>';}).join('')+'</div></section>';
  });
- document.getElementById('tyBody').innerHTML=body;
+ document.getElementById('tyBody').innerHTML='<div class="ty-cols">'+body+'</div>';
  qa('[data-ty]').forEach(function(b){b.onclick=function(){pickParts(cards[+b.getAttribute('data-ty')]);};});
 }
 function pickParts(t){
