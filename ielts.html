@@ -574,6 +574,11 @@ body:not(.skill-reading):not(.skill-listening){--il-a:#013230;--il-a2:#0D5550;--
 .sl-thumb{background:#FFFCF6!important}
 .il-seg button.on,.st-tabs .st-tab.on{color:var(--cta)!important}
 .il-badge-reading{background:#E2ECE8!important;color:#013230!important}.il-badge-listening{background:#FFE6D6!important;color:#B8470C!important}
+/* test cards: the button takes the colour opposite to the card's skill, with the round arrow on every card */
+.tk-reading,.il-lib-reading{--cta:#FF6A1F;--cta-dk:#E85A12}.tk-listening,.il-lib-listening{--cta:#013230;--cta-dk:#011F1E}
+body:not(.exam-mode) .il-card .vm-btn-primary,body:not(.exam-mode) .tk .vm-btn-primary,body:not(.exam-mode) .il-toolbar a.vm-btn-primary{background:var(--cta)!important;color:var(--on-cta)!important;border:none!important;padding:5px 5px 5px 16px!important;display:inline-flex;align-items:center;gap:10px;box-shadow:0 8px 18px -12px rgba(1,50,48,.55)!important}
+body:not(.exam-mode) .il-card .vm-btn-primary::after,body:not(.exam-mode) .tk .vm-btn-primary::after,body:not(.exam-mode) .il-toolbar a.vm-btn-primary::after{content:"↗";display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;background:rgba(255,248,236,.22);color:#FFF8EC;font-size:.9rem;transition:transform .2s}
+body:not(.exam-mode) .il-card .vm-btn-primary:hover::after,body:not(.exam-mode) .tk .vm-btn-primary:hover::after{transform:rotate(45deg)}
 body.skill-listening .exam-top{background:#FF6A1F!important}body.skill-reading .exam-top{background:#013230!important}
 .exam-top .exam-btn{color:#FFF8EC!important;border-color:rgba(255,248,236,.55)!important;background:rgba(255,248,236,.12)!important}
 </style>
