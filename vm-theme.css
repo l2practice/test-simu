@@ -742,3 +742,29 @@ th.tt-th:hover{background:var(--il-asoft,#EEF7F2)}
 th.tt-th::after{content:'↕';margin-left:6px;font-size:.78em;opacity:.35}
 th.tt-asc::after{content:'↑';opacity:1;color:var(--il-a,#0F6B4F)}
 th.tt-desc::after{content:'↓';opacity:1;color:var(--il-a,#0F6B4F)}
+
+/* ═════ Palette (Nov 2026): Reading #013230 · Listening #FF6A1F · cream #F3EBDD ═════
+   The skill colour (--il-a) marks identity; the opposite colour (--cta) is for buttons and the chosen option.
+   Text on orange is cream (#FFF8EC). This block is last so it wins over the older layers above. */
+:root{
+ --vm-primary:#013230;--vm-primary-hv:#0D5550;--vm-primary-dk:#011F1E;--vm-primary-lt:#E2ECE8;
+ --vm-accent:#FF6A1F;--vm-accent-dk:#B8470C;--vm-accent-lt:#FFE6D6;
+ --vm-sand:#E8DCC8;--vm-sand-2:#FAF5EC;--vm-bg:#F3EBDD;--vm-bg-grad:#F3EBDD;--vm-surface-2:#FAF5EC;
+ --vm-border:#E3D6C1;--vm-border-2:#EDE3D3;--vm-ink:#1D2523;--vm-ink-2:#4A524E;--vm-ink-3:#676B65;
+ --vm-ring:0 0 0 3px rgba(255,106,31,.32);--vm-on-orange:#FFF8EC;
+ --il-a:#013230;--il-a2:#0D5550;--il-adk:#011F1E;--il-alt:#E2ECE8;--il-asoft:#EEF3F0;
+ --il-b:#FF6A1F;--il-b2:#FF9457;--il-bdk:#B8470C;--il-blt:#FFE6D6;
+ --cta:#013230;--cta-dk:#011F1E;--on-cta:#FFF8EC;
+}
+body.skill-reading{--il-a:#013230;--il-a2:#0D5550;--il-adk:#011F1E;--il-alt:#E2ECE8;--il-asoft:#EEF3F0;--il-b:#FF6A1F;--il-b2:#FF9457;--il-bdk:#B8470C;--il-blt:#FFE6D6;--cta:#FF6A1F;--cta-dk:#E85A12;--on-cta:#FFF8EC;
+ --vm-primary:#013230;--vm-primary-hv:#0D5550;--vm-primary-dk:#011F1E;--vm-primary-lt:#E2ECE8;--vm-border:#E3D6C1;--vm-border-2:#EDE3D3;--vm-surface-2:#FAF5EC}
+body.skill-listening{--il-a:#FF6A1F;--il-a2:#FF9457;--il-adk:#B8470C;--il-alt:#FFE1CF;--il-asoft:#FFF2E9;--il-b:#013230;--il-b2:#0D5550;--il-bdk:#011F1E;--il-blt:#E2ECE8;--cta:#013230;--cta-dk:#011F1E;--on-cta:#FFF8EC;
+ --vm-primary:#FF6A1F;--vm-primary-hv:#E85A12;--vm-primary-dk:#B8470C;--vm-primary-lt:#FFE1CF;--vm-border:#EBD6C2;--vm-border-2:#F2E4D6;--vm-surface-2:#FFF6EE}
+html body{background:#F3EBDD;background-image:none}
+body::before,body::after{display:none}
+.vm-btn-primary,.vm-btn-primary:hover:not(:disabled){background:var(--cta)!important;color:var(--on-cta)!important;border-color:transparent!important;box-shadow:0 1px 2px rgba(1,50,48,.18),0 8px 18px -10px rgba(1,50,48,.55)!important}
+.vm-btn-primary:hover:not(:disabled){background:var(--cta-dk)!important}
+.vm-btn-accent{background:#FF6A1F!important;color:#FFF8EC!important;border-color:transparent!important}
+.vm-nav-badge{color:#FFF8EC}
+input[type=radio],input[type=checkbox]{accent-color:var(--cta)}
+th.tt-asc::after,th.tt-desc::after{color:var(--il-a)}
